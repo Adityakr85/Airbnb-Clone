@@ -1,4 +1,4 @@
-# StayFinder - Airbnb Replica
+# Airbnb-Clone
 
 ## Overview
 
@@ -58,7 +58,6 @@ StayFinder is a full-stack Airbnb-inspired property rental and booking platform 
 - React.js
 - Tailwind CSS
 - React Router DOM
-- Axios
 - Clerk Authentication
 
 ### Backend
@@ -79,7 +78,7 @@ StayFinder is a full-stack Airbnb-inspired property rental and booking platform 
 ## Project Structure
 
 ```text
-stayfinder/
+Airbnb-Clone/
 │
 ├── frontend/
 │   ├── src/
@@ -161,8 +160,8 @@ stayfinder/
 ### Clone Repository
 
 ```bash
-git clone https://github.com/your-username/stayfinder.git
-cd stayfinder
+git clone https://github.com/Student-Abhishekkumar/Airbnb-Clone.git
+cd Airbnb-Clone
 ```
 
 ### Frontend Setup
@@ -179,17 +178,6 @@ npm run dev
 2. Start Apache and MySQL.
 3. Import database/stayfinder.sql into MySQL.
 4. Update database credentials in config file.
-
-### Clerk Setup
-
-1. Create a Clerk account.
-2. Create a new application.
-3. Copy Publishable Key.
-4. Create a `.env` file inside frontend.
-
-```env
-VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-```
 
 ---
 
