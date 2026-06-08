@@ -143,6 +143,34 @@ const properties = [
     type: "Cottage",
     image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994",
   },
+  {
+    id: 13,
+    title: "Riverside Cottage",
+    location: "Ranchi, India",
+    price: 3000,
+    rating: 4.2,
+    guests: 4,
+    bedrooms: 2,
+    bathrooms: 1,
+    type: "Cottage",
+    image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994",
+  },
+  {
+    id: 14,
+    title: "Flat in Ranchi",
+    location: "Ranchi, India",
+    price: 6848,
+    rating: 4.92,
+    image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6",
+  },
+  {
+    id: 15,
+    title: "Room in Puri",
+    location: "Puri, India",
+    price: 3538,
+    rating: 4.96,
+    image: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85",
+  },
 ];
 
 export default properties;
