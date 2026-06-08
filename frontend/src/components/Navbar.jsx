@@ -1,13 +1,7 @@
 import { useEffect, useState } from "react";
 import { Search, Globe, Menu } from "lucide-react";
 import { Link } from "react-router-dom";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  UserButton,
-} from "@clerk/clerk-react";
-
+import MenuDropdown from "./MenuDropdown";
 import airbnbLogo from "../assets/Airbnb-logo.png";
 
 export default function Navbar() {
@@ -109,20 +103,7 @@ export default function Navbar() {
           <button className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition">
             <Globe size={21} />
           </button>
-
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition">
-                <Menu size={22} />
-              </button>
-            </SignInButton>
-          </SignedOut>
-
-          <SignedIn>
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100">
-              <UserButton afterSignOutUrl="/" />
-            </div>
-          </SignedIn>
+          <MenuDropdown />
         </div>
       </nav>
 
