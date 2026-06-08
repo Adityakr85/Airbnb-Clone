@@ -1,20 +1,25 @@
 import { Search, Globe, Menu } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   SignedIn,
   SignedOut,
   SignInButton,
   UserButton,
 } from "@clerk/clerk-react";
+import airbnbLogo from "../assets/Airbnb-logo.png";
 
 export default function Navbar() {
   return (
     <header className="w-full bg-white shadow-sm">
       <nav className="h-[92px] flex items-center justify-between px-8">
         {/* Logo */}
-        <div className="flex items-center gap-2 text-[#FF385C] font-bold text-3xl">
-          <span className="text-4xl">⌂</span>
-          <span>airbnb</span>
-        </div>
+        <Link to="/" className="flex items-center">
+          <img
+            src={airbnbLogo}
+            alt="Airbnb"
+            className="h-14 w-auto object-contain"
+          />
+        </Link>
 
         {/* Center Tabs */}
         <div className="hidden md:flex items-center gap-10">

@@ -1,5 +1,5 @@
-import { Globe, Facebook, Instagram } from "lucide-react";
-import { FaXTwitter } from "react-icons/fa6";
+import { Globe } from "lucide-react";
+import { FaXTwitter, FaFacebook, FaInstagram } from "react-icons/fa6";
 
 export default function Footer() {
   return (
@@ -85,9 +85,9 @@ export default function Footer() {
             <Globe size={17} /> English (IN)
           </span>
           <span>₹ INR</span>
-          <Facebook size={18} />
           <FaXTwitter size={17} />
-          <Instagram size={18} />
+          <FaFacebook size={17} />
+          <FaInstagram size={17} />
         </div>
       </div>
     </footer>
