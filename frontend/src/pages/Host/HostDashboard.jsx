@@ -58,7 +58,7 @@ export default function HostDashboard() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
+      
       <div className="bg-white border-b border-gray-200 px-6 py-8">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900">Host Dashboard</h1>
@@ -67,7 +67,7 @@ export default function HostDashboard() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        {/* Stats Grid */}
+        
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats.map(({ label, value, icon: Icon, color, link }) => (
             <Link
@@ -84,7 +84,7 @@ export default function HostDashboard() {
           ))}
         </div>
 
-        {/* Quick Actions */}
+        {
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-3">Quick Actions</h2>
           <div className="flex flex-wrap gap-3">
@@ -102,7 +102,7 @@ export default function HostDashboard() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Recent Properties */}
+          
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <h2 className="font-semibold text-gray-900">Your Properties</h2>
@@ -142,7 +142,7 @@ export default function HostDashboard() {
             </div>
           </div>
 
-          {/* Pending Reservations */}
+          
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <h2 className="font-semibold text-gray-900">
@@ -196,7 +196,7 @@ export default function HostDashboard() {
           </div>
         </div>
 
-        {/* Confirmed upcoming */}
+        
         {confirmedReservations.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
