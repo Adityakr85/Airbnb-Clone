@@ -9,7 +9,8 @@ import Trips from "./pages/User/Trips";
 import Messages from "./pages/User/Messages";
 import Profile from "./pages/User/Profile";
 import Notifications from "./pages/User/Notifications";
-import Settings from "./pages/User/Settings";
+import AccountSettings from "./pages/User/AccountSettings";
+import EditProfile from "./pages/User/EditProfile";
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
@@ -24,8 +25,12 @@ const App = () => {
         <Route path="/pages/User/Trips" element={<Trips />} />
         <Route path="/pages/User/Messages" element={<Messages />} />
         <Route path="/pages/User/Profile" element={<Profile />} />
+        <Route path="/pages/User/EditProfile" element={<EditProfile />} />
         <Route path="/pages/User/Notifications" element={<Notifications />} />
-        <Route path="/pages/User/Settings" element={<Settings />} />
+        <Route
+          path="/pages/User/AccountSettings"
+          element={<AccountSettings />}
+        />
       </Routes>
       {!isAdminRoute && <Footer />}
     </>

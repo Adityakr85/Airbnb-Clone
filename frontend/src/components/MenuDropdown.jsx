@@ -122,13 +122,13 @@ export default function MenuDropdown() {
 
             <MenuItem
               icon={Settings}
-              label="Account settings"
-              to="/pages/User/Settings"
+              label="Account Settings"
+              to="/pages/User/AccountSettings"
             />
 
             <MenuItem
               icon={Globe}
-              label="Languages & currency"
+              label="Languages & Currency"
               to="/Language&Currency"
             />
 
