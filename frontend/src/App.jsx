@@ -14,9 +14,9 @@ import Settings from "./pages/User/Settings";
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
   return (
-    <>
-      {!isAdminRoute && <Navbar />}
+    <>    
       <Toaster />
+      {!isAdminRoute && <Navbar />}
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -25,7 +25,7 @@ const App = () => {
         <Route path="/pages/User/Messages" element={<Messages />} />
         <Route path="/pages/User/Profile" element={<Profile />} />
         <Route path="/pages/User/Notifications" element={<Notifications />} />
-        <Route path="/pages/User/Settings" element={<Settings />} />
+        <Route path="/pages/User/Settings" element={<Settings />} />        
       </Routes>
       {!isAdminRoute && <Footer />}
     </>
