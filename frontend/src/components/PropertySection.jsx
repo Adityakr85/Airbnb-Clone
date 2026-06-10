@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Heart, ChevronRight } from "lucide-react";
 
 export default function PropertySection({ title, properties = [] }) {
@@ -8,7 +9,9 @@ export default function PropertySection({ title, properties = [] }) {
       {/* Section Header */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold text-gray-950">{title}</h2>
+          <h2 className="text-xl font-semibold text-gray-950">
+            {title}
+          </h2>
 
           <button className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200">
             <ChevronRight size={18} />
@@ -19,40 +22,61 @@ export default function PropertySection({ title, properties = [] }) {
       {/* Horizontal Cards */}
       <div className="flex gap-4 overflow-x-auto scroll-smooth pb-3 scrollbar-hide">
         {properties.map((property) => (
-          <article
-            key={property.id}
-            className="group min-w-[205px] max-w-[205px] cursor-pointer"
-          >
-            {/* Image */}
-            <div className="relative h-[195px] overflow-hidden rounded-2xl bg-gray-100">
-              <img
-                src={property.image}
-                alt={property.title}
-                loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+          <>
+            {/*
+            OLD CODE
 
-              <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1.5 text-xs font-semibold shadow-sm">
-                Guest favourite
-              </span>
+            <article
+              key={property.id}
+              className="group min-w-[205px] max-w-[205px] cursor-pointer"
+            >
+            */}
 
-              <button className="absolute right-3 top-3 text-white drop-shadow-md transition hover:scale-110">
-                <Heart size={25} />
-              </button>
-            </div>
+            <Link
+              key={property.id}
+              to={`/property/${property.id}`}
+              className="group min-w-[205px] max-w-[205px] cursor-pointer block"
+            >
+              {/* Image */}
+              <div className="relative h-[195px] overflow-hidden rounded-2xl bg-gray-100">
+                <img
+                  src={property.image || property.images?.[0]}
+                  alt={property.title}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
 
-            {/* Details */}
-            <div className="mt-2">
-              <h3 className="truncate text-sm font-semibold text-gray-950">
-                {property.title}
-              </h3>
+                <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1.5 text-xs font-semibold shadow-sm">
+                  Guest favourite
+                </span>
 
-              <p className="mt-0.5 truncate text-sm text-gray-600">
-                ₹{Number(property.price).toLocaleString("en-IN")} for 2 nights ·
-                ★ {property.rating}
-              </p>
-            </div>
-          </article>
+                <button
+                  onClick={(e) => e.preventDefault()}
+                  className="absolute right-3 top-3 text-white drop-shadow-md transition hover:scale-110"
+                >
+                  <Heart size={25} />
+                </button>
+              </div>
+
+              {/* Details */}
+              <div className="mt-2">
+                <h3 className="truncate text-sm font-semibold text-gray-950">
+                  {property.title}
+                </h3>
+
+                <p className="mt-0.5 truncate text-sm text-gray-600">
+                  ₹{Number(property.price).toLocaleString("en-IN")} for 2 nights
+                  {property.rating && ` · ★ ${property.rating}`}
+                </p>
+              </div>
+            </Link>
+
+            {/*
+            OLD CODE
+
+            </article>
+            */}
+          </>
         ))}
       </div>
     </section>
