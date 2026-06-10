@@ -25,7 +25,6 @@ const App = () => {
     <>
       {!isAdminRoute && !isHostRoute && <Navbar />}
       <Toaster />
-
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/pages/User/Wishlist" element={<Wishlist />} />
