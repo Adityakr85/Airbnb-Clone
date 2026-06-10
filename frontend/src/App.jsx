@@ -11,12 +11,19 @@ import Profile from "./pages/User/Profile";
 import Notifications from "./pages/User/Notifications";
 import AccountSettings from "./pages/User/AccountSettings";
 import EditProfile from "./pages/User/EditProfile";
+import HostDashboard from "./pages/Host/HostDashboard";
+import AddProperty from "./pages/Host/AddProperty";
+import MyProperties from "./pages/Host/MyProperties";
+import PropertyAnalytics from "./pages/Host/PropertyAnalytics";
+import HostReservations from "./pages/Host/HostReservations";
+import { HostProvider } from "./pages/Host/HostContext";
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
+  const isHostRoute = useLocation().pathname.startsWith("/host");
   return (
     <>
-      {!isAdminRoute && <Navbar />}
+      {!isAdminRoute && !isHostRoute && <Navbar />}
       <Toaster />
 
       <Routes>
@@ -31,8 +38,13 @@ const App = () => {
           path="/pages/User/AccountSettings"
           element={<AccountSettings />}
         />
+        <Route path="/host" element={<HostDashboard />} />
+        <Route path="/host/add-property" element={<AddProperty />} />
+        <Route path="/host/properties" element={<MyProperties />} />
+        <Route path="/host/analytics" element={<PropertyAnalytics />} />
+        <Route path="/host/reservations" element={<HostReservations />} />
       </Routes>
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && !isHostRoute && <Footer />}
     </>
   );
 };
