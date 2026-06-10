@@ -15,21 +15,11 @@ import Notifications from "./pages/User/Notifications";
 import Settings from "./pages/User/Settings";
 
 const App = () => {
-  const location = useLocation();
-
-  const isAdminRoute =
-    location.pathname.startsWith("/admin");
-
-  const isPropertyDetailsPage =
-    location.pathname.startsWith("/property/");
+  const isAdminRoute = useLocation().pathname.startsWith("/admin");
 
   return (
     <>
-      {/* Navbar hidden on Admin and Property Details pages */}
-      {!isAdminRoute && !isPropertyDetailsPage && (
-        <Navbar />
-      )}
-
+      {!isAdminRoute && <Navbar />}
       <Toaster />
 
       <Routes>
@@ -40,41 +30,21 @@ const App = () => {
           element={<PropertyDetails />}
         />
 
-        <Route
-          path="/pages/User/Wishlist"
-          element={<Wishlist />}
-        />
-
-        <Route
-          path="/pages/User/Trips"
-          element={<Trips />}
-        />
-
-        <Route
-          path="/pages/User/Messages"
-          element={<Messages />}
-        />
-
-        <Route
-          path="/pages/User/Profile"
-          element={<Profile />}
-        />
-
+        <Route path="/pages/User/Wishlist" element={<Wishlist />} />
+        <Route path="/pages/User/Trips" element={<Trips />} />
+        <Route path="/pages/User/Messages" element={<Messages />} />
+        <Route path="/pages/User/Profile" element={<Profile />} />
         <Route
           path="/pages/User/Notifications"
           element={<Notifications />}
         />
-
         <Route
           path="/pages/User/Settings"
           element={<Settings />}
         />
       </Routes>
 
-      {/* Footer hidden on Admin and Property Details pages */}
-      {!isAdminRoute && !isPropertyDetailsPage && (
-        <Footer />
-      )}
+      {!isAdminRoute && <Footer />}
     </>
   );
 };

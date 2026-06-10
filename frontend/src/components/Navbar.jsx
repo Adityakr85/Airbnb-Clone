@@ -9,8 +9,8 @@ export default function Navbar() {
   const location = useLocation();
 
   const hideSearchBar =
-    location.pathname.startsWith("/pages/User/Messages") ||
-    location.pathname.startsWith("/pages/User/Notifications");
+    location.pathname.startsWith("/pages/User/Messages") || 
+    location.pathname.startsWith("/pages/User/Notifications") ||  location.pathname.startsWith("/property/");
 
   useEffect(() => {
     const handleScroll = () => {
