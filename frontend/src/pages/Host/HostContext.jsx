@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from "react";
-import { initialProperties, initialReservations } from "../data/hostdata";
+import { initialProperties, initialReservations } from "../../data/hostdata";
 
 const HostContext = createContext(null);
 
@@ -62,3 +62,4 @@ export function useHost() {
   if (!ctx) throw new Error("useHost must be used within HostProvider");
   return ctx;
 }
+
