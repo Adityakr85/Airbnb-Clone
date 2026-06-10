@@ -110,7 +110,11 @@ export default function MenuDropdown() {
               to="/pages/User/Messages"
             />
 
-            <MenuItem icon={User} label="Profile" to="/pages/User/Profile" />
+            <MenuItem
+              icon={User}
+              label="Profile"
+              to="/pages/User/UserProfile/Profile"
+            />
 
             <div className="mx-6 my-2 border-gray-300 border-t" />
 

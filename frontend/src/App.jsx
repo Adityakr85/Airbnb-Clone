@@ -7,10 +7,10 @@ import { Toaster } from "react-hot-toast";
 import Wishlist from "./pages/User/Wishlist";
 import Trips from "./pages/User/Trips";
 import Messages from "./pages/User/Messages";
-import Profile from "./pages/User/Profile";
+import Profile from "./pages/User/UserProfile/Profile";
+import EditProfile from "./pages/User/UserProfile/EditProfile";
 import Notifications from "./pages/User/Notifications";
 import AccountSettings from "./pages/User/AccountSettings";
-import EditProfile from "./pages/User/EditProfile";
 import HostDashboard from "./pages/Host/HostDashboard";
 import AddProperty from "./pages/Host/AddProperty";
 import MyProperties from "./pages/Host/MyProperties";
@@ -31,8 +31,11 @@ const App = () => {
         <Route path="/pages/User/Wishlist" element={<Wishlist />} />
         <Route path="/pages/User/Trips" element={<Trips />} />
         <Route path="/pages/User/Messages" element={<Messages />} />
-        <Route path="/pages/User/Profile" element={<Profile />} />
-        <Route path="/pages/User/EditProfile" element={<EditProfile />} />
+        <Route path="/pages/User/UserProfile/Profile" element={<Profile />} />
+        <Route
+          path="/pages/User/UserProfile/EditProfile"
+          element={<EditProfile />}
+        />
         <Route path="/pages/User/Notifications" element={<Notifications />} />
         <Route
           path="/pages/User/AccountSettings"

@@ -12,8 +12,8 @@ export default function Navbar() {
     location.pathname.startsWith("/pages/User/Messages") ||
     location.pathname.startsWith("/pages/User/Notifications") ||
     location.pathname.startsWith("/pages/User/AccountSettings") ||
-    location.pathname.startsWith("/pages/User/Profile") ||
-    location.pathname.startsWith("/pages/User/EditProfile");
+    location.pathname.startsWith("/pages/User/UserProfile/Profile") ||
+    location.pathname.startsWith("/pages/User/UserProfile/EditProfile");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -98,8 +98,11 @@ export default function Navbar() {
         )}
 
         <div className="flex items-center gap-4 z-20">
-          <Link to="/host" className="hidden rounded-full px-4 py-3 font-semibold transition hover:bg-gray-100 md:block">
-                 Become a host
+          <Link
+            to="/host"
+            className="hidden rounded-full px-4 py-3 font-semibold transition hover:bg-gray-100 md:block"
+          >
+            Become a host
           </Link>
 
           <button className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200">

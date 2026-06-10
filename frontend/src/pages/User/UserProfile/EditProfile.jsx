@@ -27,14 +27,14 @@ export default function EditProfile() {
   const [previewImage, setPreviewImage] = useState(user?.imageUrl || "");
   const [imageFile, setImageFile] = useState(null);
   const [removeImage, setRemoveImage] = useState(false);
-  const [imageLoading, setImageLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
     decade: savedData.decade || "",
-    work: savedData.work || "",
-    school: savedData.school || "",
     travel: savedData.travel || "",
+    work: savedData.work || "",
     pets: savedData.pets || "",
+    school: savedData.school || "",
     skill: savedData.skill || "",
     song: savedData.song || "",
     funFact: savedData.funFact || "",
@@ -89,41 +89,31 @@ export default function EditProfile() {
 
   const handleDone = async () => {
     try {
-      setImageLoading(true);
+      setSaving(true);
 
       if (imageFile) {
-        await user.setProfileImage({
-          file: imageFile,
-        });
+        await user.setProfileImage({ file: imageFile });
       }
 
       if (removeImage) {
-        await user.setProfileImage({
-          file: null,
-        });
+        await user.setProfileImage({ file: null });
       }
 
-      localStorage.setItem(
-        "aboutMeData",
-        JSON.stringify({
-          ...form,
-        }),
-      );
+      localStorage.setItem("aboutMeData", JSON.stringify(form));
 
-      navigate("/pages/User/Profile");
+      navigate("/pages/User/UserProfile/Profile");
     } catch (error) {
-      console.error("Profile image update failed:", error);
-      alert("Profile image update failed. Try again.");
+      console.error(error);
+      alert("Something went wrong while saving.");
     } finally {
-      setImageLoading(false);
+      setSaving(false);
     }
   };
 
   return (
     <main className="min-h-screen bg-white pb-24">
       <div className="flex">
-        {/* Fixed Left Profile */}
-        <aside className="sticky top-20 flex h-[calc(100vh-80px)] w-[520px] shrink-0 justify-center pt-16">
+        <aside className="sticky top-20 flex h-screen w-96 shrink-0 justify-center pt-16">
           <div className="relative h-fit">
             {previewImage ? (
               <img
@@ -159,8 +149,7 @@ export default function EditProfile() {
           </div>
         </aside>
 
-        {/* Right Content */}
-        <section className="flex-1 px-16 py-16">
+        <section className="flex-1 p-16">
           <h1 className="text-3xl font-semibold">My profile</h1>
 
           <p className="mt-6 max-w-xl text-gray-600">
@@ -209,12 +198,13 @@ export default function EditProfile() {
               Pick the stamps you want other people to see on your profile.
             </p>
 
-            <div className="mt-8 flex gap-5 overflow-hidden">
+            <div className="mt-8 flex gap-5">
               {["🌐", "☀️", "✈️", "🏔️"].map((item, index) => (
                 <div key={index} className="text-center">
                   <div className="flex h-28 w-40 items-center justify-center rounded-2xl border-2 border-gray-300 text-5xl text-gray-400">
                     {item}
                   </div>
+
                   <p className="mt-4 text-gray-500">Next destination</p>
                 </div>
               ))}
@@ -250,14 +240,13 @@ export default function EditProfile() {
         </section>
       </div>
 
-      {/* Bottom Done Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-end border-t border-gray-300 bg-white px-24 py-4">
+      <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-end border-t border-gray-300 bg-white px-10 py-4">
         <button
           onClick={handleDone}
-          disabled={imageLoading}
+          disabled={saving}
           className="rounded-xl bg-[#222] px-8 py-4 font-semibold text-white disabled:opacity-50"
         >
-          {imageLoading ? "Saving..." : "Done"}
+          {saving ? "Saving..." : "Done"}
         </button>
       </div>
     </main>
