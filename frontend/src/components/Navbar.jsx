@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Search, Globe, Menu } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
 import { Link, useLocation ,useNavigate } from "react-router-dom";
 import MenuDropdown from "./MenuDropdown";
 import airbnbLogo from "../assets/Airbnb-logo.png";

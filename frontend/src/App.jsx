@@ -31,10 +31,8 @@ const App = () => {
         <Route path="/pages/User/Trips" element={<Trips />} />
         <Route path="/pages/User/Messages" element={<Messages />} />
         <Route path="/pages/User/Profile" element={<Profile />} />
-        <Route path="/pages/User/Notifications" element={<Notifications />} />
-        <Route path="/pages/User/Settings" element={<Settings />} />        
+        <Route path="/pages/User/Notifications" element={<Notifications />} />       
         <Route path="/pages/User/EditProfile" element={<EditProfile />} />
-        <Route path="/pages/User/Notifications" element={<Notifications />} />
         <Route path="/pages/User/AccountSettings" element={<AccountSettings />}/>
         <Route path="/host" element={<HostDashboard />} />
         <Route path="/host/add-property" element={<AddProperty />} />
