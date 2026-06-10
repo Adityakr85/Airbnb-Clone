@@ -122,6 +122,8 @@ export default function MenuDropdown() {
 
             <MenuItem
               icon={Settings}
+              label="Account settings"
+              to="/pages/User/Settings"
               label="Account Settings"
               to="/pages/User/AccountSettings"
             />

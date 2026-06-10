@@ -25,19 +25,15 @@ const App = () => {
     <>
       {!isAdminRoute && !isHostRoute && <Navbar />}
       <Toaster />
-
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/pages/User/Wishlist" element={<Wishlist />} />
         <Route path="/pages/User/Trips" element={<Trips />} />
         <Route path="/pages/User/Messages" element={<Messages />} />
         <Route path="/pages/User/Profile" element={<Profile />} />
+        <Route path="/pages/User/Notifications" element={<Notifications />} />       
         <Route path="/pages/User/EditProfile" element={<EditProfile />} />
-        <Route path="/pages/User/Notifications" element={<Notifications />} />
-        <Route
-          path="/pages/User/AccountSettings"
-          element={<AccountSettings />}
-        />
+        <Route path="/pages/User/AccountSettings" element={<AccountSettings />}/>
         <Route path="/host" element={<HostDashboard />} />
         <Route path="/host/add-property" element={<AddProperty />} />
         <Route path="/host/properties" element={<MyProperties />} />
