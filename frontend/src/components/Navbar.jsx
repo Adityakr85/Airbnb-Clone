@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Search, Globe, Menu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation ,useNavigate } from "react-router-dom";
 import MenuDropdown from "./MenuDropdown";
 import airbnbLogo from "../assets/Airbnb-logo.png";
 import WhereDropdown from './WhereDropdown';
@@ -28,6 +29,14 @@ export default function Navbar({onSearch ,advanceToNext}) {
   const [isWhereMenuOpen, setIsWhereMenuOpen] = useState(false);
   const [isWhenMenuOpen, setIsWhenMenuOpen] = useState(false);
   const [isGuestMenuOpen, setIsGuestMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const hideSearchBar =
+    location.pathname.startsWith("/pages/User/Messages") ||
+    location.pathname.startsWith("/pages/User/Notifications") ||
+    location.pathname.startsWith("/pages/User/AccountSettings") ||
+    location.pathname.startsWith("/pages/User/Profile") ||
+    location.pathname.startsWith("/pages/User/EditProfile");
 
   const isAnyMenuOpen = isWhenMenuOpen || isWhereMenuOpen || isGuestMenuOpen;
   const formRef = useRef(null);
@@ -116,83 +125,75 @@ export default function Navbar({onSearch ,advanceToNext}) {
     <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 transition-all duration-500 ease-in-out">
       <nav
         className={`relative flex items-center justify-between px-8 transition-all duration-500 ease-in-out ${
-          scrolled ? "h-20" : "h-28"
+          scrolled || hideSearchBar ? "h-20" : "h-28"
         }`}
       >
-        {/* Logo */}
         <Link to="/" className="flex items-center z-20">
          <img src={airbnbLogo} alt="Airbnb" className="h-10 w-auto object-contain" />
         </Link>
 
-        {/* Center Area */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out">
-          {scrolled ? (
-            <div className="hidden md:flex h-12 items-center rounded-full border border-gray-300 bg-white shadow-md overflow-hidden transition-all duration-500 ease-in-out">
-              <button className="px-5 flex items-center gap-2 text-sm font-semibold">
-                🏠 Anywhere
-              </button>
+        {!hideSearchBar && (
+          <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out md:block">
+            {scrolled ? (
+              <div className="flex h-12 items-center overflow-hidden rounded-full border border-gray-300 bg-white shadow-md transition-all duration-500 ease-in-out">
+                <button className="flex items-center gap-2 px-5 text-sm font-semibold">
+                  🏠 Anywhere
+                </button>
 
-              <div className="h-6 w-px bg-gray-300" />
+                <div className="h-6 w-px bg-gray-300" />
 
-              <button className="px-5 text-sm font-semibold">Anytime</button>
+                <button className="px-5 text-sm font-semibold">Anytime</button>
 
-              <div className="h-6 w-px bg-gray-300" />
+                <div className="h-6 w-px bg-gray-300" />
 
               <button className={`px-5 text-sm truncate max-w-[150px] ${isGuestActive ? 'font-semibold text-black' : 'font-semibold text-gray-500'}`}>
                 {formatGuestText()}
               </button>
 
-              <button className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#E31C5F] text-white hover:bg-[#FF385C] transition">
-                <Search size={16} />
-              </button>
-            </div>
-          ) : (
-            <div className="hidden md:flex items-center gap-16 pt-4 transition-all duration-500 ease-in-out">
-              {/* Homes */}
-              <div className="group relative flex flex-col items-center cursor-pointer transition-all duration-300 ease-in-out hover:scale-105">
-                <span className="text-3xl transition-transform duration-300 group-hover:-translate-y-1">
-                  🏠
-                </span>
-                <span className="mt-1 font-semibold text-black">Homes</span>
-                <div className="absolute -bottom-5 h-[3px] w-24 rounded-full bg-black" />
+                <button className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#E31C5F] text-white hover:bg-[#FF385C] transition">
+                  <Search size={16} />
+                </button>
               </div>
+            ) : (
+              <div className="flex items-center gap-16 pt-4 transition-all duration-500 ease-in-out">
+                <div className="group relative flex cursor-pointer flex-col items-center transition-all duration-300 ease-in-out hover:scale-105">
+                  <span className="text-3xl transition-transform duration-300 group-hover:-translate-y-1">
+                    🏠
+                  </span>
+                  <span className="mt-1 font-semibold text-black">Homes</span>
+                  <div className="absolute -bottom-5 h-[3px] w-24 rounded-full bg-black" />
+                </div>
 
-              {/* Experiences */}
-              <div className="group relative flex flex-col items-center cursor-pointer text-gray-500 hover:text-black transition-all duration-300 ease-in-out hover:scale-105">
-                <span className="absolute -top-5 left-1/2 -translate-x-1/2 rounded-full bg-slate-600 px-2 py-[2px] text-[10px] font-bold text-white shadow">
-                  NEW
-                </span>
+                <div className="group relative flex cursor-pointer flex-col items-center text-gray-500 transition-all duration-300 ease-in-out hover:scale-105 hover:text-black">
+                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 rounded-full bg-slate-600 px-2 py-[2px] text-[10px] font-bold text-white shadow">
+                    NEW
+                  </span>
+                  <span className="text-3xl transition-transform duration-300 group-hover:-translate-y-1">
+                    🎈
+                  </span>
+                  <span className="mt-1 font-semibold">Experiences</span>
+                </div>
 
-                <span className="text-3xl transition-transform duration-300 group-hover:-translate-y-1">
-                  🎈
-                </span>
-
-                <span className="mt-1 font-semibold">Experiences</span>
+                <div className="group relative flex cursor-pointer flex-col items-center text-gray-500 transition-all duration-300 ease-in-out hover:scale-105 hover:text-black">
+                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 rounded-full bg-slate-600 px-2 py-[2px] text-[10px] font-bold text-white shadow">
+                    NEW
+                  </span>
+                  <span className="text-3xl transition-transform duration-300 group-hover:-translate-y-1">
+                    🛎️
+                  </span>
+                  <span className="mt-1 font-semibold">Services</span>
+                </div>
               </div>
+            )}
+          </div>
+        )}
 
-              {/* Services */}
-              <div className="group relative flex flex-col items-center cursor-pointer text-gray-500 hover:text-black transition-all duration-300 ease-in-out hover:scale-105">
-                <span className="absolute -top-5 left-1/2 -translate-x-1/2 rounded-full bg-slate-600 px-2 py-[2px] text-[10px] font-bold text-white shadow">
-                  NEW
-                </span>
-
-                <span className="text-3xl transition-transform duration-300 group-hover:-translate-y-1">
-                  🛎️
-                </span>
-
-                <span className="mt-1 font-semibold">Services</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right Side */}
         <div className="flex items-center gap-4 z-20">
-          <button className="hidden md:block rounded-full px-4 py-3 font-semibold hover:bg-gray-100 transition">
-            Become a host
-          </button>
+          <Link to="/host" className="hidden rounded-full px-4 py-3 font-semibold transition hover:bg-gray-100 md:block">
+                 Become a host
+          </Link>
 
-          <button className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition">
+          <button className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200">
             <Globe size={21} />
           </button>
           <MenuDropdown />
