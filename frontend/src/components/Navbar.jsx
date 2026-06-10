@@ -98,9 +98,9 @@ export default function Navbar() {
         )}
 
         <div className="flex items-center gap-4 z-20">
-          <button className="hidden rounded-full px-4 py-3 font-semibold transition hover:bg-gray-100 md:block">
-            Become a host
-          </button>
+          <Link to="/host" className="hidden rounded-full px-4 py-3 font-semibold transition hover:bg-gray-100 md:block">
+                 Become a host
+          </Link>
 
           <button className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200">
             <Globe size={21} />
