@@ -10,7 +10,7 @@ import {
   IndianRupee,
   Clock,
 } from "lucide-react";
-import { useHost } from "../../context/HostContext";
+import { useHost } from "../../pages/Host/HostContext";
 
 export default function HostDashboard() {
   const { properties, reservations, totalRevenue, totalBookings } = useHost();
@@ -84,7 +84,7 @@ export default function HostDashboard() {
           ))}
         </div>
 
-        {
+        
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-3">Quick Actions</h2>
           <div className="flex flex-wrap gap-3">
