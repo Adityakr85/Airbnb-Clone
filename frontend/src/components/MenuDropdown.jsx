@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -23,6 +24,7 @@ export default function MenuDropdown() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
   const { user } = useUser();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const closeMenu = (e) => {
