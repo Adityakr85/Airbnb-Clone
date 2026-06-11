@@ -10,7 +10,7 @@ import {
   IndianRupee,
   Clock,
 } from "lucide-react";
-import { useHost } from "../../pages/Host/HostContext";
+import { useHost } from "./HostContext";
 
 export default function HostDashboard() {
   const { properties, reservations, totalRevenue, totalBookings } = useHost();
