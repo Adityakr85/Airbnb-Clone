@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React,{ useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -6,32 +6,15 @@ import WhereDropdown from "./WhereDropdown";
 import WhenDropdown from "./WhenDropdown";
 import GuestDropdown from "./GuestDropdown";
 
-export default function SearchBar({
-  destinationSearch,
-  setDestinationSearch,
-  checkInDate,
-  setCheckInDate,
-  checkOutDate,
-  setCheckOutDate,
-  exactDatesFlex,
-  setExactDatesFlex,
-  activeTab,
-  setActiveTab,
-  stayLength,
-  setStayLength,
-  flexibleMonths,
-  setFlexibleMonths,
-  adults,
-  setAdults,
-  childrenCount,
-  setChildrenCount,
-  infants,
-  setInfants,
-  pets,
-  setPets,
+export default function SearchBar({onSearch,
+  destinationSearch,setDestinationSearch,
+  checkInDate,setCheckInDate,checkOutDate,setCheckOutDate,exactDatesFlex,setExactDatesFlex,  // -- EXACT DATES STATES --
+  activeTab,setActiveTab,stayLength,setStayLength,flexibleMonths,setFlexibleMonths,  // -- FLEXIBLE SEARCH STATES --
+  adults,setAdults,childrenCount,setChildrenCount,infants,setInfants,pets,setPets,   // -- GUEST STATES
   formatGuestText,
   formatWhenText,
-}) {
+}) 
+{
   const navigate = useNavigate();
   const formRef = useRef(null);
   const [openMenu, setOpenMenu] = useState(null);
@@ -63,6 +46,16 @@ export default function SearchBar({
     }
   };
 
+  const advanceToNext = () => {
+  if (openMenu === "where") {
+    setOpenMenu("when");
+  } else if (openMenu === "when") {
+    setOpenMenu("guests");
+  } else {
+    setOpenMenu(null);
+  }
+};
+
   return (
     <form
       ref={formRef}
@@ -72,7 +65,7 @@ export default function SearchBar({
       }`}
     >
       <div
-        onClick={() => setOpenMenu("where")}
+        onClick={() => setOpenMenu(openMenu === "where" ? null : "where")}
         className={`flex h-full flex-1 cursor-pointer flex-col justify-center rounded-full px-6 transition-all duration-300 ${
           openMenu === "where" ? "bg-white shadow-md" : "hover:bg-gray-300"
         }`}
@@ -91,7 +84,7 @@ export default function SearchBar({
           <WhereDropdown
             destinationSearch={destinationSearch}
             setDestinationSearch={setDestinationSearch}
-            advanceToNext={() => setOpenMenu("when")}
+            advanceToNext={advanceToNext}
           />
         )}
       </div>
@@ -99,7 +92,7 @@ export default function SearchBar({
       <Divider hidden={isAnyMenuOpen} />
 
       <div
-        onClick={() => setOpenMenu("when")}
+        onClick={() => setOpenMenu(openMenu === "when" ? null : "when")}
         className={`flex h-full flex-1 cursor-pointer flex-col justify-center rounded-full px-6 transition-all duration-300 ${
           openMenu === "when" ? "bg-white shadow-md" : "hover:bg-gray-300"
         }`}
@@ -128,6 +121,7 @@ export default function SearchBar({
             setFlexibleMonths={setFlexibleMonths}
             exactDatesFlex={exactDatesFlex}
             setExactDatesFlex={setExactDatesFlex}
+            advanceToNext={advanceToNext}
           />
         )}
       </div>
@@ -135,7 +129,7 @@ export default function SearchBar({
       <Divider hidden={isAnyMenuOpen} />
 
       <div
-        onClick={() => setOpenMenu("guests")}
+        onClick={() => setOpenMenu(openMenu === "guests" ? null : "guests")}
         className={`flex h-full flex-1 cursor-pointer items-center justify-between rounded-full pl-6 pr-2 transition-all duration-300 ${
           openMenu === "guests" ? "bg-white shadow-md" : "hover:bg-gray-300"
         }`}

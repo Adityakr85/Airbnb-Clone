@@ -88,11 +88,17 @@ export default function Navbar() {
       day: "numeric",
     });
 
-    let dateText =
+    let dateText = "";
+    if (checkInDate.getTime() === checkOutDate.getTime()) {
+      dateText = startText;
+    } else if (
       checkInDate.getMonth() === checkOutDate.getMonth() &&
       checkInDate.getFullYear() === checkOutDate.getFullYear()
-        ? `${startText} – ${checkOutDate.getDate()}`
-        : `${startText} – ${endText}`;
+    ) {
+      dateText = `${startText} – ${checkOutDate.getDate()}`;
+    } else {
+      dateText = `${startText} – ${endText}`;
+    }
 
     if (exactDatesFlex !== "exact") {
       dateText += ` ± ${exactDatesFlex} ${
