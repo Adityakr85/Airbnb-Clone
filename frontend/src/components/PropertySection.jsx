@@ -1,30 +1,43 @@
+import { useMemo } from "react";
 import { Heart, ChevronRight } from "lucide-react";
 
-export default function PropertySection({ title, properties = [] }) {
-  if (!properties.length) return null;
+export default function PropertySection({
+  title,
+  properties = [],
+  activeSearch = "",
+}) {
+  const filteredProperties = useMemo(() => {
+    const search = activeSearch.trim().toLowerCase();
+
+    if (!search) return properties;
+
+    return properties.filter((property) => {
+      const title = property.title?.toLowerCase() || "";
+      const location = property.location?.toLowerCase() || "";
+
+      return title.includes(search) || location.includes(search);
+    });
+  }, [properties, activeSearch]);
+
+  if (!filteredProperties.length) return null;
 
   return (
-    <section className="px-6 md:px-8 py-6">
-      {/* Section Header */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold text-gray-950">{title}</h2>
+    <section className="px-6 py-6 md:px-8">
+      <div className="mb-4 flex items-center gap-2">
+        <h2 className="text-xl font-semibold text-gray-950">{title}</h2>
 
-          <button className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200">
-            <ChevronRight size={18} />
-          </button>
-        </div>
+        <button className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200">
+          <ChevronRight size={18} />
+        </button>
       </div>
 
-      {/* Horizontal Cards */}
-      <div className="flex gap-4 overflow-x-auto scroll-smooth pb-3 scrollbar-hide">
-        {properties.map((property) => (
+      <div className="scrollbar-hide flex gap-4 overflow-x-auto scroll-smooth pb-3">
+        {filteredProperties.map((property) => (
           <article
             key={property.id}
-            className="group min-w-[205px] max-w-[205px] cursor-pointer"
+            className="group w-52 shrink-0 cursor-pointer"
           >
-            {/* Image */}
-            <div className="relative h-[195px] overflow-hidden rounded-2xl bg-gray-100">
+            <div className="relative h-48 overflow-hidden rounded-2xl bg-gray-100">
               <img
                 src={property.image}
                 alt={property.title}
@@ -41,15 +54,13 @@ export default function PropertySection({ title, properties = [] }) {
               </button>
             </div>
 
-            {/* Details */}
             <div className="mt-2">
               <h3 className="truncate text-sm font-semibold text-gray-950">
                 {property.title}
               </h3>
 
               <p className="mt-0.5 truncate text-sm text-gray-600">
-                ₹{Number(property.price).toLocaleString("en-IN")} for 2 nights ·
-                ★ {property.rating}
+                ₹{Number(property.price).toLocaleString("en-IN")} night
               </p>
             </div>
           </article>
