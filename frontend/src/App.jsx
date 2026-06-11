@@ -16,11 +16,12 @@ import AddProperty from "./pages/Host/AddProperty";
 import MyProperties from "./pages/Host/MyProperties";
 import PropertyAnalytics from "./pages/Host/PropertyAnalytics";
 import HostReservations from "./pages/Host/HostReservations";
+import BecomeAHost from "./pages/Host/BecomeAHost";
 import { HostProvider } from "./pages/Host/HostContext";
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
-  const isHostRoute = useLocation().pathname.startsWith("/host");
+  const isHostRoute = useLocation().pathname.startsWith("/host") || useLocation().pathname === "/become-a-host";
   return (
     <>
       {!isAdminRoute && !isHostRoute && <Navbar />}
@@ -40,11 +41,12 @@ const App = () => {
           path="/pages/User/AccountSettings"
           element={<AccountSettings />}
         />
-        <Route path="/host" element={<HostDashboard />} />
-        <Route path="/host/add-property" element={<AddProperty />} />
-        <Route path="/host/properties" element={<MyProperties />} />
-        <Route path="/host/analytics" element={<PropertyAnalytics />} />
-        <Route path="/host/reservations" element={<HostReservations />} />
+        <Route path="/host" element={<HostProvider><HostDashboard /></HostProvider>} />
+        <Route path="/host/add-property" element={<HostProvider><AddProperty /></HostProvider>} />
+        <Route path="/host/properties" element={<HostProvider><MyProperties /></HostProvider>} />
+        <Route path="/host/analytics" element={<HostProvider><PropertyAnalytics /></HostProvider>} />
+        <Route path="/host/reservations" element={<HostProvider><HostReservations /></HostProvider>} />
+        <Route path="/become-a-host" element={<BecomeAHost />} />
       </Routes>
       {!isAdminRoute && !isHostRoute && <Footer />}
     </>
