@@ -66,7 +66,10 @@ export default function GuestDropdown({
   };
 
   return (
-    <div className="absolute right-0 top-full z-50 mt-4 w-96 rounded-3xl border border-gray-200 bg-white px-8 py-4 shadow-xl">
+    <div 
+      onClick={(e) => e.stopPropagation()}
+      className="absolute right-0 top-full z-50 mt-4 w-96 rounded-3xl border border-gray-200 bg-white px-8 py-4 shadow-xl cursor-default"
+    >
       {guestTypes.map((guest) => {
         const count = guestData[guest.key];
 
