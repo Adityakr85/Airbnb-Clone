@@ -11,13 +11,11 @@ export default function SearchBar({onSearch,
   checkInDate,setCheckInDate,checkOutDate,setCheckOutDate,exactDatesFlex,setExactDatesFlex,  // -- EXACT DATES STATES --
   activeTab,setActiveTab,stayLength,setStayLength,flexibleMonths,setFlexibleMonths,  // -- FLEXIBLE SEARCH STATES --
   adults,setAdults,childrenCount,setChildrenCount,infants,setInfants,pets,setPets,   // -- GUEST STATES
-  formatGuestText,
-  formatWhenText,
+  formatGuestText, formatWhenText, openMenu, setOpenMenu ,setIsExpanded
 }) 
 {
   const navigate = useNavigate();
   const formRef = useRef(null);
-  const [openMenu, setOpenMenu] = useState(null);
 
   const isAnyMenuOpen = openMenu !== null;
   const isWhenActive = activeTab === "flexible" || checkInDate;
@@ -27,23 +25,31 @@ export default function SearchBar({onSearch,
     const handleClickOutside = (event) => {
       if (formRef.current && !formRef.current.contains(event.target)) {
         setOpenMenu(null);
+        if (typeof setIsExpanded === 'function') {
+          setIsExpanded(false);
+        }
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [setIsExpanded]);
 
   const handleSearch = (event) => {
     event.preventDefault();
     setOpenMenu(null);
-
-    if (destinationSearch.trim()) {
-      navigate(`/?search=${encodeURIComponent(destinationSearch.trim())}`);
-    } else {
-      navigate("/");
+    
+    if (typeof setIsExpanded === 'function') {
+      setIsExpanded(false);
     }
+    setTimeout(() => {
+      if (destinationSearch.trim()) {
+        navigate(`/?search=${encodeURIComponent(destinationSearch.trim())}`);
+      } else {
+         navigate("/");
+      }
+    }, 300);
   };
 
   const advanceToNext = () => {

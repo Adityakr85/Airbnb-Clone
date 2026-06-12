@@ -1,5 +1,24 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Heart, ChevronRight } from "lucide-react";
+
+function getPropertyImageSrc(property) {
+  const imageFromSingle =
+    typeof property.image === "string" ? property.image.trim() : "";
+  const imageFromArray =
+    Array.isArray(property.image_urls) && property.image_urls.length
+      ? property.image_urls.find((url) => typeof url === "string" && url.trim())
+      : "";
+
+  const imageSrc = imageFromSingle || imageFromArray || "";
+
+  if (!imageSrc) return "";
+
+  if (imageSrc.includes("images.unsplash.com/") && !imageSrc.includes("?")) {
+    return `${imageSrc}?auto=format&fit=crop&w=600&q=80`;
+  }
+
+  return imageSrc;
+}
 
 export default function PropertySection({
   title,
@@ -19,6 +38,8 @@ export default function PropertySection({
     });
   }, [properties, activeSearch]);
 
+  const [imageErrors, setImageErrors] = useState(() => new Set());
+
   if (!filteredProperties.length) return null;
 
   return (
@@ -32,39 +53,73 @@ export default function PropertySection({
       </div>
 
       <div className="scrollbar-hide flex gap-4 overflow-x-auto scroll-smooth pb-3">
-        {filteredProperties.map((property) => (
-          <article
-            key={property.id}
-            className="group w-52 shrink-0 cursor-pointer"
-          >
-            <div className="relative h-48 overflow-hidden rounded-2xl bg-gray-100">
-              <img
-                src={property.image}
-                alt={property.title}
-                loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+        {filteredProperties.map((property) => {
+          const description =
+            property.description?.trim() ||
+            "A great place to stay - book for more details.";
+          const imageSrc = getPropertyImageSrc(property);
+          const hasImage = Boolean(imageSrc);
 
-              <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1.5 text-xs font-semibold shadow-sm">
-                Guest favourite
-              </span>
+          const rawPrice =
+            property.price ?? property.price_per_night ?? property.base_price;
+          const priceNumber = Number(rawPrice);
 
-              <button className="absolute right-3 top-3 text-white drop-shadow-md transition hover:scale-110">
-                <Heart size={25} />
-              </button>
-            </div>
+          const imageKey =
+            property.id ?? `${property.title}-${property.location}`;
 
-            <div className="mt-2">
-              <h3 className="truncate text-sm font-semibold text-gray-950">
-                {property.title}
-              </h3>
+          return (
+            <article
+              key={property.id}
+              className="group w-52 shrink-0 cursor-pointer"
+            >
+              <div className="relative h-48 overflow-hidden rounded-2xl bg-gray-100">
+                {hasImage && !imageErrors.has(imageKey) && (
+                  <img
+                    src={imageSrc}
+                    alt={property.title || "Property"}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    onError={() => {
+                      setImageErrors((prev) => {
+                        const next = new Set(prev);
+                        next.add(imageKey);
+                        return next;
+                      });
+                    }}
+                  />
+                )}
 
-              <p className="mt-0.5 truncate text-sm text-gray-600">
-                ₹{Number(property.price).toLocaleString("en-IN")} night
-              </p>
-            </div>
-          </article>
-        ))}
+                {(!hasImage || imageErrors.has(imageKey)) && (
+                  <div className="absolute inset-0 bg-gray-200" />
+                )}
+
+                <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1.5 text-xs font-semibold shadow-sm">
+                  Guest favourite
+                </span>
+
+                <button className="absolute right-3 top-3 text-white drop-shadow-md transition hover:scale-110">
+                  <Heart size={25} />
+                </button>
+              </div>
+
+              <div className="mt-2">
+                <h3 className="truncate text-sm font-semibold text-gray-950">
+                  {property.title}
+                </h3>
+
+                <p className="mt-0.5 truncate text-sm text-gray-600">
+                  {Number.isFinite(priceNumber)
+                    ? `Rs. ${priceNumber.toLocaleString("en-IN")} night`
+                    : "Rs. - night"}
+                </p>
+
+                <p className="mt-1 line-clamp-2 text-xs text-gray-500">
+                  {description}
+                </p>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
