@@ -10,7 +10,8 @@ return new class extends Migration
     {
         Schema::create('user_profiles', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('clerk_id')->unique()->nullable();
+            $table->string('photo_url')->nullable();
             $table->string('decade')->nullable();
             $table->string('work')->nullable();
             $table->string('school')->nullable();
@@ -19,11 +20,11 @@ return new class extends Migration
             $table->string('skill')->nullable();
             $table->string('song')->nullable();
             $table->string('fun_fact')->nullable();
-            $table->string('time_spent')->nullable();
-            $table->string('obsessed_with')->nullable();
+            $table->string('time')->nullable();
+            $table->string('obsessed')->nullable();
             $table->string('bio_title')->nullable();
             $table->string('languages')->nullable();
-            $table->string('lives_in')->nullable();
+            $table->string('live')->nullable();
             $table->text('intro')->nullable();
             $table->string('interests')->nullable();
             $table->timestamps();
