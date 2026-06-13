@@ -1,136 +1,138 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import properties from "../../data/properties";
+import trips from "../../data/trips";
 
 const BookingDetails = () => {
   const { id } = useParams();
 
-  const property =
-    properties.find(
-      (p) => p.id === Number(id)
-    ) || properties[0];
+  const trip = trips.find(
+    (trip) => trip.id === Number(id)
+  );
+
+  if (!trip) {
+    return (
+      <div className="mx-auto max-w-4xl p-8">
+        <h1 className="text-3xl font-bold">
+          Booking Not Found
+        </h1>
+      </div>
+    );
+  }
+
+  const property = properties.find(
+    (property) => property.id === trip.propertyId
+  );
+
+  if (!property) {
+    return (
+      <div className="mx-auto max-w-4xl p-8">
+        <h1 className="text-3xl font-bold">
+          Property Not Found
+        </h1>
+      </div>
+    );
+  }
 
   return (
-    <div
-      style={{
-        maxWidth: "1000px",
-        margin: "30px auto",
-        padding: "20px",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <h1 style={{ marginBottom: "20px" }}>
+    <div className="mx-auto max-w-6xl px-8 py-10">
+      <h1 className="mb-8 text-4xl font-bold">
         Booking Details
       </h1>
 
-      <div
-        style={{
-          border: "1px solid #ddd",
-          borderRadius: "12px",
-          overflow: "hidden",
-          marginBottom: "25px",
-          background: "#fff",
-        }}
-      >
+      <div className="mb-8 overflow-hidden rounded-2xl bg-white shadow-md">
         <img
           src={property.image}
           alt={property.title}
-          style={{
-            width: "100%",
-            height: "350px",
-            objectFit: "cover",
-          }}
+          className="h-[400px] w-full object-cover"
         />
 
-        <div style={{ padding: "20px" }}>
-          <h2>{property.title}</h2>
+        <div className="p-6">
+          <h2 className="text-3xl font-bold">
+            {property.title}
+          </h2>
 
-          <p>📍 {property.location}</p>
+          <p className="mt-2 text-gray-600">
+            📍 {property.location}
+          </p>
 
-          <p>⭐ {property.rating}</p>
+          <p className="mt-2">
+            ⭐ {property.rating}
+          </p>
 
-          <p>{property.type}</p>
+          <p className="mt-2 text-gray-700">
+            {property.type || "Property"}
+          </p>
         </div>
       </div>
 
-      <div
-        style={{
-          border: "1px solid #ddd",
-          borderRadius: "12px",
-          padding: "20px",
-          marginBottom: "20px",
-        }}
-      >
-        <h2>Reservation Details</h2>
+      <div className="grid gap-6 md:grid-cols-3">
+        <div className="rounded-2xl bg-white p-6 shadow-md">
+          <h2 className="mb-4 text-xl font-semibold">
+            Reservation Details
+          </h2>
 
-        <p>
-          <strong>Booking ID:</strong> BK-
-          {property.id.toString().padStart(5, "0")}
-        </p>
+          <p>
+            <strong>Booking ID:</strong> BK-
+            {trip.id.toString().padStart(5, "0")}
+          </p>
 
-        <p>
-          <strong>Status:</strong> Confirmed
-        </p>
+          <p className="mt-2">
+            <strong>Status:</strong>{" "}
+            {trip.status === "upcoming"
+              ? "Confirmed"
+              : "Completed"}
+          </p>
 
-        <p>
-          <strong>Guests:</strong>{" "}
-          {property.guests || "N/A"}
-        </p>
-      </div>
+          <p className="mt-2">
+            <strong>Guests:</strong> {trip.guests}
+          </p>
+        </div>
 
-      <div
-        style={{
-          border: "1px solid #ddd",
-          borderRadius: "12px",
-          padding: "20px",
-          marginBottom: "20px",
-        }}
-      >
-        <h2>Check-in & Check-out</h2>
+        <div className="rounded-2xl bg-white p-6 shadow-md">
+          <h2 className="mb-4 text-xl font-semibold">
+            Check-in & Check-out
+          </h2>
 
-        <p>
-          <strong>Check-in:</strong> 15 Jun 2026
-        </p>
+          <p>
+            <strong>Check-in:</strong> {trip.checkIn}
+          </p>
 
-        <p>
-          <strong>Check-out:</strong> 20 Jun 2026
-        </p>
-      </div>
+          <p className="mt-2">
+            <strong>Check-out:</strong> {trip.checkOut}
+          </p>
+        </div>
 
-      <div
-        style={{
-          border: "1px solid #ddd",
-          borderRadius: "12px",
-          padding: "20px",
-        }}
-      >
-        <h2>Property Information</h2>
+        <div className="rounded-2xl bg-white p-6 shadow-md">
+          <h2 className="mb-4 text-xl font-semibold">
+            Property Information
+          </h2>
 
-        <p>
-          <strong>Property Type:</strong>{" "}
-          {property.type || "Property"}
-        </p>
+          <p>
+            <strong>Property Type:</strong>{" "}
+            {property.type || "Property"}
+          </p>
 
-        <p>
-          <strong>Bedrooms:</strong>{" "}
-          {property.bedrooms || "N/A"}
-        </p>
+          <p className="mt-2">
+            <strong>Bedrooms:</strong>{" "}
+            {property.bedrooms || "N/A"}
+          </p>
 
-        <p>
-          <strong>Bathrooms:</strong>{" "}
-          {property.bathrooms || "N/A"}
-        </p>
+          <p className="mt-2">
+            <strong>Bathrooms:</strong>{" "}
+            {property.bathrooms || "N/A"}
+          </p>
 
-        <p>
-          <strong>Guests:</strong>{" "}
-          {property.guests || "N/A"}
-        </p>
+          <p className="mt-2">
+            <strong>Guests:</strong>{" "}
+            {property.guests || "N/A"}
+          </p>
 
-        <p>
-          <strong>Price Per Night:</strong>{" "}
-          ₹
-          {property.price.toLocaleString("en-IN")}
-        </p>
+          <p className="mt-2">
+            <strong>Price Per Night:</strong> ₹
+            {property.price.toLocaleString("en-IN")}
+          </p>
+        </div>
       </div>
     </div>
   );
