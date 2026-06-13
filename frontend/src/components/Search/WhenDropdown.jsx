@@ -12,13 +12,14 @@ const STAY_OPTIONS = [
   { id: "month", label: "Month" },
 ];
 
-const FLEX_OPTIONS = ["exact", "1", "2", "7"];
+const FLEX_OPTIONS = ["exact", "1", "2", "3", "7"];
 
 export default function WhenDropdown({
   startDate,
   setStartDate,
   endDate,
   setEndDate,
+  advanceToNext,
   activeTab,
   setActiveTab,
   stayLength,
@@ -40,10 +41,12 @@ export default function WhenDropdown({
     if (!startDate || (startDate && endDate)) {
       setStartDate(clickedDate);
       setEndDate(null);
+      setExactDatesFlex("exact");
       return;
     }
 
     if (clickedDate < startDate) {
+      setEndDate(startDate);
       setStartDate(clickedDate);
     } else {
       setEndDate(clickedDate);
@@ -70,7 +73,13 @@ export default function WhenDropdown({
     }
 
     if (hoverDate) {
-      return current > start && current < hoverDate.getTime();
+      const hover = hoverDate.getTime();
+      if (hover > start) {
+        return current > start && current < hover;
+      }
+      if (hover < start) {
+        return current < start && current > hover;
+      }
     }
 
     return false;
@@ -110,6 +119,7 @@ export default function WhenDropdown({
     const firstDay = new Date(year, month, 1).getDay();
 
     const days = [];
+    const flexDays = exactDatesFlex === "exact" ? 0 : parseInt(exactDatesFlex);
 
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${year}-${month}-${i}`} />);
@@ -117,13 +127,25 @@ export default function WhenDropdown({
 
     for (let day = 1; day <= daysInMonth; day++) {
       const currentDate = normalizeDate(new Date(year, month, day));
+      const currentTimestamp = currentDate.getTime();
 
       const disabled = isPast(currentDate);
       const selected = isSelected(currentDate);
       const inRange = isInRange(currentDate);
+      
+      let isFlexHighlight = false;
+      if (flexDays > 0 && startDate && !disabled && !selected && !inRange) {
+        const startTs = startDate.getTime();
+        const endTs = endDate ? endDate.getTime() : startTs;
+        const flexStart = startTs - flexDays * 24 * 60 * 60 * 1000;
+        const flexEnd = endTs + flexDays * 24 * 60 * 60 * 1000;
 
-      let buttonClass =
-        "bg-transparent text-gray-900 hover:border hover:border-black";
+        if (currentTimestamp >= flexStart && currentTimestamp <= flexEnd) {
+          isFlexHighlight = true;
+        }
+      }
+
+      let buttonClass = "bg-transparent text-gray-900 hover:border hover:border-black";
       let wrapperClass = "rounded-full";
 
       if (disabled) {
@@ -131,17 +153,23 @@ export default function WhenDropdown({
       } else if (selected) {
         buttonClass = "bg-gray-900 font-semibold text-white";
 
-        if (startDate && currentDate.getTime() === startDate.getTime()) {
-          wrapperClass = "rounded-l-full bg-gray-100";
+        if (startDate && currentTimestamp === startDate.getTime()) {
+          if (!endDate && hoverDate && hoverDate.getTime() < startDate.getTime()) {
+            wrapperClass = "rounded-r-full bg-gray-100";
+          } else {
+            wrapperClass = "rounded-l-full bg-gray-100";
+          }
         }
 
-        if (endDate && currentDate.getTime() === endDate.getTime()) {
+        if (endDate && currentTimestamp === endDate.getTime()) {
           wrapperClass = "rounded-r-full bg-gray-100";
         }
       } else if (inRange) {
-        buttonClass =
-          "bg-gray-100 text-gray-900 hover:border hover:border-black hover:bg-white";
+        buttonClass = "bg-gray-100 text-gray-900 hover:border hover:border-black hover:bg-white";
         wrapperClass = "bg-gray-100";
+      } else if (isFlexHighlight) {
+        // Airbnb's dashed outline style for flexible days
+        buttonClass = "bg-gray-50 border border-gray-300 border-dashed text-gray-700 hover:border-black hover:border-solid hover:bg-white";
       }
 
       days.push(
@@ -213,7 +241,9 @@ export default function WhenDropdown({
   }, [today, flexibleMonths]);
 
   return (
-    <div className="absolute left-1/2 top-full z-50 mt-4 w-[800px] -translate-x-1/2 rounded-3xl border border-gray-200 bg-white p-6 shadow-xl">
+    <div onClick={(e) => e.stopPropagation()}
+      className="absolute left-1/2 top-full z-50 mt-4 w-[800px] -translate-x-1/2 rounded-3xl border border-gray-200 bg-white p-6 shadow-xl" 
+    >
       <div className="mb-4 flex justify-center">
         <div className="flex rounded-full bg-gray-100 p-1">
           <button
@@ -273,22 +303,35 @@ export default function WhenDropdown({
           </div>
 
           <div className="flex items-center gap-3">
-            {FLEX_OPTIONS.map((option) => (
-              <button
-                type="button"
-                key={option}
-                onClick={() => setExactDatesFlex(option)}
-                className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-                  exactDatesFlex === option
-                    ? "border-2 border-gray-900 bg-gray-50"
-                    : "border-gray-300 bg-white text-gray-700 hover:border-gray-900"
-                }`}
-              >
-                {option === "exact"
-                  ? "Exact dates"
-                  : `± ${option} day${option === "1" ? "" : "s"}`}
-              </button>
-            ))}
+            {FLEX_OPTIONS.map((option) => {
+              const isDisabled = false;
+              
+              return (
+                <button
+                  type="button"
+                  key={option}
+                  disabled={isDisabled}
+                  onClick={() => {
+                    setExactDatesFlex(option);
+                    
+                    if (startDate && !endDate) {
+                      setEndDate(startDate);
+                    }
+                  }}
+                  className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                    isDisabled
+                      ? "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400 opacity-70"
+                      : exactDatesFlex === option
+                      ? "border-2 border-gray-900 bg-gray-50 text-gray-900"
+                      : "border-gray-300 bg-white text-gray-700 hover:border-gray-900"
+                  }`}
+                >
+                  {option === "exact"
+                    ? "Exact dates"
+                    : `± ${option} day${option === "1" ? "" : "s"}`}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

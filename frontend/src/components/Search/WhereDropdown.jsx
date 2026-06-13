@@ -57,10 +57,7 @@ export default function WhereDropdown({
 
   const handleSelect = (searchTerm) => {
     setDestinationSearch(searchTerm);
-
-    if (advanceToNext) {
-      advanceToNext();
-    }
+    advanceToNext();
   };
 
   return (
@@ -71,7 +68,9 @@ export default function WhereDropdown({
             <button
               key={region.id}
               type="button"
-              onClick={() => handleSelect(region.searchTerm)}
+              onClick={(e) => {e.stopPropagation();
+                handleSelect(region.searchTerm);
+              }}
               className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition hover:bg-gray-100"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-2xl">
