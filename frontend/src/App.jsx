@@ -6,6 +6,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Wishlist from "./pages/User/Wishlist";
 import Trips from "./pages/User/Trips";
+import BookingDetails from "./pages/User/BookingDetails";
 import Messages from "./pages/User/Messages";
 import Profile from "./pages/User/UserProfile/Profile";
 import EditProfile from "./pages/User/UserProfile/EditProfile";
@@ -30,6 +31,7 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/pages/User/Wishlist" element={<Wishlist />} />
         <Route path="/pages/User/Trips" element={<Trips />} />
+        <Route path="/pages/User/BookingDetails/:id" element={<BookingDetails />}/>    
         <Route path="/pages/User/Messages" element={<Messages />} />
         <Route path="/pages/User/UserProfile/Profile" element={<Profile />} />
         <Route

@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Heart, ChevronRight } from "lucide-react";
 
 function getPropertyImageSrc(property) {
   const imageFromSingle =
     typeof property.image === "string" ? property.image.trim() : "";
+
   const imageFromArray =
     Array.isArray(property.image_urls) && property.image_urls.length
       ? property.image_urls.find((url) => typeof url === "string" && url.trim())
@@ -31,14 +32,32 @@ export default function PropertySection({
     if (!search) return properties;
 
     return properties.filter((property) => {
-      const title = property.title?.toLowerCase() || "";
+      const propertyTitle = property.title?.toLowerCase() || "";
       const location = property.location?.toLowerCase() || "";
 
-      return title.includes(search) || location.includes(search);
+      return propertyTitle.includes(search) || location.includes(search);
     });
   }, [properties, activeSearch]);
 
   const [imageErrors, setImageErrors] = useState(() => new Set());
+
+  const [wishlist, setWishlist] = useState([]);
+
+  useEffect(() => {
+    const savedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+
+    setWishlist(savedWishlist);
+
+    const syncWishlist = () => {
+      const latestWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+
+      setWishlist(latestWishlist);
+    };
+
+    window.addEventListener("wishlistUpdated", syncWishlist);
+
+    return () => window.removeEventListener("wishlistUpdated", syncWishlist);
+  }, []);
 
   if (!filteredProperties.length) return null;
 
@@ -57,11 +76,14 @@ export default function PropertySection({
           const description =
             property.description?.trim() ||
             "A great place to stay - book for more details.";
+
           const imageSrc = getPropertyImageSrc(property);
+
           const hasImage = Boolean(imageSrc);
 
           const rawPrice =
             property.price ?? property.price_per_night ?? property.base_price;
+
           const priceNumber = Number(rawPrice);
 
           const imageKey =
@@ -97,8 +119,39 @@ export default function PropertySection({
                   Guest favourite
                 </span>
 
-                <button className="absolute right-3 top-3 text-white drop-shadow-md transition hover:scale-110">
-                  <Heart size={25} />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+
+                    const savedWishlist =
+                      JSON.parse(localStorage.getItem("wishlist")) || [];
+
+                    let updatedWishlist;
+
+                    if (savedWishlist.includes(property.id)) {
+                      updatedWishlist = savedWishlist.filter(
+                        (id) => id !== property.id,
+                      );
+                    } else {
+                      updatedWishlist = [...savedWishlist, property.id];
+                    }
+
+                    localStorage.setItem(
+                      "wishlist",
+                      JSON.stringify(updatedWishlist),
+                    );
+
+                    setWishlist(updatedWishlist);
+
+                    window.dispatchEvent(new Event("wishlistUpdated"));
+                  }}
+                  className="absolute right-3 top-3 drop-shadow-md transition hover:scale-110"
+                >
+                  <Heart
+                    size={25}
+                    fill={wishlist.includes(property.id) ? "#FF385C" : "none"}
+                    color={wishlist.includes(property.id) ? "#FF385C" : "white"}
+                  />
                 </button>
               </div>
 
