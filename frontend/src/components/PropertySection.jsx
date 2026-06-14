@@ -1,4 +1,5 @@
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Heart, ChevronRight } from "lucide-react";
 
 function getPropertyImageSrc(property) {
@@ -26,6 +27,9 @@ export default function PropertySection({
   properties = [],
   activeSearch = "",
 }) {
+  const [imageErrors, setImageErrors] = useState(() => new Set());
+  const [wishlist, setWishlist] = useState([]);
+
   const filteredProperties = useMemo(() => {
     const search = activeSearch.trim().toLowerCase();
 
@@ -39,18 +43,12 @@ export default function PropertySection({
     });
   }, [properties, activeSearch]);
 
-  const [imageErrors, setImageErrors] = useState(() => new Set());
-
-  const [wishlist, setWishlist] = useState([]);
-
   useEffect(() => {
     const savedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
-
     setWishlist(savedWishlist);
 
     const syncWishlist = () => {
       const latestWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
-
       setWishlist(latestWishlist);
     };
 
@@ -59,16 +57,31 @@ export default function PropertySection({
     return () => window.removeEventListener("wishlistUpdated", syncWishlist);
   }, []);
 
+  const toggleWishlist = (propertyId) => {
+    const savedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+
+    const updatedWishlist = savedWishlist.includes(propertyId)
+      ? savedWishlist.filter((id) => id !== propertyId)
+      : [...savedWishlist, propertyId];
+
+    localStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
+    setWishlist(updatedWishlist);
+
+    window.dispatchEvent(new Event("wishlistUpdated"));
+  };
+
   if (!filteredProperties.length) return null;
 
   return (
     <section className="px-6 py-6 md:px-8">
-      <div className="mb-4 flex items-center gap-2">
-        <h2 className="text-xl font-semibold text-gray-950">{title}</h2>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-gray-950">{title}</h2>
 
-        <button className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200">
-          <ChevronRight size={18} />
-        </button>
+          <button className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200">
+            <ChevronRight size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="scrollbar-hide flex gap-4 overflow-x-auto scroll-smooth pb-3">
@@ -78,7 +91,6 @@ export default function PropertySection({
             "A great place to stay - book for more details.";
 
           const imageSrc = getPropertyImageSrc(property);
-
           const hasImage = Boolean(imageSrc);
 
           const rawPrice =
@@ -89,10 +101,13 @@ export default function PropertySection({
           const imageKey =
             property.id ?? `${property.title}-${property.location}`;
 
+          const isWishlisted = wishlist.includes(property.id);
+
           return (
-            <article
+            <Link
               key={property.id}
-              className="group w-52 shrink-0 cursor-pointer"
+              to={`/property/${property.id}`}
+              className="group block w-52 shrink-0 cursor-pointer"
             >
               <div className="relative h-48 overflow-hidden rounded-2xl bg-gray-100">
                 {hasImage && !imageErrors.has(imageKey) && (
@@ -120,37 +135,18 @@ export default function PropertySection({
                 </span>
 
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-
-                    const savedWishlist =
-                      JSON.parse(localStorage.getItem("wishlist")) || [];
-
-                    let updatedWishlist;
-
-                    if (savedWishlist.includes(property.id)) {
-                      updatedWishlist = savedWishlist.filter(
-                        (id) => id !== property.id,
-                      );
-                    } else {
-                      updatedWishlist = [...savedWishlist, property.id];
-                    }
-
-                    localStorage.setItem(
-                      "wishlist",
-                      JSON.stringify(updatedWishlist),
-                    );
-
-                    setWishlist(updatedWishlist);
-
-                    window.dispatchEvent(new Event("wishlistUpdated"));
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    toggleWishlist(property.id);
                   }}
                   className="absolute right-3 top-3 drop-shadow-md transition hover:scale-110"
                 >
                   <Heart
                     size={25}
-                    fill={wishlist.includes(property.id) ? "#FF385C" : "none"}
-                    color={wishlist.includes(property.id) ? "#FF385C" : "white"}
+                    fill={isWishlisted ? "#FF385C" : "none"}
+                    color={isWishlisted ? "#FF385C" : "white"}
                   />
                 </button>
               </div>
@@ -162,15 +158,15 @@ export default function PropertySection({
 
                 <p className="mt-0.5 truncate text-sm text-gray-600">
                   {Number.isFinite(priceNumber)
-                    ? `Rs. ${priceNumber.toLocaleString("en-IN")} night`
-                    : "Rs. - night"}
+                    ? `₹${priceNumber.toLocaleString("en-IN")} night`
+                    : "₹- night"}
                 </p>
 
                 <p className="mt-1 line-clamp-2 text-xs text-gray-500">
                   {description}
                 </p>
               </div>
-            </article>
+            </Link>
           );
         })}
       </div>

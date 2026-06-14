@@ -2,8 +2,11 @@ import React from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
+import PropertyDetails from "./pages/PropertyDetails";
+
 import { Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+
 import Wishlist from "./pages/User/Wishlist";
 import Trips from "./pages/User/Trips";
 import BookingDetails from "./pages/User/BookingDetails";
@@ -22,16 +25,24 @@ import { HostProvider } from "./pages/Host/HostContext";
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
-  const isHostRoute = useLocation().pathname.startsWith("/host") || useLocation().pathname === "/become-a-host";
+  const isHostRoute =
+    useLocation().pathname.startsWith("/host") ||
+    useLocation().pathname === "/become-a-host";
   return (
     <>
       {!isAdminRoute && !isHostRoute && <Navbar />}
-      <Toaster/>
+      <Toaster />
       <Routes>
         <Route path="/" element={<Home />} />
+
+        <Route path="/property/:id" element={<PropertyDetails />} />
+
         <Route path="/pages/User/Wishlist" element={<Wishlist />} />
         <Route path="/pages/User/Trips" element={<Trips />} />
-        <Route path="/pages/User/BookingDetails/:id" element={<BookingDetails />}/>    
+        <Route
+          path="/pages/User/BookingDetails/:id"
+          element={<BookingDetails />}
+        />
         <Route path="/pages/User/Messages" element={<Messages />} />
         <Route path="/pages/User/UserProfile/Profile" element={<Profile />} />
         <Route
@@ -43,11 +54,46 @@ const App = () => {
           path="/pages/User/AccountSettings"
           element={<AccountSettings />}
         />
-        <Route path="/host" element={<HostProvider><HostDashboard /></HostProvider>} />
-        <Route path="/host/add-property" element={<HostProvider><AddProperty /></HostProvider>} />
-        <Route path="/host/properties" element={<HostProvider><MyProperties /></HostProvider>} />
-        <Route path="/host/analytics" element={<HostProvider><PropertyAnalytics /></HostProvider>} />
-        <Route path="/host/reservations" element={<HostProvider><HostReservations /></HostProvider>} />
+        <Route
+          path="/host"
+          element={
+            <HostProvider>
+              <HostDashboard />
+            </HostProvider>
+          }
+        />
+        <Route
+          path="/host/add-property"
+          element={
+            <HostProvider>
+              <AddProperty />
+            </HostProvider>
+          }
+        />
+        <Route
+          path="/host/properties"
+          element={
+            <HostProvider>
+              <MyProperties />
+            </HostProvider>
+          }
+        />
+        <Route
+          path="/host/analytics"
+          element={
+            <HostProvider>
+              <PropertyAnalytics />
+            </HostProvider>
+          }
+        />
+        <Route
+          path="/host/reservations"
+          element={
+            <HostProvider>
+              <HostReservations />
+            </HostProvider>
+          }
+        />
         <Route path="/become-a-host" element={<BecomeAHost />} />
       </Routes>
       {!isAdminRoute && !isHostRoute && <Footer />}
