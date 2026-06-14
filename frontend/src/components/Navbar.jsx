@@ -7,9 +7,9 @@ import SearchBar from "./Search/SearchBar";
 import airbnbLogo from "../assets/Airbnb-logo.png";
 
 const TABS = [
-  { icon: "🏠", label: "Homes", active: true },
-  { icon: "🎈", label: "Experiences", badge: "NEW" },
-  { icon: "🛎️", label: "Services", badge: "NEW" },
+  { path: "/", icon: "🏠", label: "Homes" },
+  { path: "/Experiences", icon: "🎈", label: "Experiences", badge: "NEW" },
+  { path: "/Services", icon: "🛎️", label: "Services", badge: "NEW" },
 ];
 
 export default function Navbar() {
@@ -123,9 +123,12 @@ export default function Navbar() {
               />
             ) : (
               <div className="flex items-center gap-16 pt-4 transition-all duration-500">
-                {/* OPTIMIZATION: Map the array instead of repeating <TopTab /> */}
                 {TABS.map((tab) => (
-                  <TopTab key={tab.label} {...tab} />
+                  <TopTab
+                    key={tab.path}
+                    {...tab}
+                    active={location.pathname === tab.path}
+                  />
                 ))}
               </div>
             )}
@@ -196,25 +199,30 @@ export default function Navbar() {
   );
 }
 
-function TopTab({ icon, label, badge, active = false }) {
+function TopTab({ path, icon, label, badge, active = false }) {
   return (
-    <button
-      type="button"
-      className={`group relative flex flex-col items-center transition-all duration-300 hover:scale-105 ${active ? "text-black" : "text-gray-500 hover:text-black"}`}
+    <Link
+      to={path}
+      className={`group relative flex flex-col items-center transition-all duration-300 hover:scale-105 ${
+        active ? "text-black" : "text-gray-500 hover:text-black"
+      }`}
     >
       {badge && (
         <span className="absolute -top-5 left-1/2 -translate-x-1/2 rounded-full bg-slate-600 px-2 py-0.5 text-xs font-bold text-white shadow">
           {badge}
         </span>
       )}
+
       <span className="text-3xl transition-transform duration-300 group-hover:-translate-y-1">
         {icon}
       </span>
+
       <span className="mt-1 font-semibold">{label}</span>
+
       {active && (
-        <span className="absolute -bottom-5 h-1 w-24 rounded-full bg-black" />
+        <span className="absolute -bottom-2 h-1 w-18 rounded-full bg-black" />
       )}
-    </button>
+    </Link>
   );
 }
 
