@@ -34,7 +34,7 @@ export default function Navbar() {
 
   // OPTIMIZATION: 1-line Regex instead of 5 startsWith() checks
   const hideSearchBar =
-    /^\/pages\/User\/property\/(Messages|Notifications|AccountSettings|UserProfile)/.test(
+    /^\/pages\/User\/(Messages|Notifications|AccountSettings|UserProfile)/.test(
       location.pathname,
     );
 
