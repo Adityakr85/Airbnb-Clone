@@ -3,6 +3,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Experiences from "./pages/Experiences";
+import ExperienceDetails from "./components/ExperienceDetails";
 import Services from "./pages/Services";
 import PropertyDetails from "./pages/PropertyDetails";
 
@@ -37,6 +38,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/experiences" element={<Experiences />} />
+        <Route path="/experience/:id" element={<ExperienceDetails />} />
         <Route path="/services" element={<Services />} />
         <Route path="/property/:id" element={<PropertyDetails />} />
 

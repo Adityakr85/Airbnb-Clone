@@ -22,9 +22,7 @@ export default function Experience() {
 
   return (
     <main className="bg-white min-h-screen px-6 md:px-8 py-6">
-      <h1 className="mb-6 text-3xl font-semibold text-gray-950">
-        Experiences
-      </h1>
+      <h1 className="mb-6 text-3xl font-semibold text-gray-950">Experiences</h1>
       <div className="mb-8 flex gap-8 overflow-x-auto border-b pb-4">
         {categories.map((category) => (
           <div
@@ -32,9 +30,7 @@ export default function Experience() {
             className="flex min-w-fit cursor-pointer flex-col items-center text-gray-500 transition hover:text-black"
           >
             <span className="text-2xl">{category.icon}</span>
-            <span className="mt-1 text-xs font-medium">
-              {category.name}
-            </span>
+            <span className="mt-1 text-xs font-medium">{category.name}</span>
           </div>
         ))}
       </div>
@@ -83,43 +79,40 @@ export default function Experience() {
             ref={(el) => (scrollRefs.current[location] = el)}
             className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide"
           >
-
             {props.map((experience) => (
-            <Link to={`/experience/${experience.id}`}>
-              <article
-                key={experience.id}
-                className="group min-w-[205px] max-w-[205px] cursor-pointer"
-              >
-                <div className="relative h-[195px] overflow-hidden rounded-2xl bg-gray-100">
-                  <img
-                    src={experience.image}
-                    alt={experience.title}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
+              <Link key={experience.id} to={`/experience/${experience.id}`}>
+                <article className="group min-w-[205px] max-w-[205px] cursor-pointer">
+                  <div className="relative h-[195px] overflow-hidden rounded-2xl bg-gray-100">
+                    <img
+                      src={experience.image}
+                      alt={experience.title}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
 
-                  <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1.5 text-xs font-semibold shadow-sm">
-                    Experience
-                  </span>
+                    <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1.5 text-xs font-semibold shadow-sm">
+                      Experience
+                    </span>
 
-                  <button className="absolute right-3 top-3 text-white drop-shadow-md transition hover:scale-110">
-                    <Heart size={25} />
-                  </button>
-                </div>
+                    <button className="absolute right-3 top-3 text-white drop-shadow-md transition hover:scale-110">
+                      <Heart size={25} />
+                    </button>
+                  </div>
 
-                <div className="mt-2">
-                  <h3 className="truncate text-sm font-semibold text-gray-950">
-                    {experience.title}
-                  </h3>
+                  <div className="mt-2">
+                    <h3 className="truncate text-sm font-semibold text-gray-950">
+                      {experience.title}
+                    </h3>
 
-                  <p className="mt-0.5 truncate text-sm text-gray-600">
-                    ₹{experience.price} per person · ★ {experience.rating}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {experience.duration}
-                  </p>
-                </div>
-              </article>
-            </Link>
+                    <p className="mt-0.5 truncate text-sm text-gray-600">
+                      ₹{experience.price} per person · ★ {experience.rating}
+                    </p>
+
+                    <p className="text-xs text-gray-500">
+                      {experience.duration}
+                    </p>
+                  </div>
+                </article>
+              </Link>
             ))}
           </div>
         </section>
