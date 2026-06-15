@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Search, Globe } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Search, Globe, User } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 
 import MenuDropdown from "./MenuDropdown";
 import SearchBar from "./Search/SearchBar";
@@ -13,6 +14,8 @@ const TABS = [
 ];
 
 export default function Navbar() {
+  const navigate = useNavigate();
+  const { user, isSignedIn } = useUser();
   const [scrolled, setScrolled] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [openMenu, setOpenMenu] = useState("where");
@@ -143,9 +146,22 @@ export default function Navbar() {
             Become a host
           </Link>
 
-          <button className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200">
-            <Globe size={21} />
-          </button>
+          {isSignedIn ? (
+            <button
+              onClick={() => navigate("/pages/User/UserProfile/Profile")}
+              className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-gray-100 transition hover:bg-gray-200"
+            >
+              <img
+                src={user?.imageUrl}
+                alt="Profile"
+                className="h-full w-full object-cover"
+              />
+            </button>
+          ) : (
+            <button className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200">
+              <Globe size={21} />
+            </button>
+          )}
           <MenuDropdown />
         </div>
       </nav>
