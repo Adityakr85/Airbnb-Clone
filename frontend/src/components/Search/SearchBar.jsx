@@ -1,6 +1,6 @@
 import React,{ useEffect, useRef, useState } from "react";
-import { Search } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Search, X } from "lucide-react";
+import { useNavigate ,useLocation } from "react-router-dom";
 
 import WhereDropdown from "./WhereDropdown";
 import WhenDropdown from "./WhenDropdown";
@@ -15,6 +15,7 @@ export default function SearchBar({onSearch,
 }) 
 {
   const navigate = useNavigate();
+  const location = useLocation();
   const formRef = useRef(null);
 
   const isAnyMenuOpen = openMenu !== null;
@@ -44,11 +45,13 @@ export default function SearchBar({onSearch,
       setIsExpanded(false);
     }
     setTimeout(() => {
-      if (destinationSearch.trim()) {
-        navigate(`/?search=${encodeURIComponent(destinationSearch.trim())}`);
-      } else {
-         navigate("/");
+      const basePath = location.pathname === '/experiences' ? '/experiences' : '/';
+      const finalSearch = destinationSearch.trim() ? destinationSearch.trim() : "nearby";
+
+      if (!destinationSearch.trim()) {
+        setDestinationSearch("nearby");
       }
+      navigate(`${basePath}?search=${encodeURIComponent(finalSearch)}`);
     }, 300);
   };
 
@@ -72,7 +75,7 @@ export default function SearchBar({onSearch,
     >
       <div
         onClick={() => setOpenMenu(openMenu === "where" ? null : "where")}
-        className={`flex h-full flex-1 cursor-pointer flex-col justify-center rounded-full px-6 transition-all duration-300 ${
+        className={`relative flex h-full flex-1 cursor-pointer flex-col justify-center rounded-full px-6 transition-all duration-300 ${
           openMenu === "where" ? "bg-white shadow-md" : "hover:bg-gray-300"
         }`}
       >
@@ -83,8 +86,21 @@ export default function SearchBar({onSearch,
           placeholder="Search destinations"
           value={destinationSearch}
           onChange={(event) => setDestinationSearch(event.target.value)}
-          className="w-full truncate bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-500"
+          className="w-full truncate bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-500 pr-6"
         />
+
+        {destinationSearch && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDestinationSearch("");
+            }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 p-1 text-gray-600 transition hover:bg-gray-300"
+          >
+            <X size={14} strokeWidth={3} />
+          </button>
+        )}
 
         {openMenu === "where" && (
           <WhereDropdown
@@ -99,34 +115,36 @@ export default function SearchBar({onSearch,
 
       <div
         onClick={() => setOpenMenu(openMenu === "when" ? null : "when")}
-        className={`flex h-full flex-1 cursor-pointer flex-col justify-center rounded-full px-6 transition-all duration-300 ${
+        // ADDED 'relative' to the class string below:
+        className={`relative flex h-full flex-1 cursor-pointer flex-col justify-center rounded-full px-6 transition-all duration-300 ${
           openMenu === "when" ? "bg-white shadow-md" : "hover:bg-gray-300"
         }`}
       >
         <h4 className="text-sm font-bold text-gray-900">When</h4>
-
-        <p
-          className={`truncate text-sm ${
-            isWhenActive ? "font-semibold text-gray-900" : "text-gray-500"
-          }`}
-        >
+        <p className={`truncate text-sm pr-6 ${isWhenActive ? "font-semibold text-gray-900" : "text-gray-500"}`}>
           {checkInDate ? formatWhenText() : "Add dates"}
         </p>
 
+        {isWhenActive && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setCheckInDate(null);
+              setCheckOutDate(null);
+              setFlexibleMonths([]); 
+            }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 p-1 text-gray-600 transition hover:bg-gray-300"
+          >
+            <X size={14} strokeWidth={3} />
+          </button>
+        )}
+
         {openMenu === "when" && (
           <WhenDropdown
-            startDate={checkInDate}
-            setStartDate={setCheckInDate}
-            endDate={checkOutDate}
-            setEndDate={setCheckOutDate}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            stayLength={stayLength}
-            setStayLength={setStayLength}
-            flexibleMonths={flexibleMonths}
-            setFlexibleMonths={setFlexibleMonths}
-            exactDatesFlex={exactDatesFlex}
-            setExactDatesFlex={setExactDatesFlex}
+            startDate={checkInDate} setStartDate={setCheckInDate} endDate={checkOutDate} setEndDate={setCheckOutDate}
+            activeTab={activeTab} setActiveTab={setActiveTab} stayLength={stayLength} setStayLength={setStayLength}
+            flexibleMonths={flexibleMonths} setFlexibleMonths={setFlexibleMonths} exactDatesFlex={exactDatesFlex} setExactDatesFlex={setExactDatesFlex}
             advanceToNext={advanceToNext}
           />
         )}
@@ -136,32 +154,39 @@ export default function SearchBar({onSearch,
 
       <div
         onClick={() => setOpenMenu(openMenu === "guests" ? null : "guests")}
-        className={`flex h-full flex-1 cursor-pointer items-center justify-between rounded-full pl-6 pr-2 transition-all duration-300 ${
+        // ADDED 'relative' to the class string below:
+        className={`relative flex h-full flex-1 cursor-pointer items-center justify-between rounded-full pl-6 pr-2 transition-all duration-300 ${
           openMenu === "guests" ? "bg-white shadow-md" : "hover:bg-gray-300"
         }`}
       >
         <div className="flex h-full flex-col justify-center">
           <h4 className="text-sm font-bold text-gray-900">Who</h4>
-
-          <p
-            className={`max-w-36 truncate text-sm ${
-              isGuestActive ? "font-semibold text-gray-900" : "text-gray-500"
-            }`}
-          >
+          <p className={`max-w-36 truncate text-sm pr-6 ${isGuestActive ? "font-semibold text-gray-900" : "text-gray-500"}`}>
             {formatGuestText()}
           </p>
         </div>
 
+        {isGuestActive && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setAdults(0);
+              setChildrenCount(0);
+              setInfants(0);
+              setPets(0);
+            }}
+            className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 p-1 text-gray-600 transition hover:bg-gray-300"
+          >
+            <X size={14} strokeWidth={3} />
+          </button>
+        )}
+
         {openMenu === "guests" && (
           <GuestDropdown
-            adults={adults}
-            setAdults={setAdults}
-            childrenCount={childrenCount}
-            setChildrenCount={setChildrenCount}
-            infants={infants}
-            setInfants={setInfants}
-            pets={pets}
-            setPets={setPets}
+             // ... (keep your existing GuestDropdown props intact)
+             adults={adults} setAdults={setAdults} childrenCount={childrenCount} setChildrenCount={setChildrenCount}
+             infants={infants} setInfants={setInfants} pets={pets} setPets={setPets}
           />
         )}
       </div>

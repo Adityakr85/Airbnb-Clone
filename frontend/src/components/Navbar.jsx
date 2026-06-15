@@ -7,15 +7,15 @@ import SearchBar from "./Search/SearchBar";
 import airbnbLogo from "../assets/Airbnb-logo.png";
 
 const TABS = [
-  { icon: "🏠", label: "Homes", active: true },
-  { icon: "🎈", label: "Experiences", badge: "NEW" },
-  { icon: "🛎️", label: "Services", badge: "NEW" },
+  { icon: "🏠", label: "Homes", path: "/", active: true },
+  { icon: "🎈", label: "Experiences", path: "/experiences", badge: "NEW" },
+  { icon: "🛎️", label: "Services", path: "/", badge: "NEW" },
 ];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [openMenu, setOpenMenu] = useState("where");
+  const [openMenu, setOpenMenu] = useState("null");
   const location = useLocation();
 
   const [destinationSearch, setDestinationSearch] = useState("");
@@ -137,14 +137,14 @@ export default function Navbar() {
   );
 }
 
-function TopTab({ icon, label, badge, active = false }) {
+function TopTab({ icon, label, path, badge, active = false }) {
   return (
-    <button type="button" className={`group relative flex flex-col items-center transition-all duration-300 hover:scale-105 ${active ? "text-black" : "text-gray-500 hover:text-black"}`}>
+    <Link to={path} className={`group relative flex flex-col items-center transition-all duration-300 hover:scale-105 ${active ? "text-black" : "text-gray-500 hover:text-black"}`}>
       {badge && <span className="absolute -top-5 left-1/2 -translate-x-1/2 rounded-full bg-slate-600 px-2 py-0.5 text-xs font-bold text-white shadow">{badge}</span>}
       <span className="text-3xl transition-transform duration-300 group-hover:-translate-y-1">{icon}</span>
       <span className="mt-1 font-semibold">{label}</span>
       {active && <span className="absolute -bottom-5 h-1 w-24 rounded-full bg-black" />}
-    </button>
+    </Link>
   );
 }
 

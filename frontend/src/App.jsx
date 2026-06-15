@@ -17,6 +17,7 @@ import MyProperties from "./pages/Host/MyProperties";
 import PropertyAnalytics from "./pages/Host/PropertyAnalytics";
 import HostReservations from "./pages/Host/HostReservations";
 import BecomeAHost from "./pages/Host/BecomeAHost";
+import Experiences from "./pages/Experiences";
 import { HostProvider } from "./pages/Host/HostContext";
 
 const App = () => {
@@ -28,6 +29,7 @@ const App = () => {
       <Toaster/>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/experiences" element={<Experiences />} />
         <Route path="/pages/User/Wishlist" element={<Wishlist />} />
         <Route path="/pages/User/Trips" element={<Trips />} />
         <Route path="/pages/User/Messages" element={<Messages />} />

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
+import { useLocation } from "react-router-dom";
 const normalizeDate = (date) =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
@@ -29,14 +29,35 @@ export default function WhenDropdown({
   exactDatesFlex,
   setExactDatesFlex,
 }) {
+  const location = useLocation();
+  const isQuickSelect = location.pathname === "/experiences" || location.pathname === "/services";
+
   const [hoverDate, setHoverDate] = useState(null);
   const [monthOffset, setMonthOffset] = useState(0);
   const carouselRef = useRef(null);
 
-  const today = useMemo(() => normalizeDate(new Date()), []);
+  const { today, tomorrow, nextFriday, nextSunday } = useMemo(() => {
+    const t = normalizeDate(new Date());
+    const tmrw = new Date(t); tmrw.setDate(t.getDate() + 1);
+    const fri = new Date(t); fri.setDate(t.getDate() + ((7 - t.getDay() + 5) % 7 || 7));
+    const sun = new Date(fri); sun.setDate(fri.getDate() + 2);
+    return { today: t, tomorrow: tmrw, nextFriday: fri, nextSunday: sun };
+  }, []);
+
+  const formatShortDate = (d) => d.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+  const handleQuickSelect = (type) => {
+    if (type === "today") { setStartDate(today); setEndDate(null); }
+    else if (type === "tomorrow") { setStartDate(tomorrow); setEndDate(null); }
+    else if (type === "weekend") { setStartDate(nextFriday); setEndDate(nextSunday); }
+  };
 
   const handleDateClick = (date) => {
     const clickedDate = normalizeDate(date);
+    if (isQuickSelect) {
+      setStartDate(clickedDate);
+      setEndDate(null);
+      setExactDatesFlex("exact");
+    }
 
     if (!startDate || (startDate && endDate)) {
       setStartDate(clickedDate);
@@ -168,7 +189,6 @@ export default function WhenDropdown({
         buttonClass = "bg-gray-100 text-gray-900 hover:border hover:border-black hover:bg-white";
         wrapperClass = "bg-gray-100";
       } else if (isFlexHighlight) {
-        // Airbnb's dashed outline style for flexible days
         buttonClass = "bg-gray-50 border border-gray-300 border-dashed text-gray-700 hover:border-black hover:border-solid hover:bg-white";
       }
 
@@ -239,6 +259,36 @@ export default function WhenDropdown({
       );
     });
   }, [today, flexibleMonths]);
+
+  if (isQuickSelect) {
+    return (
+      <div onClick={(e) => e.stopPropagation()} className="absolute left-1/2 top-full z-50 mt-4 flex w-[700px] -translate-x-1/2 rounded-3xl border border-gray-200 bg-white p-8 shadow-xl">
+        <div className="flex w-1/3 flex-col gap-4 pr-8">
+          <button type="button" onClick={() => handleQuickSelect("today")} className="flex flex-col rounded-2xl border border-gray-200 p-4 text-left transition hover:border-black shadow-sm">
+            <span className="font-semibold text-gray-900">Today</span>
+            <span className="text-sm text-gray-500">{formatShortDate(today)}</span>
+          </button>
+          <button type="button" onClick={() => handleQuickSelect("tomorrow")} className="flex flex-col rounded-2xl border border-gray-200 p-4 text-left transition hover:border-black shadow-sm">
+            <span className="font-semibold text-gray-900">Tomorrow</span>
+            <span className="text-sm text-gray-500">{formatShortDate(tomorrow)}</span>
+          </button>
+          <button type="button" onClick={() => handleQuickSelect("weekend")} className="flex flex-col rounded-2xl border border-gray-200 p-4 text-left transition hover:border-black shadow-sm">
+            <span className="font-semibold text-gray-900">Next weekend</span>
+            <span className="text-sm text-gray-500">{nextFriday.getDate()}–{formatShortDate(nextSunday)}</span>
+          </button>
+        </div>
+        <div className="relative flex-1 border-l border-gray-100 pl-4">
+          <button type="button" onClick={() => setMonthOffset((prev) => prev - 1)} disabled={monthOffset <= 0} className={`absolute left-6 top-0 z-10 rounded-full p-2 transition ${monthOffset <= 0 ? "cursor-not-allowed text-gray-300" : "text-gray-600 hover:bg-gray-100 hover:text-black"}`}>
+            <ChevronLeft size={22} />
+          </button>
+          <button type="button" onClick={() => setMonthOffset((prev) => prev + 1)} className="absolute right-6 top-0 z-10 rounded-full p-2 text-gray-600 transition hover:bg-gray-100 hover:text-black">
+            <ChevronRight size={22} />
+          </button>
+          {renderMonth(0)}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div onClick={(e) => e.stopPropagation()}
