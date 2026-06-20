@@ -11,6 +11,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useHost } from "./HostContext";
+import HostNavbar from "../../components/HostNavbar";
 
 export default function HostDashboard() {
   const { properties, reservations, totalRevenue, totalBookings } = useHost();
@@ -58,6 +59,7 @@ export default function HostDashboard() {
 
   return (
     <div className="min-h-screen bg-white">
+      <HostNavbar />
       
       <div className="bg-white border-b border-gray-200 px-6 py-8">
         <div className="max-w-6xl mx-auto">

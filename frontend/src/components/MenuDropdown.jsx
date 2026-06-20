@@ -67,12 +67,12 @@ export default function MenuDropdown() {
 
             <div className="mx-6 border-gray-300 border-t" />
 
-            <button className="w-full px-6 py-4 text-left hover:bg-gray-50">
+            <Link to="/become-a-host" onClick={() => setOpen(false)} className="block w-full px-6 py-4 text-left hover:bg-gray-50">
               <h3>Become a host</h3>
               <p className="text-sm text-gray-500">
-                It’s easy to start hosting and earn extra income.
+                It's easy to start hosting and earn extra income.
               </p>
-            </button>
+            </Link>
 
             <div className="mx-6 border-gray-300 border-t" />
 
@@ -141,15 +141,15 @@ export default function MenuDropdown() {
             <MenuItem icon={CircleHelp} label="Help Centre" to="/HelpCentre" />
             <div className="mx-6 my-2 border-gray-300 border-t" />
 
-            <button className="flex w-full items-center justify-between px-6 py-4 text-left hover:bg-gray-50">
+            <Link to="/become-a-host" onClick={() => setOpen(false)} className="flex w-full items-center justify-between px-6 py-4 text-left hover:bg-gray-50">
               <div>
                 <h3>Become a host</h3>
                 <p className="text-sm text-gray-500">
-                  It’s easy to start hosting and earn extra income.
+                  It's easy to start hosting and earn extra income.
                 </p>
               </div>
-              <span className="text-2xl">🧍‍♂️</span>
-            </button>
+              <span className="text-2xl">🏠</span>
+            </Link>
 
             <button className="w-full px-6 py-3 text-left hover:bg-gray-50 text-gray-600">
               Refer a host
