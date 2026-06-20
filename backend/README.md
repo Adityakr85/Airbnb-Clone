@@ -4,42 +4,28 @@ Laravel API for the Airbnb Clone app. It serves property data to the React front
 
 ## Requirements
 
-- PHP 8.2+
+1. Install these
+- PHP 8.2+ and add to the path 
 - Composer
-- SQLite, MySQL, or another Laravel-supported database
+- XAMPP
+
 
 ## Local Setup
 
-From the project root:
+2. In the project root:
 
 ```bash
 cd backend
 composer install
-copy .env.example .env
-php artisan key:generate
 ```
+if facing any issue in (composer install) go to php file directory then search for (php.ini) and open it with vs code and check that these extensions are not commented { extension=pdo_mysql , extension=mysqli } and Also make sure this is correct: { extension_dir = "ext" } and save the file.
 
-The default `.env.example` uses SQLite:
+3. Copy .env.example to .env after creating it
 
-```env
-DB_CONNECTION=sqlite
-```
+4. Run XAMPP Control Panel as Administrator and start My SQL and Apache
 
-Create the SQLite database file before running migrations:
+5. ```php artisan key:generate```
 
-```bash
-New-Item database/database.sqlite -ItemType File
-```
-
-If you prefer MySQL, update these values in `.env` instead:
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=airbnb_clone
-DB_USERNAME=root
-DB_PASSWORD=
 ```
 
 ## Add Demo Properties
