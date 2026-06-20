@@ -25,6 +25,17 @@ import PropertyAnalytics from "./pages/Host/PropertyAnalytics";
 import HostReservations from "./pages/Host/HostReservations";
 import BecomeAHost from "./pages/Host/BecomeAHost";
 import { HostProvider } from "./pages/Host/HostContext";
+import AdminLayout from "./pages/Admin/AdminLayout";
+import AdminDashboard from "./pages/Admin/Dashboard";
+import Users from "./pages/Admin/Users";
+import Properties from "./pages/Admin/Properties";
+import Reservations from "./pages/Admin/Reservations";
+import Reviews from "./pages/Admin/Reviews";
+import AdminNotifications from "./pages/Admin/Notifications";
+import Categories from "./pages/Admin/Categories";
+import AdminExperiences from "./pages/Admin/Experiences";
+import Payments from "./pages/Admin/Payments";
+import Settings from "./pages/Admin/Settings";
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
@@ -100,6 +111,18 @@ const App = () => {
           }
         />
         <Route path="/become-a-host" element={<BecomeAHost />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="users" element={<Users />} />
+          <Route path="properties" element={<Properties />} />
+          <Route path="reservations" element={<Reservations />} />
+          <Route path="reviews" element={<Reviews />} />
+          <Route path="notifications" element={<AdminNotifications />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="experiences" element={<AdminExperiences />} />
+          <Route path="payments" element={<Payments />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
       </Routes>
       {!isAdminRoute && !isHostRoute && <Footer />}
     </>
