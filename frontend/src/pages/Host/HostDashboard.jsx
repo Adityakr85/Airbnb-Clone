@@ -50,12 +50,12 @@ export default function HostDashboard() {
     },
   ];
 
-  const quickActions = [
-    { label: "Add New Property", icon: Plus, to: "/host/add-property", color: "bg-rose-500 hover:bg-rose-600 text-white" },
-    { label: "My Listings", icon: Home, to: "/host/properties", color: "bg-gray-100 hover:bg-gray-200 text-gray-800" },
-    { label: "View Analytics", icon: TrendingUp, to: "/host/analytics", color: "bg-gray-100 hover:bg-gray-200 text-gray-800" },
-    { label: "Reservations", icon: CalendarCheck, to: "/host/reservations", color: "bg-gray-100 hover:bg-gray-200 text-gray-800" },
-  ];
+  // const quickActions = [
+  //   { label: "Add New Property", icon: Plus, to: "/host/add-property", color: "bg-rose-500 hover:bg-rose-600 text-white" },
+  //   { label: "My Listings", icon: Home, to: "/host/properties", color: "bg-gray-100 hover:bg-gray-200 text-gray-800" },
+  //   { label: "View Analytics", icon: TrendingUp, to: "/host/analytics", color: "bg-gray-100 hover:bg-gray-200 text-gray-800" },
+  //   { label: "Reservations", icon: CalendarCheck, to: "/host/reservations", color: "bg-gray-100 hover:bg-gray-200 text-gray-800" },
+  // ];
 
   return (
     <div className="min-h-screen bg-white">
@@ -87,7 +87,7 @@ export default function HostDashboard() {
         </div>
 
         
-        <div>
+        {/* <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-3">Quick Actions</h2>
           <div className="flex flex-wrap gap-3">
             {quickActions.map(({ label, icon: Icon, to, color }) => (
@@ -101,7 +101,7 @@ export default function HostDashboard() {
               </Link>
             ))}
           </div>
-        </div>
+        </div> */}
 
         <div className="grid md:grid-cols-2 gap-6">
           
