@@ -2,75 +2,83 @@ import { useMemo, useState } from "react";
 import {
   Search,
   Download,
-  CalendarCheck,
+  IndianRupee,
+  CreditCard,
+  Wallet,
+  RotateCcw,
+  Percent,
+  MoreVertical,
+  X,
   CheckCircle,
   Clock,
   XCircle,
-  IndianRupee,
-  MoreVertical,
-  X,
-  Trash2,
-  RotateCcw,
-  Mail,
 } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
-const reservationsData = [
+const revenueData = [
+  { month: "Jan", revenue: 42000 },
+  { month: "Feb", revenue: 58000 },
+  { month: "Mar", revenue: 64000 },
+  { month: "Apr", revenue: 72000 },
+  { month: "May", revenue: 91000 },
+  { month: "Jun", revenue: 125000 },
+];
+
+const transactionsData = [
   {
-    id: "RSV-1001",
+    id: "PAY-1001",
     guest: "Rahul Sharma",
-    guestEmail: "rahul@gmail.com",
     host: "Amit Kumar",
     property: "Luxury Villa in Goa",
-    checkIn: "Jun 20, 2026",
-    checkOut: "Jun 24, 2026",
-    nights: 4,
     amount: "₹45,000",
-    payment: "Paid",
-    status: "Confirmed",
-    created: "Jun 15, 2026",
+    commission: "₹4,500",
+    payout: "₹40,500",
+    status: "Completed",
+    date: "Jun 15, 2026",
   },
   {
-    id: "RSV-1002",
+    id: "PAY-1002",
     guest: "Sneha Verma",
-    guestEmail: "sneha@gmail.com",
     host: "Priya Singh",
     property: "Modern Apartment in Mumbai",
-    checkIn: "Jun 25, 2026",
-    checkOut: "Jun 28, 2026",
-    nights: 3,
     amount: "₹24,600",
-    payment: "Pending",
+    commission: "₹2,460",
+    payout: "₹22,140",
     status: "Pending",
-    created: "Jun 16, 2026",
+    date: "Jun 16, 2026",
   },
   {
-    id: "RSV-1003",
+    id: "PAY-1003",
     guest: "Amit Kumar",
-    guestEmail: "amit@gmail.com",
     host: "Rahul Sharma",
     property: "Mountain Stay in Manali",
-    checkIn: "Jul 02, 2026",
-    checkOut: "Jul 06, 2026",
-    nights: 4,
     amount: "₹38,000",
-    payment: "Refunded",
-    status: "Cancelled",
-    created: "Jun 18, 2026",
+    commission: "₹3,800",
+    payout: "₹34,200",
+    status: "Refunded",
+    date: "Jun 18, 2026",
   },
 ];
 
-export default function Reservations() {
+export default function Financials() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
-  const [selectedReservation, setSelectedReservation] = useState(null);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
 
-  const reservations = useMemo(() => {
-    return reservationsData.filter((item) => {
+  const transactions = useMemo(() => {
+    return transactionsData.filter((item) => {
       const matchesSearch =
         item.id.toLowerCase().includes(search.toLowerCase()) ||
         item.guest.toLowerCase().includes(search.toLowerCase()) ||
-        item.property.toLowerCase().includes(search.toLowerCase()) ||
-        item.host.toLowerCase().includes(search.toLowerCase());
+        item.host.toLowerCase().includes(search.toLowerCase()) ||
+        item.property.toLowerCase().includes(search.toLowerCase());
 
       const matchesStatus = status === "All" || item.status === status;
 
@@ -82,24 +90,59 @@ export default function Reservations() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-black tracking-tight">Reservations</h1>
+          <h1 className="text-3xl font-black tracking-tight">Financials</h1>
           <p className="mt-1 text-gray-500">
-            Manage bookings, guests, hosts, payments, cancellations, and
-            refunds.
+            Manage revenue, transactions, payouts, refunds, and platform
+            commission.
           </p>
         </div>
 
         <button className="flex items-center justify-center gap-2 rounded-2xl bg-gray-950 px-5 py-3 font-bold text-white transition hover:bg-gray-800">
           <Download size={18} />
-          Export Reservations
+          Export Report
         </button>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-4">
-        <StatCard title="Total Bookings" value="876" icon={CalendarCheck} />
-        <StatCard title="Confirmed" value="642" icon={CheckCircle} />
-        <StatCard title="Pending" value="128" icon={Clock} />
-        <StatCard title="Cancelled" value="106" icon={XCircle} />
+      <div className="rounded-[2rem] bg-gradient-to-r from-gray-950 via-gray-900 to-rose-600 p-8 text-white shadow-xl">
+        <p className="text-sm font-bold uppercase text-white/70">
+          Total Revenue
+        </p>
+        <h2 className="mt-2 text-5xl font-black">₹8.4L</h2>
+        <p className="mt-3 text-white/80">
+          +21.7% growth compared to last month
+        </p>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-5">
+        <StatCard title="Revenue" value="₹8.4L" icon={IndianRupee} />
+        <StatCard title="Transactions" value="1,245" icon={CreditCard} />
+        <StatCard title="Host Payouts" value="₹7.56L" icon={Wallet} />
+        <StatCard title="Refunds" value="₹32K" icon={RotateCcw} />
+        <StatCard title="Commission" value="₹84K" icon={Percent} />
+      </div>
+
+      <div className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm">
+        <h2 className="text-xl font-black">Revenue Overview</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Monthly revenue performance
+        </p>
+
+        <div className="mt-6 h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={revenueData}>
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="#e11d48"
+                fill="#ffe4e6"
+                strokeWidth={3}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <div className="rounded-[1.7rem] border border-gray-100 bg-white p-5 shadow-sm">
@@ -113,8 +156,7 @@ export default function Reservations() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              type="text"
-              placeholder="Search by reservation ID, guest, host, or property..."
+              placeholder="Search transaction, guest, host, or property..."
               className="w-full rounded-2xl border border-gray-200 py-3 pl-11 pr-4 outline-none transition focus:border-rose-500"
             />
           </div>
@@ -125,9 +167,9 @@ export default function Reservations() {
             className="rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
           >
             <option>All</option>
-            <option>Confirmed</option>
+            <option>Completed</option>
             <option>Pending</option>
-            <option>Cancelled</option>
+            <option>Refunded</option>
           </select>
         </div>
       </div>
@@ -137,61 +179,38 @@ export default function Reservations() {
           <table className="w-full min-w-[1100px] text-left text-sm">
             <thead className="bg-gray-50 text-gray-500">
               <tr>
-                <th className="px-6 py-4 font-bold">Reservation</th>
+                <th className="px-6 py-4 font-bold">Transaction</th>
                 <th className="px-6 py-4 font-bold">Guest</th>
                 <th className="px-6 py-4 font-bold">Host</th>
                 <th className="px-6 py-4 font-bold">Property</th>
-                <th className="px-6 py-4 font-bold">Dates</th>
                 <th className="px-6 py-4 font-bold">Amount</th>
-                <th className="px-6 py-4 font-bold">Payment</th>
+                <th className="px-6 py-4 font-bold">Commission</th>
+                <th className="px-6 py-4 font-bold">Payout</th>
                 <th className="px-6 py-4 font-bold">Status</th>
                 <th className="px-6 py-4 font-bold">Action</th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-gray-100">
-              {reservations.map((item) => (
+              {transactions.map((item) => (
                 <tr key={item.id} className="transition hover:bg-gray-50">
-                  <td className="px-6 py-5 font-black text-gray-950">
-                    {item.id}
-                  </td>
-
-                  <td className="px-6 py-5">
-                    <p className="font-bold text-gray-950">{item.guest}</p>
-                    <p className="text-xs text-gray-500">{item.guestEmail}</p>
-                  </td>
-
+                  <td className="px-6 py-5 font-black">{item.id}</td>
+                  <td className="px-6 py-5 font-semibold">{item.guest}</td>
                   <td className="px-6 py-5 text-gray-600">{item.host}</td>
-
-                  <td className="px-6 py-5 font-semibold text-gray-800">
-                    {item.property}
+                  <td className="px-6 py-5 text-gray-600">{item.property}</td>
+                  <td className="px-6 py-5 font-black">{item.amount}</td>
+                  <td className="px-6 py-5 font-bold text-rose-600">
+                    {item.commission}
                   </td>
-
-                  <td className="px-6 py-5">
-                    <p className="font-semibold">{item.checkIn}</p>
-                    <p className="text-xs text-gray-500">
-                      to {item.checkOut} · {item.nights} nights
-                    </p>
+                  <td className="px-6 py-5 font-bold text-emerald-600">
+                    {item.payout}
                   </td>
-
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-1 font-black">
-                      <IndianRupee size={15} />
-                      {item.amount.replace("₹", "")}
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-5">
-                    <PaymentBadge status={item.payment} />
-                  </td>
-
                   <td className="px-6 py-5">
                     <StatusBadge status={item.status} />
                   </td>
-
                   <td className="px-6 py-5">
                     <button
-                      onClick={() => setSelectedReservation(item)}
+                      onClick={() => setSelectedTransaction(item)}
                       className="rounded-full p-2 transition hover:bg-gray-100"
                     >
                       <MoreVertical size={18} />
@@ -204,24 +223,24 @@ export default function Reservations() {
         </div>
       </div>
 
-      {selectedReservation && (
-        <ReservationDrawer
-          reservation={selectedReservation}
-          onClose={() => setSelectedReservation(null)}
+      {selectedTransaction && (
+        <TransactionDrawer
+          transaction={selectedTransaction}
+          onClose={() => setSelectedTransaction(null)}
         />
       )}
     </div>
   );
 }
 
-function ReservationDrawer({ reservation, onClose }) {
+function TransactionDrawer({ transaction, onClose }) {
   return (
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
       <aside className="absolute right-0 top-0 h-full w-full max-w-lg overflow-y-auto bg-white p-6 shadow-2xl">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-black">Reservation Details</h2>
+          <h2 className="text-2xl font-black">Transaction Details</h2>
 
           <button
             onClick={onClose}
@@ -231,47 +250,39 @@ function ReservationDrawer({ reservation, onClose }) {
           </button>
         </div>
 
-        <div className="mt-6 rounded-[1.5rem] bg-gradient-to-br from-rose-500 to-orange-400 p-6 text-white">
-          <p className="text-sm font-semibold text-white/80">Reservation ID</p>
-          <h3 className="mt-1 text-3xl font-black">{reservation.id}</h3>
-          <p className="mt-2 text-white/90">{reservation.property}</p>
+        <div className="mt-6 rounded-[1.5rem] bg-gradient-to-br from-gray-950 to-rose-600 p-6 text-white">
+          <p className="text-sm font-semibold text-white/70">Transaction ID</p>
+          <h3 className="mt-1 text-3xl font-black">{transaction.id}</h3>
+          <p className="mt-2 text-white/80">{transaction.property}</p>
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-2">
-          <StatusBadge status={reservation.status} />
-          <PaymentBadge status={reservation.payment} />
+        <div className="mt-6">
+          <StatusBadge status={transaction.status} />
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-4">
-          <Info title="Guest" value={reservation.guest} />
-          <Info title="Host" value={reservation.host} />
-          <Info title="Check-in" value={reservation.checkIn} />
-          <Info title="Check-out" value={reservation.checkOut} />
-          <Info title="Nights" value={reservation.nights} />
-          <Info title="Amount" value={reservation.amount} />
-          <Info title="Created" value={reservation.created} />
-          <Info title="Email" value={reservation.guestEmail} />
+          <Info title="Guest" value={transaction.guest} />
+          <Info title="Host" value={transaction.host} />
+          <Info title="Amount" value={transaction.amount} />
+          <Info title="Commission" value={transaction.commission} />
+          <Info title="Payout" value={transaction.payout} />
+          <Info title="Date" value={transaction.date} />
         </div>
 
         <div className="mt-8 space-y-3">
-          <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-950 px-5 py-3 font-bold text-white hover:bg-gray-800">
-            <Mail size={18} />
-            Contact Guest
+          <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-bold text-white hover:bg-emerald-600">
+            <CheckCircle size={18} />
+            Mark Completed
           </button>
 
           <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-yellow-50 px-5 py-3 font-bold text-yellow-700 hover:bg-yellow-100">
-            <RotateCcw size={18} />
-            Process Refund
+            <Clock size={18} />
+            Mark Pending
           </button>
 
           <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 px-5 py-3 font-bold text-red-600 hover:bg-red-100">
             <XCircle size={18} />
-            Cancel Reservation
-          </button>
-
-          <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 font-bold text-white hover:bg-red-700">
-            <Trash2 size={18} />
-            Delete Record
+            Process Refund
           </button>
         </div>
       </aside>
@@ -290,22 +301,7 @@ function Info({ title, value }) {
 
 function StatusBadge({ status }) {
   const style =
-    status === "Confirmed"
-      ? "bg-emerald-50 text-emerald-600"
-      : status === "Pending"
-        ? "bg-yellow-50 text-yellow-600"
-        : "bg-red-50 text-red-600";
-
-  return (
-    <span className={`rounded-full px-3 py-1 text-xs font-black ${style}`}>
-      {status}
-    </span>
-  );
-}
-
-function PaymentBadge({ status }) {
-  const style =
-    status === "Paid"
+    status === "Completed"
       ? "bg-emerald-50 text-emerald-600"
       : status === "Pending"
         ? "bg-yellow-50 text-yellow-600"
@@ -324,7 +320,7 @@ function StatCard({ title, value, icon: Icon }) {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold text-gray-500">{title}</p>
-          <h2 className="mt-2 text-3xl font-black">{value}</h2>
+          <h2 className="mt-2 text-2xl font-black">{value}</h2>
         </div>
 
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">

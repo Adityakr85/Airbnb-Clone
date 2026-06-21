@@ -2,102 +2,96 @@ import { useMemo, useState } from "react";
 import {
   Search,
   Download,
-  Home,
   CheckCircle,
   Clock,
   XCircle,
-  MapPin,
-  Star,
+  Home,
+  Compass,
   MoreVertical,
   X,
-  Trash2,
   Eye,
+  Trash2,
 } from "lucide-react";
 
-const propertiesData = [
+const approvalsData = [
   {
-    id: 1,
-    title: "Luxury Villa in Goa",
-    host: "Rahul Sharma",
+    id: "APR-1001",
+    title: "Luxury Beach House",
+    type: "Property",
+    submittedBy: "Rahul Sharma",
     location: "Goa, India",
-    price: "₹12,500",
-    status: "Approved",
-    rating: 4.9,
-    bookings: 28,
-    type: "Villa",
-    created: "Jun 10, 2026",
+    status: "Pending",
+    date: "Jun 15, 2026",
     image:
       "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=900",
   },
   {
-    id: 2,
-    title: "Modern Apartment in Mumbai",
-    host: "Sneha Verma",
+    id: "APR-1002",
+    title: "Mumbai Food Walk",
+    type: "Experience",
+    submittedBy: "Sneha Verma",
     location: "Mumbai, India",
-    price: "₹8,200",
     status: "Pending",
-    rating: 4.6,
-    bookings: 12,
-    type: "Apartment",
-    created: "Jun 14, 2026",
+    date: "Jun 16, 2026",
     image:
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=900",
+      "https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=900",
   },
   {
-    id: 3,
-    title: "Mountain Stay in Manali",
-    host: "Amit Kumar",
+    id: "APR-1003",
+    title: "Mountain Cabin Stay",
+    type: "Property",
+    submittedBy: "Amit Kumar",
     location: "Manali, India",
-    price: "₹10,000",
     status: "Rejected",
-    rating: 4.4,
-    bookings: 8,
-    type: "Cabin",
-    created: "Jun 16, 2026",
+    date: "Jun 18, 2026",
     image:
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=900",
   },
 ];
 
-export default function Properties() {
+export default function Approval() {
   const [search, setSearch] = useState("");
+  const [type, setType] = useState("All");
   const [status, setStatus] = useState("All");
-  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
 
-  const properties = useMemo(() => {
-    return propertiesData.filter((property) => {
+  const approvals = useMemo(() => {
+    return approvalsData.filter((item) => {
       const matchesSearch =
-        property.title.toLowerCase().includes(search.toLowerCase()) ||
-        property.host.toLowerCase().includes(search.toLowerCase()) ||
-        property.location.toLowerCase().includes(search.toLowerCase());
+        item.title.toLowerCase().includes(search.toLowerCase()) ||
+        item.submittedBy.toLowerCase().includes(search.toLowerCase()) ||
+        item.location.toLowerCase().includes(search.toLowerCase());
 
-      const matchesStatus = status === "All" || property.status === status;
+      const matchesType = type === "All" || item.type === type;
+      const matchesStatus = status === "All" || item.status === status;
 
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesType && matchesStatus;
     });
-  }, [search, status]);
+  }, [search, type, status]);
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-black tracking-tight">Properties</h1>
+          <h1 className="text-3xl font-black tracking-tight">
+            Approval Center
+          </h1>
           <p className="mt-1 text-gray-500">
-            Manage property listings, approval status, hosts, and visibility.
+            Review pending properties and experiences before they go public.
           </p>
         </div>
 
         <button className="flex items-center justify-center gap-2 rounded-2xl bg-gray-950 px-5 py-3 font-bold text-white transition hover:bg-gray-800">
           <Download size={18} />
-          Export Properties
+          Export Approvals
         </button>
       </div>
 
       <div className="grid gap-5 md:grid-cols-4">
-        <StatCard title="Total Properties" value="324" icon={Home} />
-        <StatCard title="Approved" value="286" icon={CheckCircle} />
-        <StatCard title="Pending" value="27" icon={Clock} />
-        <StatCard title="Rejected" value="11" icon={XCircle} />
+        <StatCard title="Pending" value="42" icon={Clock} />
+        <StatCard title="Approved" value="410" icon={CheckCircle} />
+        <StatCard title="Rejected" value="24" icon={XCircle} />
+        <StatCard title="Listings" value="476" icon={Home} />
       </div>
 
       <div className="rounded-[1.7rem] border border-gray-100 bg-white p-5 shadow-sm">
@@ -111,11 +105,20 @@ export default function Properties() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              type="text"
-              placeholder="Search by title, host, or location..."
+              placeholder="Search approvals..."
               className="w-full rounded-2xl border border-gray-200 py-3 pl-11 pr-4 outline-none transition focus:border-rose-500"
             />
           </div>
+
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            className="rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
+          >
+            <option>All</option>
+            <option>Property</option>
+            <option>Experience</option>
+          </select>
 
           <select
             value={status}
@@ -123,30 +126,30 @@ export default function Properties() {
             className="rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
           >
             <option>All</option>
-            <option>Approved</option>
             <option>Pending</option>
+            <option>Approved</option>
             <option>Rejected</option>
           </select>
         </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        {properties.map((property) => (
+        {approvals.map((item) => (
           <div
-            key={property.id}
+            key={item.id}
             className="overflow-hidden rounded-[1.8rem] border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
           >
             <div className="relative h-56">
               <img
-                src={property.image}
-                alt={property.title}
+                src={item.image}
+                alt={item.title}
                 className="h-full w-full object-cover"
               />
 
-              <Badge status={property.status} />
+              <StatusBadge status={item.status} />
 
               <button
-                onClick={() => setSelectedProperty(property)}
+                onClick={() => setSelectedItem(item)}
                 className="absolute right-4 top-4 rounded-full bg-white/90 p-2 transition hover:bg-white"
               >
                 <MoreVertical size={18} />
@@ -154,39 +157,35 @@ export default function Properties() {
             </div>
 
             <div className="p-5">
-              <h2 className="truncate text-lg font-black">{property.title}</h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Hosted by {property.host}
-              </p>
+              <div className="flex items-center gap-2">
+                {item.type === "Property" ? (
+                  <Home size={17} className="text-rose-500" />
+                ) : (
+                  <Compass size={17} className="text-rose-500" />
+                )}
 
-              <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
-                <MapPin size={16} />
-                {property.location}
-              </div>
-
-              <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
-                <span>{property.type}</span>
-                <span className="flex items-center gap-1">
-                  <Star
-                    size={16}
-                    className="text-rose-500"
-                    fill="currentColor"
-                  />
-                  {property.rating}
+                <span className="text-sm font-black text-gray-500">
+                  {item.type}
                 </span>
               </div>
 
-              <div className="mt-5 flex items-center justify-between">
-                <div>
-                  <p className="text-xl font-black">{property.price}</p>
-                  <p className="text-xs text-gray-500">per night</p>
-                </div>
+              <h2 className="mt-3 truncate text-lg font-black">{item.title}</h2>
 
-                <button
-                  onClick={() => setSelectedProperty(property)}
-                  className="rounded-xl bg-gray-100 px-4 py-2 text-sm font-bold transition hover:bg-gray-200"
-                >
-                  Manage
+              <p className="mt-1 text-sm text-gray-500">
+                Submitted by {item.submittedBy}
+              </p>
+
+              <p className="mt-3 text-sm font-semibold text-gray-600">
+                {item.location}
+              </p>
+
+              <div className="mt-5 flex gap-2">
+                <button className="flex-1 rounded-xl bg-emerald-500 py-2 text-sm font-bold text-white hover:bg-emerald-600">
+                  Approve
+                </button>
+
+                <button className="flex-1 rounded-xl bg-red-50 py-2 text-sm font-bold text-red-600 hover:bg-red-100">
+                  Reject
                 </button>
               </div>
             </div>
@@ -194,24 +193,25 @@ export default function Properties() {
         ))}
       </div>
 
-      {selectedProperty && (
-        <PropertyDrawer
-          property={selectedProperty}
-          onClose={() => setSelectedProperty(null)}
+      {selectedItem && (
+        <ApprovalDrawer
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
         />
       )}
     </div>
   );
 }
 
-function PropertyDrawer({ property, onClose }) {
+function ApprovalDrawer({ item, onClose }) {
   return (
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
       <aside className="absolute right-0 top-0 h-full w-full max-w-lg overflow-y-auto bg-white p-6 shadow-2xl">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-black">Property Details</h2>
+          <h2 className="text-2xl font-black">Approval Details</h2>
+
           <button
             onClick={onClose}
             className="rounded-full p-2 hover:bg-gray-100"
@@ -221,45 +221,44 @@ function PropertyDrawer({ property, onClose }) {
         </div>
 
         <img
-          src={property.image}
-          alt={property.title}
+          src={item.image}
+          alt={item.title}
           className="mt-6 h-64 w-full rounded-[1.5rem] object-cover"
         />
 
         <div className="mt-6">
-          <Badge status={property.status} />
-          <h3 className="mt-4 text-2xl font-black">{property.title}</h3>
-          <p className="mt-1 text-gray-500">Hosted by {property.host}</p>
+          <h3 className="text-2xl font-black">{item.title}</h3>
+          <p className="mt-1 text-gray-500">Submitted by {item.submittedBy}</p>
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-4">
-          <Info title="Location" value={property.location} />
-          <Info title="Type" value={property.type} />
-          <Info title="Price" value={property.price} />
-          <Info title="Rating" value={property.rating} />
-          <Info title="Bookings" value={property.bookings} />
-          <Info title="Created" value={property.created} />
+          <Info title="ID" value={item.id} />
+          <Info title="Type" value={item.type} />
+          <Info title="Location" value={item.location} />
+          <Info title="Date" value={item.date} />
+          <Info title="Status" value={item.status} />
+          <Info title="Submitted By" value={item.submittedBy} />
         </div>
 
         <div className="mt-8 space-y-3">
-          <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-bold text-white hover:bg-emerald-600">
-            <CheckCircle size={18} />
-            Approve Property
+          <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-950 px-5 py-3 font-bold text-white hover:bg-gray-800">
+            <Eye size={18} />
+            View Full Listing
           </button>
 
-          <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-yellow-50 px-5 py-3 font-bold text-yellow-700 hover:bg-yellow-100">
-            <Eye size={18} />
-            Mark as Pending
+          <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-bold text-white hover:bg-emerald-600">
+            <CheckCircle size={18} />
+            Approve
           </button>
 
           <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 px-5 py-3 font-bold text-red-600 hover:bg-red-100">
             <XCircle size={18} />
-            Reject Property
+            Reject
           </button>
 
           <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 font-bold text-white hover:bg-red-700">
             <Trash2 size={18} />
-            Delete Listing
+            Delete Request
           </button>
         </div>
       </aside>
@@ -276,7 +275,7 @@ function Info({ title, value }) {
   );
 }
 
-function Badge({ status }) {
+function StatusBadge({ status }) {
   const style =
     status === "Approved"
       ? "bg-emerald-50 text-emerald-600"
