@@ -29,7 +29,30 @@ class PropertyController extends Controller
 
     public function store(Request $request)
     {
-        $property = Property::create($request->all());
+        $clerkId = $request->input('clerk_id');
+        $user = \App\Models\User::getOrCreateFromClerkId($clerkId);
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Valid Host Clerk ID is required'
+            ], 400);
+        }
+
+        $data = $request->all();
+        $data['host_id'] = $user->id;
+
+        // Support form file uploads for images
+        if ($request->hasFile('images')) {
+            $uploadedImages = [];
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('properties', 'public');
+                $uploadedImages[] = $path;
+            }
+            $data['images'] = $uploadedImages;
+        }
+
+        $property = Property::create($data);
         
         return response()->json([
             'success' => true,
