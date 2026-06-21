@@ -67,7 +67,7 @@ const transactionsData = [
   },
 ];
 
-export default function Financials() {
+export default function Payments() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [selectedTransaction, setSelectedTransaction] = useState(null);
@@ -90,7 +90,7 @@ export default function Financials() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-black tracking-tight">Financials</h1>
+          <h1 className="text-3xl font-black tracking-tight">Payments</h1>
           <p className="mt-1 text-gray-500">
             Manage revenue, transactions, payouts, refunds, and platform
             commission.
