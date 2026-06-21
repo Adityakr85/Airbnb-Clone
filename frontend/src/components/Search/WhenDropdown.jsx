@@ -189,7 +189,6 @@ export default function WhenDropdown({
         buttonClass = "bg-gray-100 text-gray-900 hover:border hover:border-black hover:bg-white";
         wrapperClass = "bg-gray-100";
       } else if (isFlexHighlight) {
-        // Airbnb's dashed outline style for flexible days
         buttonClass = "bg-gray-50 border border-gray-300 border-dashed text-gray-700 hover:border-black hover:border-solid hover:bg-white";
       }
 

@@ -183,7 +183,7 @@ export default function Navbar() {
   );
 }
 
-function TopTab({ path, icon, label, badge, active = false }) {
+function TopTab({ icon, label, path, badge, active = false }) {
   return (
     <Link to={path} className={`group relative flex items-center gap-2 transition-all duration-300 hover:scale-105 ${active ? "text-black" : "text-gray-500 hover:text-black"}`}>
       {badge && (

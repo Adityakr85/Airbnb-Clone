@@ -115,7 +115,7 @@ export default function SearchBar({onSearch,
           placeholder="Search destinations"
           value={destinationSearch}
           onChange={(event) => setDestinationSearch(event.target.value)}
-          className="w-full truncate bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-500"
+          className="w-full truncate bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-500 pr-6"
         />
 
         {destinationSearch && (
@@ -149,12 +149,7 @@ export default function SearchBar({onSearch,
         }`}
       >
         <h4 className="text-sm font-bold text-gray-900">When</h4>
-
-        <p
-          className={`truncate text-sm ${
-            isWhenActive ? "font-semibold text-gray-900" : "text-gray-500"
-          }`}
-        >
+        <p className={`truncate text-sm pr-6 ${isWhenActive ? "font-semibold text-gray-900" : "text-gray-500"}`}>
           {checkInDate ? formatWhenText() : "Add dates"}
         </p>
 
@@ -175,18 +170,9 @@ export default function SearchBar({onSearch,
 
         {openMenu === "when" && (
           <WhenDropdown
-            startDate={checkInDate}
-            setStartDate={setCheckInDate}
-            endDate={checkOutDate}
-            setEndDate={setCheckOutDate}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            stayLength={stayLength}
-            setStayLength={setStayLength}
-            flexibleMonths={flexibleMonths}
-            setFlexibleMonths={setFlexibleMonths}
-            exactDatesFlex={exactDatesFlex}
-            setExactDatesFlex={setExactDatesFlex}
+            startDate={checkInDate} setStartDate={setCheckInDate} endDate={checkOutDate} setEndDate={setCheckOutDate}
+            activeTab={activeTab} setActiveTab={setActiveTab} stayLength={stayLength} setStayLength={setStayLength}
+            flexibleMonths={flexibleMonths} setFlexibleMonths={setFlexibleMonths} exactDatesFlex={exactDatesFlex} setExactDatesFlex={setExactDatesFlex}
             advanceToNext={advanceToNext}
           />
         )}
@@ -237,12 +223,7 @@ export default function SearchBar({onSearch,
       >
         <div className="flex h-full flex-col justify-center">
           <h4 className="text-sm font-bold text-gray-900">Who</h4>
-
-          <p
-            className={`max-w-36 truncate text-sm ${
-              isGuestActive ? "font-semibold text-gray-900" : "text-gray-500"
-            }`}
-          >
+          <p className={`max-w-36 truncate text-sm pr-6 ${isGuestActive ? "font-semibold text-gray-900" : "text-gray-500"}`}>
             {formatGuestText()}
           </p>
         </div>
