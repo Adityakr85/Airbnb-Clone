@@ -16,27 +16,50 @@ function parseImageUrls(value) {
 }
 
 function normalizeProperty(property) {
-  const imageUrls = parseImageUrls(property.image_urls);
-  const image = property.image || imageUrls[0] || "";
+  const parsedImages = parseImageUrls(property.images || property.image_urls);
+  const fallbackImage = property.image || parsedImages[0] || "/placeholder.jpg";
+  const finalImages = parsedImages.length > 0 ? parsedImages : [fallbackImage];
 
   return {
     ...property,
-    image,
-    image_urls: imageUrls,
-    price: property.price ?? property.price_per_night ?? property.base_price,
+    image: fallbackImage,
+    images: finalImages, 
+    image_urls: finalImages, 
+    price: property.price ?? property.price_per_night ?? property.base_price ?? 0,
   };
 }
 
-export async function fetchProperties({ search } = {}) {
-  const params = {};
-  if (search && search.trim()) params.search = search.trim();
+export async function fetchProperties(params = {}) {
+  try {
+    const response = await axios.get(`${API_BASE}/api/properties`, { params });
+    const rawData = response.data?.data || response.data || [];
+    return rawData.map(normalizeProperty);
+    
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    throw new Error(error.response?.data?.message || "Failed to load properties from server.");
+  }
+}
 
-  const res = await axios.get(`${API_BASE}/api/properties`, { params });
-  return (res.data?.data ?? []).map(normalizeProperty);
+export async function fetchPropertyById(id) {
+  try {
+    const res = await axios.get(`${API_BASE}/api/properties/${id}`);
+    const data = res.data?.data || res.data;
+    return data ? normalizeProperty(data) : null;
+  } catch (error) {
+    console.error(`Failed to fetch property ${id}:`, error);
+    throw new Error("Property not found.");
+  }
 }
 
 export async function createProperty(payload) {
-  const res = await axios.post(`${API_BASE}/api/properties`, payload);
-  return res.data?.data ? normalizeProperty(res.data.data) : undefined;
+  try {
+    const res = await axios.post(`${API_BASE}/api/properties`, payload);
+    const data = res.data?.data || res.data;
+    return data ? normalizeProperty(data) : undefined;
+  } catch (error) {
+    console.error("Failed to create property:", error);
+    throw new Error(error.response?.data?.message || "Failed to save to database.");
+  }
 }
 

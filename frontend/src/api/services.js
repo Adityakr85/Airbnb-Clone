@@ -16,57 +16,58 @@ function parseImageUrls(value) {
   }
 }
 
-function normalizeExperience(experience) {
+function normalizeService(service) {
   // Extract images safely using the parser
-  const parsedImages = parseImageUrls(experience.images || experience.image_urls);
+  const parsedImages = parseImageUrls(service.images || service.image_urls);
   
   // Create a safe fallback if the database has absolutely no images
-  const fallbackImage = experience.image || parsedImages[0] || "/placeholder.jpg";
+  const fallbackImage = service.image || parsedImages[0] || "/placeholder.jpg";
   const finalImages = parsedImages.length > 0 ? parsedImages : [fallbackImage];
 
   return {
-    ...experience,
+    ...service,
     image: fallbackImage,
     images: finalImages, // This guarantees 'images' is ALWAYS a clean array!
-    price: experience.price ?? experience.base_price ?? 0,
+    price: service.price ?? service.base_price ?? 0,
   };
 }
 
-export async function fetchExperiences({ search } = {}) {
+export async function fetchServices({ search, type } = {}) {
   try {
     const params = {};
     if (search && search.trim()) params.search = search.trim();
+    if (type && type.trim()) params.type = type.trim();
 
-    const res = await axios.get(`${API_BASE}/api/experiences`, { params });
+    const res = await axios.get(`${API_BASE}/api/services`, { params });
     
     // Map through the results and normalize every single row before giving it to React
     const rawData = res.data?.data || res.data || [];
-    return rawData.map(normalizeExperience);
+    return rawData.map(normalizeService);
     
   } catch (error) {
     console.error("Database fetch failed:", error);
-    throw new Error(error.response?.data?.message || "Failed to load experiences from server.");
+    throw new Error(error.response?.data?.message || "Failed to load services from server.");
   }
 }
 
-export async function fetchExperienceById(id) {
+export async function fetchServiceById(id) {
   try {
-    const res = await axios.get(`${API_BASE}/api/experiences/${id}`);
+    const res = await axios.get(`${API_BASE}/api/services/${id}`);
     const data = res.data?.data || res.data;
-    return data ? normalizeExperience(data) : null;
+    return data ? normalizeService(data) : null;
   } catch (error) {
-    console.error(`Failed to fetch experience ${id}:`, error);
-    throw new Error("Experience not found.");
+    console.error(`Failed to fetch service ${id}:`, error);
+    throw new Error("Service not found.");
   }
 }
 
-export async function createExperience(payload) {
+export async function createService(payload) {
   try {
-    const res = await axios.post(`${API_BASE}/api/experiences`, payload);
+    const res = await axios.post(`${API_BASE}/api/services`, payload);
     const data = res.data?.data || res.data;
-    return data ? normalizeExperience(data) : undefined;
+    return data ? normalizeService(data) : undefined;
   } catch (error) {
-    console.error("Failed to create experience:", error);
+    console.error("Failed to create service:", error);
     throw new Error(error.response?.data?.message || "Failed to save to database.");
   }
 }

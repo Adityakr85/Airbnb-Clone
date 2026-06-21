@@ -1,26 +1,48 @@
 import React,{ useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
-import { useNavigate ,useLocation } from "react-router-dom";
+import { useNavigate ,useLocation , useSearchParams } from "react-router-dom";
 
 import WhereDropdown from "./WhereDropdown";
 import WhenDropdown from "./WhenDropdown";
 import GuestDropdown from "./GuestDropdown";
+import ServiceDropdown from "./ServiceDropdown";
 
 export default function SearchBar({onSearch,
   destinationSearch,setDestinationSearch,
   checkInDate,setCheckInDate,checkOutDate,setCheckOutDate,exactDatesFlex,setExactDatesFlex,  // -- EXACT DATES STATES --
   activeTab,setActiveTab,stayLength,setStayLength,flexibleMonths,setFlexibleMonths,  // -- FLEXIBLE SEARCH STATES --
   adults,setAdults,childrenCount,setChildrenCount,infants,setInfants,pets,setPets,   // -- GUEST STATES
-  formatGuestText, formatWhenText, openMenu, setOpenMenu ,setIsExpanded
+  formatGuestText, formatWhenText, openMenu, setOpenMenu ,setIsExpanded,
+  serviceType ,setServiceType
 }) 
 {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const isServicesPage = location.pathname.includes("/services");
   const formRef = useRef(null);
 
   const isAnyMenuOpen = openMenu !== null;
   const isWhenActive = activeTab === "flexible" || checkInDate;
   const isGuestActive = adults + childrenCount + infants + pets > 0;
+
+  useEffect(() => {
+    const urlSearch = searchParams.get("search");
+    const urlType = searchParams.get("type");
+
+    if (urlSearch && urlSearch !== "nearby") {
+      setDestinationSearch(urlSearch);
+    } else if (!urlSearch) {
+      setDestinationSearch("");
+    }
+    if (isServicesPage) {
+      if (urlType) {
+        if (setServiceType) setServiceType(urlType);
+      } else if (!urlType) {
+        if (setServiceType) setServiceType("");
+      }
+    }
+  }, [searchParams, isServicesPage, setDestinationSearch, setServiceType]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -45,13 +67,20 @@ export default function SearchBar({onSearch,
       setIsExpanded(false);
     }
     setTimeout(() => {
-      const basePath = location.pathname === '/experiences' ? '/experiences' : '/';
+      let basePath = '/';
+      if (location.pathname.includes('/experiences')) basePath = '/experiences';
+      if (location.pathname.includes('/services')) basePath = '/services';
+
       const finalSearch = destinationSearch.trim() ? destinationSearch.trim() : "nearby";
 
       if (!destinationSearch.trim()) {
         setDestinationSearch("nearby");
       }
-      navigate(`${basePath}?search=${encodeURIComponent(finalSearch)}`);
+      let searchUrl = `${basePath}?search=${encodeURIComponent(finalSearch)}`;
+      if (basePath === '/services' && serviceType) {
+        searchUrl += `&type=${encodeURIComponent(serviceType)}`;
+      }
+      navigate(searchUrl);
     }, 300);
   };
 
@@ -96,7 +125,7 @@ export default function SearchBar({onSearch,
               e.stopPropagation();
               setDestinationSearch("");
             }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 p-1 text-gray-600 transition hover:bg-gray-300"
+            className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 p-1 text-gray-600 transition hover:bg-gray-300"
           >
             <X size={14} strokeWidth={3} />
           </button>
@@ -115,7 +144,6 @@ export default function SearchBar({onSearch,
 
       <div
         onClick={() => setOpenMenu(openMenu === "when" ? null : "when")}
-        // ADDED 'relative' to the class string below:
         className={`relative flex h-full flex-1 cursor-pointer flex-col justify-center rounded-full px-6 transition-all duration-300 ${
           openMenu === "when" ? "bg-white shadow-md" : "hover:bg-gray-300"
         }`}
@@ -134,9 +162,9 @@ export default function SearchBar({onSearch,
               setCheckOutDate(null);
               setFlexibleMonths([]); 
             }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 p-1 text-gray-600 transition hover:bg-gray-300"
+            className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 p-1 text-gray-600 transition hover:bg-gray-300"
           >
-            <X size={14} strokeWidth={3} />
+            <X size={14} strokeWidth={3}/>
           </button>
         )}
 
@@ -150,11 +178,45 @@ export default function SearchBar({onSearch,
         )}
       </div>
 
-      <Divider hidden={isAnyMenuOpen} />
+      <Divider hidden={isAnyMenuOpen}/>
+      {isServicesPage ? (
+        <div
+          onClick={() => setOpenMenu(openMenu === "service" ? null : "service")}
+          className={`relative flex h-full flex-1 cursor-pointer items-center justify-between rounded-full pl-6 pr-2 transition-all duration-300 ${
+            openMenu === "service" ? "bg-white shadow-md" : "hover:bg-gray-300"
+          }`}
+        >
+          <div className="flex h-full flex-col justify-center">
+            <h4 className="text-sm font-bold text-gray-900">Type of service</h4>
+            <p className={`max-w-36 truncate text-sm pr-6 ${serviceType ? "font-semibold text-gray-900" : "text-gray-500"}`}>
+              {serviceType || "Add service"}
+            </p>
+          </div>
 
+          {serviceType && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (setServiceType) setServiceType("");
+              }}
+              className="cursor-pointer absolute right-16 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 p-1 text-gray-600 transition hover:bg-gray-300"
+            >
+              <X size={14} strokeWidth={3} />
+            </button>
+          )}
+
+          {openMenu === "service" && (
+            <ServiceDropdown 
+              serviceType={serviceType} 
+              setServiceType={setServiceType} 
+              advanceToNext={() => setOpenMenu(null)} 
+            />
+          )}
+        </div>
+      ) : (
       <div
         onClick={() => setOpenMenu(openMenu === "guests" ? null : "guests")}
-        // ADDED 'relative' to the class string below:
         className={`relative flex h-full flex-1 cursor-pointer items-center justify-between rounded-full pl-6 pr-2 transition-all duration-300 ${
           openMenu === "guests" ? "bg-white shadow-md" : "hover:bg-gray-300"
         }`}
@@ -176,7 +238,7 @@ export default function SearchBar({onSearch,
               setInfants(0);
               setPets(0);
             }}
-            className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 p-1 text-gray-600 transition hover:bg-gray-300"
+            className="cursor-pointer absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 p-1 text-gray-600 transition hover:bg-gray-300"
           >
             <X size={14} strokeWidth={3} />
           </button>
@@ -184,16 +246,16 @@ export default function SearchBar({onSearch,
 
         {openMenu === "guests" && (
           <GuestDropdown
-             // ... (keep your existing GuestDropdown props intact)
              adults={adults} setAdults={setAdults} childrenCount={childrenCount} setChildrenCount={setChildrenCount}
              infants={infants} setInfants={setInfants} pets={pets} setPets={setPets}
           />
         )}
       </div>
+     )}
 
       <button
         type="submit"
-        className={`mr-2 flex h-10 items-center justify-center rounded-full bg-[#E31C5F] text-white transition-all duration-300 hover:bg-[#D70466] ${
+        className={`cursor-pointer mr-2 flex h-10 items-center justify-center rounded-full bg-[#E31C5F] text-white transition-all duration-300 hover:bg-[#D70466] ${
           isAnyMenuOpen ? "w-24 font-bold" : "w-10"
         }`}
       >
@@ -208,7 +270,6 @@ export default function SearchBar({onSearch,
     </form>
   );
 }
-
 function Divider({ hidden }) {
   return (
     <div

@@ -10,10 +10,15 @@ class PropertyController extends Controller
     public function index(Request $request)
     {
         $query = Property::query()->with('host');
-
-        $search = $request->query('search');
+        $search = $request->input('search'); 
+        
         if ($search && trim($search) !== '') {
-            $query->where('location', 'like', '%' . trim($search) . '%');
+            $searchTerm = trim($search);
+            
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('location', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('title', 'like', '%' . $searchTerm . '%');
+            });
         }
 
         return response()->json([
