@@ -5,31 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Property extends Model
+class Experience extends Model
 {
     use HasFactory;
+
     protected $fillable = [
-        'title', 
-        'description', 
-        'location', 
-        'price', 
-        'price_per_night',
-        'base_price',
-        'rating',
-        'host_id', 
-        'images' 
+        'title', 'description', 'location', 'category', 'price', 
+        'duration', 'groupSize', 'rating', 'reviews', 'hostName', 
+        'level', 'images'
     ];
 
-    protected $casts = ['images' => 'array'];
-
-    public function host()
-    {
-        return $this->belongsTo(User::class, 'host_id');
-    }
-
-    public function getImagesAttribute($value)
+    protected $casts = [
+        'images' => 'array',
+    ];
+   public function getImagesAttribute($value)
     {
         $images = is_string($value) ? json_decode($value, true) : $value;
+        
         if (!is_array($images)) {
             $images = [];
         }
