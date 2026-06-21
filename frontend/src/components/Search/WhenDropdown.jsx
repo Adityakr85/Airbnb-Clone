@@ -1,10 +1,11 @@
 import { useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 const normalizeDate = (date) =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-const WEEK_DAYS = ["S", "M", "T", "W", "T", "F", "S"];
+const WEEK_DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 const STAY_OPTIONS = [
   { id: "weekend", label: "Weekend" },
@@ -29,14 +30,34 @@ export default function WhenDropdown({
   exactDatesFlex,
   setExactDatesFlex,
 }) {
+  const location = useLocation();
+  const isQuickSelect = location.pathname === "/experiences" || location.pathname === "/services";
   const [hoverDate, setHoverDate] = useState(null);
   const [monthOffset, setMonthOffset] = useState(0);
   const carouselRef = useRef(null);
 
-  const today = useMemo(() => normalizeDate(new Date()), []);
+  const { today, tomorrow, nextFriday, nextSunday } = useMemo(() => {
+    const t = normalizeDate(new Date());
+    const tmrw = new Date(t); tmrw.setDate(t.getDate() + 1);
+    const fri = new Date(t); fri.setDate(t.getDate() + ((7 - t.getDay() + 5) % 7 || 7));
+    const sun = new Date(fri); sun.setDate(fri.getDate() + 2);
+    return { today: t, tomorrow: tmrw, nextFriday: fri, nextSunday: sun };
+  }, []);
 
+  const formatShortDate = (d) => d.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+  const handleQuickSelect = (type) => {
+    if (type === "today") { setStartDate(today); setEndDate(null); }
+    else if (type === "tomorrow") { setStartDate(tomorrow); setEndDate(null); }
+    else if (type === "weekend") { setStartDate(nextFriday); setEndDate(nextSunday); }
+  };
   const handleDateClick = (date) => {
     const clickedDate = normalizeDate(date);
+    if (isQuickSelect) {
+      setStartDate(clickedDate);
+      setEndDate(null);
+      setExactDatesFlex("exact");
+      return
+    }
 
     if (!startDate || (startDate && endDate)) {
       setStartDate(clickedDate);

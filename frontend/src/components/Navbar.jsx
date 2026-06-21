@@ -18,7 +18,7 @@ export default function Navbar() {
   const { user, isSignedIn } = useUser();
   const [scrolled, setScrolled] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [openMenu, setOpenMenu] = useState("where");
+  const [openMenu, setOpenMenu] = useState("null");
   const location = useLocation();
 
   const [destinationSearch, setDestinationSearch] = useState("");

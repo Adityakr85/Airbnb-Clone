@@ -104,7 +104,7 @@ export default function SearchBar({onSearch,
     >
       <div
         onClick={() => setOpenMenu(openMenu === "where" ? null : "where")}
-        className={`flex h-full flex-1 cursor-pointer flex-col justify-center rounded-full px-6 transition-all duration-300 ${
+        className={`relative flex h-full flex-1 cursor-pointer flex-col justify-center rounded-full px-6 transition-all duration-300 ${
           openMenu === "where" ? "bg-white shadow-md" : "hover:bg-gray-300"
         }`}
       >

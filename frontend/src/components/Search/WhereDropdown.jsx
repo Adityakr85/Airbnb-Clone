@@ -61,7 +61,7 @@ export default function WhereDropdown({
   };
 
   return (
-    <div className="absolute left-0 top-full z-50 mt-4 w-96 rounded-3xl border border-gray-200 bg-white p-6 shadow-xl">
+    <div className="cursor-default absolute left-0 top-full z-50 mt-4 w-96 rounded-3xl border border-gray-200 bg-white p-6 shadow-xl">
       <div className="max-h-96 overflow-y-auto px-2 scrollbar-hide">
         {filteredRegions.length > 0 ? (
           filteredRegions.map((region) => (
@@ -71,7 +71,7 @@ export default function WhereDropdown({
               onClick={(e) => {e.stopPropagation();
                 handleSelect(region.searchTerm);
               }}
-              className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition hover:bg-gray-100"
+              className="cursor-pointer flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition hover:bg-gray-100"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-2xl">
                 {region.icon}
