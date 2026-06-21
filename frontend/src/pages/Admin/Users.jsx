@@ -78,7 +78,7 @@ export default function Users() {
         <div>
           <h1 className="text-3xl font-black tracking-tight">Users</h1>
           <p className="mt-1 text-gray-500">
-            Manage users, hosts, admins, verification, and account access.
+            Manage users, hosts, verification, and account access.
           </p>
         </div>
 

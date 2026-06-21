@@ -1,4 +1,10 @@
 import { useState } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { useUser, useClerk } from "@clerk/clerk-react";
+import { canAccess } from "../../config/AdminAccess";
+import Alerts from "./Alerts";
+import Profile from "./Profile";
+
 import {
   LayoutDashboard,
   Users,
@@ -7,7 +13,6 @@ import {
   Grid3X3,
   CalendarCheck,
   CreditCard,
-  CheckCircle,
   Star,
   Flag,
   MessageCircle,
@@ -23,22 +28,42 @@ import {
   ChevronDown,
   LogOut,
 } from "lucide-react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
 
 const groups = [
   {
     title: "Overview",
     items: [
-      { name: "Dashboard", path: "/admin", icon: LayoutDashboard, end: true },
+      {
+        name: "Dashboard",
+        path: "/admin",
+        icon: LayoutDashboard,
+        permission: "dashboard",
+        end: true,
+      },
     ],
   },
   {
     title: "Management",
     items: [
-      { name: "Users", path: "/admin/users", icon: Users },
-      { name: "Properties", path: "/admin/properties", icon: Home },
-      { name: "Experiences", path: "/admin/experiences", icon: Compass },
-      { name: "Categories", path: "/admin/categories", icon: Grid3X3 },
+      { name: "Users", path: "/admin/users", icon: Users, permission: "users" },
+      {
+        name: "Properties",
+        path: "/admin/properties",
+        icon: Home,
+        permission: "properties",
+      },
+      {
+        name: "Experiences",
+        path: "/admin/experiences",
+        icon: Compass,
+        permission: "experiences",
+      },
+      {
+        name: "Categories",
+        path: "/admin/categories",
+        icon: Grid3X3,
+        permission: "categories",
+      },
     ],
   },
   {
@@ -48,48 +73,104 @@ const groups = [
         name: "Reservations",
         path: "/admin/reservations",
         icon: CalendarCheck,
+        permission: "reservations",
       },
-      { name: "Financials", path: "/admin/financials", icon: CreditCard },
-      { name: "Approvals", path: "/admin/approvals", icon: CheckCircle },
+      {
+        name: "Payments",
+        path: "/admin/payments",
+        icon: CreditCard,
+        permission: "payments",
+      },
     ],
   },
   {
     title: "Moderation",
     items: [
-      { name: "Reviews", path: "/admin/reviews", icon: Star },
-      { name: "Reports", path: "/admin/reports", icon: Flag },
-      { name: "Support", path: "/admin/support", icon: MessageCircle },
-      { name: "Notifications", path: "/admin/notifications", icon: Bell },
+      {
+        name: "Reviews",
+        path: "/admin/reviews",
+        icon: Star,
+        permission: "reviews",
+      },
+      {
+        name: "Reports",
+        path: "/admin/reports",
+        icon: Flag,
+        permission: "reports",
+      },
+      {
+        name: "Support",
+        path: "/admin/support",
+        icon: MessageCircle,
+        permission: "support",
+      },
+      {
+        name: "Notifications",
+        path: "/admin/notifications",
+        icon: Bell,
+        permission: "notifications",
+      },
     ],
   },
   {
     title: "Growth",
     items: [
-      { name: "Marketing", path: "/admin/marketing", icon: TicketPercent },
+      {
+        name: "Marketing",
+        path: "/admin/marketing",
+        icon: TicketPercent,
+        permission: "marketing",
+      },
       {
         name: "Featured Listings",
         path: "/admin/featured-listings",
         icon: Sparkles,
+        permission: "featured-listings",
       },
-      { name: "CMS", path: "/admin/cms", icon: FileText },
+      { name: "CMS", path: "/admin/cms", icon: FileText, permission: "cms" },
     ],
   },
   {
     title: "Analytics",
-    items: [{ name: "Analytics", path: "/admin/analytics", icon: BarChart3 }],
+    items: [
+      {
+        name: "Analytics",
+        path: "/admin/analytics",
+        icon: BarChart3,
+        permission: "analytics",
+      },
+    ],
   },
   {
     title: "System",
     items: [
-      { name: "Activity Logs", path: "/admin/activity-logs", icon: Activity },
-      { name: "Monitoring", path: "/admin/monitoring", icon: Server },
-      { name: "Settings", path: "/admin/settings", icon: Settings },
+      {
+        name: "Activity Logs",
+        path: "/admin/activity-logs",
+        icon: Activity,
+        permission: "activity-logs",
+      },
+      {
+        name: "Monitoring",
+        path: "/admin/monitoring",
+        icon: Server,
+        permission: "monitoring",
+      },
+      {
+        name: "Settings",
+        path: "/admin/settings",
+        icon: Settings,
+        permission: "settings",
+      },
     ],
   },
 ];
 
 export default function AdminLayout() {
   const location = useLocation();
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const role = user?.publicMetadata?.role || "Guest";
 
   const [openGroups, setOpenGroups] = useState({
     Overview: true,
@@ -100,6 +181,13 @@ export default function AdminLayout() {
     Analytics: false,
     System: false,
   });
+
+  const visibleGroups = groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => canAccess(role, item.permission)),
+    }))
+    .filter((group) => group.items.length > 0);
 
   const isGroupActive = (group) =>
     group.items.some((item) =>
@@ -115,6 +203,8 @@ export default function AdminLayout() {
     }));
   };
 
+  const [openNotifications, setOpenNotifications] = useState(false);
+
   return (
     <div className="flex min-h-screen bg-[#f6f7fb] text-gray-950">
       <aside className="fixed left-0 top-0 hidden h-screen w-[19rem] flex-col border-r border-gray-200 bg-white/95 px-4 py-5 shadow-sm backdrop-blur-xl lg:flex">
@@ -126,7 +216,7 @@ export default function AdminLayout() {
         </div>
 
         <nav className="flex-1 space-y-3 overflow-y-auto pr-1">
-          {groups.map((group) => {
+          {visibleGroups.map((group) => {
             const activeGroup = isGroupActive(group);
             const opened = openGroups[group.title];
 
@@ -216,9 +306,18 @@ export default function AdminLayout() {
               </div>
             );
           })}
+
+          {visibleGroups.length === 0 && (
+            <div className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-600">
+              No admin permissions found. Check Clerk role metadata.
+            </div>
+          )}
         </nav>
 
-        <button className="mt-5 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-gray-600 transition-all duration-300 hover:bg-gray-100 hover:text-gray-950">
+        <button
+          onClick={() => signOut({ redirectUrl: "/" })}
+          className="mt-5 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-gray-600 transition-all duration-300 hover:bg-gray-100 hover:text-gray-950"
+        >
           <LogOut size={19} />
           Logout
         </button>
@@ -233,23 +332,13 @@ export default function AdminLayout() {
 
             <div>
               <h2 className="text-xl font-bold">Admin Panel</h2>
-              <p className="text-sm text-gray-500">Welcome back, admin</p>
+              <p className="text-sm text-gray-500">Access level: {role}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="relative flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200">
-              <Bell size={20} />
-              <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-rose-500" />
-            </button>
-
-            <div className="flex items-center gap-3 rounded-full bg-gray-100 px-3 py-2">
-              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-rose-400 to-pink-600" />
-              <div className="hidden sm:block">
-                <p className="text-sm font-bold">Admin</p>
-                <p className="text-xs text-gray-500">Super admin</p>
-              </div>
-            </div>
+            <Alerts />
+            <Profile />
           </div>
         </header>
 

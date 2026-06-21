@@ -1,4 +1,6 @@
 import React from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -6,9 +8,6 @@ import Experiences from "./pages/Experiences";
 import ExperienceDetails from "./components/ExperienceDetails";
 import Services from "./pages/Services";
 import PropertyDetails from "./pages/PropertyDetails";
-
-import { Routes, Route, useLocation } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
 
 import Wishlist from "./pages/User/Wishlist";
 import Trips from "./pages/User/Trips";
@@ -18,6 +17,7 @@ import Profile from "./pages/User/UserProfile/Profile";
 import EditProfile from "./pages/User/UserProfile/EditProfile";
 import Notifications from "./pages/User/Notifications";
 import AccountSettings from "./pages/User/AccountSettings";
+
 import HostDashboard from "./pages/Host/HostDashboard";
 import AddProperty from "./pages/Host/AddProperty";
 import MyProperties from "./pages/Host/MyProperties";
@@ -25,19 +25,20 @@ import PropertyAnalytics from "./pages/Host/PropertyAnalytics";
 import HostReservations from "./pages/Host/HostReservations";
 import BecomeAHost from "./pages/Host/BecomeAHost";
 import { HostProvider } from "./pages/Host/HostContext";
+
+import ProtectedAdminPage from "./routes/ProtectedAdminPage";
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import Users from "./pages/Admin/Users";
 import Properties from "./pages/Admin/Properties";
-import Reservations from "./pages/Admin/Reservations";
-import Reviews from "./pages/Admin/Reviews";
-import AdminNotifications from "./pages/Admin/Notifications";
-import Categories from "./pages/Admin/Categories";
 import AdminExperiences from "./pages/Admin/Experiences";
-import Financials from "./pages/Admin/Financials";
-import Approvals from "./pages/Admin/Approvals";
+import Categories from "./pages/Admin/Categories";
+import Reservations from "./pages/Admin/Reservations";
+import Payments from "./pages/Admin/Payments";
+import Reviews from "./pages/Admin/Reviews";
 import Reports from "./pages/Admin/Reports";
 import Support from "./pages/Admin/Support";
+import AdminNotifications from "./pages/Admin/Notifications";
 import Marketing from "./pages/Admin/Marketing";
 import FeaturedListings from "./pages/Admin/FeaturedListings";
 import CMS from "./pages/Admin/CMS";
@@ -61,7 +62,6 @@ const App = () => {
         <Route path="/experience/:id" element={<ExperienceDetails />} />
         <Route path="/services" element={<Services />} />
         <Route path="/property/:id" element={<PropertyDetails />} />
-
         <Route path="/pages/User/Wishlist" element={<Wishlist />} />
         <Route path="/pages/User/Trips" element={<Trips />} />
         <Route
@@ -120,26 +120,161 @@ const App = () => {
           }
         />
         <Route path="/become-a-host" element={<BecomeAHost />} />
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="users" element={<Users />} />
-          <Route path="properties" element={<Properties />} />
-          <Route path="reservations" element={<Reservations />} />
-          <Route path="reviews" element={<Reviews />} />
-          <Route path="notifications" element={<AdminNotifications />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="experiences" element={<AdminExperiences />} />
-          <Route path="financials" element={<Financials />} />
-          <Route path="approvals" element={<Approvals />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="support" element={<Support />} />
-          <Route path="marketing" element={<Marketing />} />
-          <Route path="featured-listings" element={<FeaturedListings />} />
-          <Route path="cms" element={<CMS />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="activity-logs" element={<ActivityLogs />} />
-          <Route path="monitoring" element={<Monitoring />} />
-          <Route path="settings" element={<SystemSettings />} />
+        TODO: Protected routes for ADMIN pages based on roles and permissions
+        <Route
+          path="/admin"
+          element={
+            <ProtectedAdminPage>
+              <AdminLayout />
+            </ProtectedAdminPage>
+          }
+        >
+          <Route
+            index
+            element={
+              <ProtectedAdminPage page="dashboard">
+                <AdminDashboard />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="users"
+            element={
+              <ProtectedAdminPage page="users">
+                <Users />
+              </ProtectedAdminPage>
+            }
+          />
+
+          <Route
+            path="properties"
+            element={
+              <ProtectedAdminPage page="properties">
+                <Properties />
+              </ProtectedAdminPage>
+            }
+          />
+
+          <Route
+            path="experiences"
+            element={
+              <ProtectedAdminPage page="experiences">
+                <AdminExperiences />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="categories"
+            element={
+              <ProtectedAdminPage page="categories">
+                <Categories />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="reservations"
+            element={
+              <ProtectedAdminPage page="reservations">
+                <Reservations />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="payments"
+            element={
+              <ProtectedAdminPage page="payments">
+                <Payments />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="reviews"
+            element={
+              <ProtectedAdminPage page="reviews">
+                <Reviews />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="reports"
+            element={
+              <ProtectedAdminPage page="reports">
+                <Reports />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="support"
+            element={
+              <ProtectedAdminPage page="support">
+                <Support />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="notifications"
+            element={
+              <ProtectedAdminPage page="notifications">
+                <AdminNotifications />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="marketing"
+            element={
+              <ProtectedAdminPage page="marketing">
+                <Marketing />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="featured-listings"
+            element={
+              <ProtectedAdminPage page="featured-listings">
+                <FeaturedListings />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="cms"
+            element={
+              <ProtectedAdminPage page="cms">
+                <CMS />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="analytics"
+            element={
+              <ProtectedAdminPage page="analytics">
+                <Analytics />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="activity-logs"
+            element={
+              <ProtectedAdminPage page="activity-logs">
+                <ActivityLogs />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="monitoring"
+            element={
+              <ProtectedAdminPage page="monitoring">
+                <Monitoring />
+              </ProtectedAdminPage>
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <ProtectedAdminPage page="settings">
+                <SystemSettings />
+              </ProtectedAdminPage>
+            }
+          />
         </Route>
       </Routes>
       {!isAdminRoute && !isHostRoute && <Footer />}
