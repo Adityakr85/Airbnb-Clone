@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 import {
   Camera,
   Trash2,
@@ -22,32 +25,112 @@ export default function EditProfile() {
   const { user, isLoaded } = useUser();
   const navigate = useNavigate();
 
-  const savedData = JSON.parse(localStorage.getItem("aboutMeData")) || {};
+  const clerkId = user?.id;
 
   const [previewImage, setPreviewImage] = useState(user?.imageUrl || "");
   const [imageFile, setImageFile] = useState(null);
   const [removeImage, setRemoveImage] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
-    decade: savedData.decade || "",
-    travel: savedData.travel || "",
-    work: savedData.work || "",
-    pets: savedData.pets || "",
-    school: savedData.school || "",
-    skill: savedData.skill || "",
-    song: savedData.song || "",
-    funFact: savedData.funFact || "",
-    time: savedData.time || "",
-    obsessed: savedData.obsessed || "",
-    bioTitle: savedData.bioTitle || "",
-    languages: savedData.languages || "",
-    live: savedData.live || "",
-    intro: savedData.intro || "",
-    interests: savedData.interests || "",
+    decade: "",
+    travel: "",
+    work: "",
+    pets: "",
+    school: "",
+    skill: "",
+    song: "",
+    funFact: "",
+    time: "",
+    obsessed: "",
+    bioTitle: "",
+    languages: "",
+    live: "",
+    intro: "",
+    interests: "",
   });
 
-  if (!isLoaded) return <div className="p-10">Loading...</div>;
+  // Load profile from backend on mount
+  useEffect(() => {
+    async function loadProfile() {
+      if (!clerkId || !isLoaded) return;
+
+      try {
+        // Try to load from backend first
+        const res = await axios.get(`${API_BASE}/api/user/profile`, {
+          params: { clerk_id: clerkId },
+        });
+        const backendData = res.data?.data;
+
+        if (backendData) {
+          setForm({
+            decade: backendData.decade || "",
+            travel: backendData.travel || "",
+            work: backendData.work || "",
+            pets: backendData.pets || "",
+            school: backendData.school || "",
+            skill: backendData.skill || "",
+            song: backendData.song || "",
+            funFact: backendData.fun_fact || "",
+            time: backendData.time || "",
+            obsessed: backendData.obsessed || "",
+            bioTitle: backendData.bio_title || "",
+            languages: backendData.languages || "",
+            live: backendData.live || "",
+            intro: backendData.intro || "",
+            interests: backendData.interests || "",
+          });
+        } else {
+          // Fallback to localStorage
+          const savedData = JSON.parse(localStorage.getItem("aboutMeData")) || {};
+          setForm({
+            decade: savedData.decade || "",
+            travel: savedData.travel || "",
+            work: savedData.work || "",
+            pets: savedData.pets || "",
+            school: savedData.school || "",
+            skill: savedData.skill || "",
+            song: savedData.song || "",
+            funFact: savedData.fun_fact || "",
+            time: savedData.time || "",
+            obsessed: savedData.obsessed || "",
+            bioTitle: savedData.bio_title || "",
+            languages: savedData.languages || "",
+            live: savedData.live || "",
+            intro: savedData.intro || "",
+            interests: savedData.interests || "",
+          });
+        }
+      } catch (error) {
+        // Fallback to localStorage on error
+        const savedData = JSON.parse(localStorage.getItem("aboutMeData")) || {};
+        setForm({
+          decade: savedData.decade || "",
+          travel: savedData.travel || "",
+          work: savedData.work || "",
+          pets: savedData.pets || "",
+          school: savedData.school || "",
+          skill: savedData.skill || "",
+          song: savedData.song || "",
+          funFact: savedData.fun_fact || "",
+          time: savedData.time || "",
+          obsessed: savedData.obsessed || "",
+          bioTitle: savedData.bio_title || "",
+          languages: savedData.languages || "",
+          live: savedData.live || "",
+          intro: savedData.intro || "",
+          interests: savedData.interests || "",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProfile();
+  }, [clerkId, isLoaded]);
+
+  if (!isLoaded || loading) return <div className="p-10">Loading...</div>;
 
   const name = user?.firstName || user?.fullName || "User";
   const initial = name.charAt(0).toUpperCase();
@@ -91,14 +174,38 @@ export default function EditProfile() {
     try {
       setSaving(true);
 
+      // Upload photo to Clerk
       if (imageFile) {
         await user.setProfileImage({ file: imageFile });
-      }
-
-      if (removeImage) {
+      } else if (removeImage) {
         await user.setProfileImage({ file: null });
       }
 
+      // Save to backend (MySQL)
+      try {
+        await axios.put(`${API_BASE}/api/user/profile`, {
+          clerk_id: clerkId,
+          decade: form.decade,
+          travel: form.travel,
+          work: form.work,
+          pets: form.pets,
+          school: form.school,
+          skill: form.skill,
+          song: form.song,
+          fun_fact: form.funFact,
+          time: form.time,
+          obsessed: form.obsessed,
+          bio_title: form.bioTitle,
+          languages: form.languages,
+          live: form.live,
+          intro: form.intro,
+          interests: form.interests,
+        });
+      } catch (backendError) {
+        console.warn("Backend save failed:", backendError);
+      }
+
+      // Also save to localStorage as backup
       localStorage.setItem("aboutMeData", JSON.stringify(form));
 
       navigate("/pages/User/UserProfile/Profile");

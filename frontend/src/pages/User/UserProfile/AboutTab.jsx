@@ -2,8 +2,29 @@ import { Link } from "react-router-dom";
 import { MessageSquare } from "lucide-react";
 import ProfileCard from "./ProfileCard";
 
-export default function AboutTab({ user }) {
-  const aboutData = JSON.parse(localStorage.getItem("aboutMeData")) || {};
+export default function AboutTab({ user, backendProfile }) {
+  // Map backend snake_case keys to camelCase for consistent access
+  const mapBackendToLocal = (backend) => ({
+    decade: backend?.decade || "",
+    travel: backend?.travel || "",
+    work: backend?.work || "",
+    pets: backend?.pets || "",
+    school: backend?.school || "",
+    skill: backend?.skill || "",
+    song: backend?.song || "",
+    funFact: backend?.fun_fact || "",
+    time: backend?.time || "",
+    obsessed: backend?.obsessed || "",
+    bioTitle: backend?.bio_title || "",
+    languages: backend?.languages || "",
+    live: backend?.live || "",
+    intro: backend?.intro || "",
+    interests: backend?.interests || "",
+  });
+
+  // Priority: backend data → localStorage fallback
+  const localData = JSON.parse(localStorage.getItem("aboutMeData")) || {};
+  const aboutData = backendProfile ? mapBackendToLocal(backendProfile) : localData;
 
   const aboutFields = [
     ["decade", "Decade I was born"],
@@ -41,7 +62,7 @@ export default function AboutTab({ user }) {
       </div>
 
       <div className="flex gap-10">
-        <ProfileCard user={user} />
+        <ProfileCard user={user} backendProfile={backendProfile} />
 
         <div className="w-96 pt-6">
           {!hasFilledProfile && (

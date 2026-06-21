@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useHost } from "../../pages/Host/HostContext";
 import toast from "react-hot-toast";
+import HostNavbar from "../../components/HostNavbar";
 
 const STATUS_CONFIG = {
   pending: { label: "Pending", color: "bg-amber-100 text-amber-700", icon: Clock },
@@ -47,6 +48,7 @@ export default function HostReservations() {
 
   return (
     <div className="min-h-screen bg-white">
+      <HostNavbar />
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-5 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto flex items-center gap-4">

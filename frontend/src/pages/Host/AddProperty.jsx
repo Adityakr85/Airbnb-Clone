@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
 import { useHost } from "./HostContext";
+import airbnbLogo from "../../assets/Airbnb-logo.png";
 import toast from "react-hot-toast";
 
 const TOTAL_STEPS = 9;
@@ -94,6 +95,9 @@ export default function AddProperty() {
   const handleSubmit = () => {
     addProperty({ ...form, price: Number(form.price) || 2299, image: form.image || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6" });
     setSubmitted(true);
+    // remember that this user has listed at least one property —
+    // BecomeAHost.jsx uses this to skip the wizard next time
+    localStorage.setItem("hasListedProperty", "true");
     toast.success("Your listing is live!");
   };
 
@@ -114,23 +118,25 @@ export default function AddProperty() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <nav className="flex items-center justify-between px-8 py-4 border-b border-gray-100">
-        <span className="text-[#FF385C] font-bold text-xl">airbnb</span>
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
+      <nav className="flex items-center justify-between px-8 py-4 border-b border-gray-100 flex-shrink-0">
+        <Link to="/" className="flex items-center">
+          <img src={airbnbLogo} alt="Airbnb" className="h-7 w-auto object-contain" />
+        </Link>
         <div className="flex gap-3">
           <button className="px-4 py-2 rounded-full text-sm font-semibold border border-gray-200 hover:bg-gray-50 transition">Questions?</button>
           <button onClick={() => navigate("/host")} className="px-4 py-2 rounded-full text-sm font-semibold border border-gray-200 hover:bg-gray-50 transition">Save & exit</button>
         </div>
       </nav>
 
-      <div className="h-1 bg-gray-200">
+      <div className="h-1 bg-gray-200 flex-shrink-0">
         <div className="h-1 bg-gray-900 transition-all duration-500" style={{ width: `${progress}%` }} />
       </div>
 
-      <div className="flex-1 flex flex-col overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
 
         {step === 1 && (
-          <div className="flex flex-1 items-center max-w-4xl mx-auto w-full px-8 py-16 gap-16">
+          <div className="flex items-center max-w-4xl mx-auto w-full px-8 py-16 gap-16 min-h-full">
             <div className="flex-1">
               <p className="text-gray-500 text-sm font-medium mb-2">Step 1</p>
               <h1 className="text-4xl font-bold text-gray-900 leading-tight mb-4">Tell us about<br />your place</h1>
@@ -197,7 +203,7 @@ export default function AddProperty() {
         )}
 
         {step === 5 && (
-          <div className="flex flex-1 items-center max-w-4xl mx-auto w-full px-8 py-16 gap-16">
+          <div className="flex items-center max-w-4xl mx-auto w-full px-8 py-16 gap-16 min-h-full">
             <div className="flex-1">
               <p className="text-gray-500 text-sm font-medium mb-2">Step 2</p>
               <h1 className="text-4xl font-bold text-gray-900 leading-tight mb-4">Make it<br />stand out</h1>
@@ -293,7 +299,7 @@ export default function AddProperty() {
         )}
       </div>
 
-      <div className="border-t border-gray-200 px-8 py-4 flex items-center justify-between">
+      <div className="border-t border-gray-200 px-8 py-4 flex items-center justify-between flex-shrink-0 bg-white">
         <button onClick={back} className="text-sm font-semibold text-gray-700 underline hover:text-gray-900 transition">Back</button>
         <div className="flex gap-1.5">
           {Array.from({ length: TOTAL_STEPS }).map((_, i) => (

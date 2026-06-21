@@ -1,11 +1,14 @@
-export default function ProfileSidebar({ user, activeTab, setActiveTab }) {
+export default function ProfileSidebar({ user, backendProfile, activeTab, setActiveTab }) {
   const name = user?.firstName || user?.fullName || "User";
+
+  // Priority: Clerk imageUrl → backend photo_url → undefined
+  const profileImage = user?.imageUrl || backendProfile?.photo_url;
 
   const tabs = [
     {
       id: "about",
       label: "About me",
-      image: user?.imageUrl,
+      image: profileImage,
     },
     {
       id: "trips",

@@ -1,10 +1,13 @@
-export default function ProfileCard({ user }) {
+export default function ProfileCard({ user, backendProfile }) {
   const name = user?.firstName || user?.fullName || "User";
+
+  // Priority: Clerk imageUrl → backend photo_url
+  const profileImage = user?.imageUrl || backendProfile?.photo_url;
 
   return (
     <div className="flex h-56 w-80 flex-col items-center justify-center rounded-3xl border border-gray-100 bg-white shadow-xl">
       <img
-        src={user?.imageUrl}
+        src={profileImage}
         alt={name}
         className="h-28 w-28 rounded-full object-cover"
       />
