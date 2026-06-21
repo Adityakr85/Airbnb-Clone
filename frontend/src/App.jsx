@@ -34,8 +34,17 @@ import Reviews from "./pages/Admin/Reviews";
 import AdminNotifications from "./pages/Admin/Notifications";
 import Categories from "./pages/Admin/Categories";
 import AdminExperiences from "./pages/Admin/Experiences";
-import Payments from "./pages/Admin/Payments";
-import Settings from "./pages/Admin/Settings";
+import Financials from "./pages/Admin/Financials";
+import Approvals from "./pages/Admin/Approvals";
+import Reports from "./pages/Admin/Reports";
+import Support from "./pages/Admin/Support";
+import Marketing from "./pages/Admin/Marketing";
+import FeaturedListings from "./pages/Admin/FeaturedListings";
+import CMS from "./pages/Admin/CMS";
+import Analytics from "./pages/Admin/Analytics";
+import ActivityLogs from "./pages/Admin/ActivityLogs";
+import Monitoring from "./pages/Admin/Monitoring";
+import SystemSettings from "./pages/Admin/SystemSettings";
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
@@ -120,8 +129,17 @@ const App = () => {
           <Route path="notifications" element={<AdminNotifications />} />
           <Route path="categories" element={<Categories />} />
           <Route path="experiences" element={<AdminExperiences />} />
-          <Route path="payments" element={<Payments />} />
-          <Route path="settings" element={<Settings />} />
+          <Route path="financials" element={<Financials />} />
+          <Route path="approvals" element={<Approvals />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="support" element={<Support />} />
+          <Route path="marketing" element={<Marketing />} />
+          <Route path="featured-listings" element={<FeaturedListings />} />
+          <Route path="cms" element={<CMS />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="activity-logs" element={<ActivityLogs />} />
+          <Route path="monitoring" element={<Monitoring />} />
+          <Route path="settings" element={<SystemSettings />} />
         </Route>
       </Routes>
       {!isAdminRoute && !isHostRoute && <Footer />}
