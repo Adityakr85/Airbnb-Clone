@@ -23,7 +23,7 @@ export default function SearchBar({onSearch,
   const formRef = useRef(null);
 
   const isAnyMenuOpen = openMenu !== null;
-  const isWhenActive = activeTab === "flexible" || checkInDate;
+  const isWhenActive = checkInDate !== null || flexibleMonths.length > 0;
   const isGuestActive = adults + childrenCount + infants + pets > 0;
 
   useEffect(() => {
@@ -150,7 +150,7 @@ export default function SearchBar({onSearch,
       >
         <h4 className="text-sm font-bold text-gray-900">When</h4>
         <p className={`truncate text-sm pr-6 ${isWhenActive ? "font-semibold text-gray-900" : "text-gray-500"}`}>
-          {checkInDate ? formatWhenText() : "Add dates"}
+          {isWhenActive ? formatWhenText() : "Add dates"}
         </p>
 
         {isWhenActive && (
