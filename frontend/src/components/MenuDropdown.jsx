@@ -1,3 +1,4 @@
+import LanguageCurrencyModal from "./LanguageCurrencyModal";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -23,6 +24,7 @@ export default function MenuDropdown() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
   const { user } = useUser();
+  const [showLanguageModal, setShowLanguageModal] = useState(false); // NEW
 
   useEffect(() => {
     const closeMenu = (e) => {
@@ -130,11 +132,22 @@ export default function MenuDropdown() {
               to="/pages/User/AccountSettings"
             />
 
-            <MenuItem
+            {/* <MenuItem
               icon={Globe}
               label="Languages & Currency"
               to="/Language&Currency"
-            />
+            /> */}
+
+            <button
+              onClick={() => {
+                setShowLanguageModal(true);
+                setOpen(false);
+              }}
+              className="flex w-full items-center gap-4 px-6 py-3 text-left text-gray-700 hover:bg-gray-50 hover:text-black transition"
+            >
+              <Globe size={18} />
+              <span className="font-medium">Languages & Currency</span>
+            </button>
 
             <MenuItem icon={CircleHelp} label="Help Centre" to="/HelpCentre" />
             <div className="mx-6 my-2 border-gray-300 border-t" />
@@ -166,6 +179,10 @@ export default function MenuDropdown() {
             </SignOutButton>
           </SignedIn>
         </div>
+      )}
+
+      {showLanguageModal && (
+        <LanguageCurrencyModal onClose={() => setShowLanguageModal(false)} />
       )}
     </div>
   );

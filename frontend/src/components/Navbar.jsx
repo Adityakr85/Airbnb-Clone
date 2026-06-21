@@ -5,6 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 import MenuDropdown from "./MenuDropdown";
 import SearchBar from "./Search/SearchBar";
 import airbnbLogo from "../assets/Airbnb-logo.png";
+import LanguageCurrencyModal from "./LanguageCurrencyModal";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -23,6 +24,7 @@ export default function Navbar() {
   const [childrenCount, setChildrenCount] = useState(0);
   const [infants, setInfants] = useState(0);
   const [pets, setPets] = useState(0);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   const hideSearchBar =
     location.pathname.startsWith("/pages/User/Messages") ||
@@ -144,7 +146,14 @@ export default function Navbar() {
             Become a host
           </Link>
 
-          <button className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200">
+          {/* <button className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200">
+            <Globe size={21} />
+          </button> */}
+
+          <button
+            onClick={() => setShowLanguageModal(true)}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200"
+          >
             <Globe size={21} />
           </button>
 
@@ -187,6 +196,10 @@ export default function Navbar() {
             formatWhenText={formatWhenText}
           />
         </div>
+      )}
+
+      {showLanguageModal && (
+        <LanguageCurrencyModal onClose={() => setShowLanguageModal(false)} />
       )}
     </header>
   );
