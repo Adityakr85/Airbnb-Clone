@@ -96,7 +96,7 @@ export default function GuestDropdown({
                 className={`flex h-8 w-8 items-center justify-center rounded-full border text-xl transition ${
                   disableMinus
                     ? "cursor-not-allowed border-gray-200 text-gray-200"
-                    : "border-gray-400 text-gray-600 hover:border-black hover:text-black"
+                    : "cursor-pointer border-gray-400 text-gray-600 hover:border-black hover:text-black"
                 }`}
               >
                 −
@@ -109,7 +109,7 @@ export default function GuestDropdown({
               <button
                 type="button"
                 onClick={() => increment(guest.key)}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-400 text-xl text-gray-600 transition hover:border-black hover:text-black"
+                className="cursor-pointer flex h-8 w-8 items-center justify-center rounded-full border border-gray-400 text-xl text-gray-600 transition hover:border-black hover:text-black"
               >
                 +
               </button>

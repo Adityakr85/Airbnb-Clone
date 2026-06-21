@@ -8,9 +8,9 @@ import SearchBar from "./Search/SearchBar";
 import airbnbLogo from "../assets/Airbnb-logo.png";
 
 const TABS = [
-  { path: "/", icon: "🏠", label: "Homes" },
-  { path: "/Experiences", icon: "🎈", label: "Experiences", badge: "NEW" },
-  { path: "/Services", icon: "🛎️", label: "Services", badge: "NEW" },
+  { icon: "🏠", label: "Homes", path: "/", active: true },
+  { icon: "🎈", label: "Experiences", path: "/experiences", badge: "NEW" },
+  { icon: "🛎️", label: "Services", path: "/services", badge: "NEW" },
 ];
 
 export default function Navbar() {
@@ -18,7 +18,7 @@ export default function Navbar() {
   const { user, isSignedIn } = useUser();
   const [scrolled, setScrolled] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [openMenu, setOpenMenu] = useState("where");
+  const [openMenu, setOpenMenu] = useState("null");
   const location = useLocation();
 
   const [destinationSearch, setDestinationSearch] = useState("");
@@ -35,11 +35,9 @@ export default function Navbar() {
   const [infants, setInfants] = useState(0);
   const [pets, setPets] = useState(0);
 
-  // OPTIMIZATION: 1-line Regex instead of 5 startsWith() checks
-  const hideSearchBar =
-    /^\/pages\/User\/(Messages|Notifications|AccountSettings|UserProfile)/.test(
-      location.pathname,
-    );
+  const [serviceType, setServiceType] = useState("");
+
+  const hideSearchBar = /^\/pages\/User\/(Messages|Notifications|AccountSettings|UserProfile)/.test(location.pathname);
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -54,7 +52,6 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // OPTIMIZATION: Push text to an array and join, avoiding ugly string concatenation
   const formatGuestText = () => {
     const total = adults + childrenCount;
     if (!total && !infants && !pets) return "Add guests";
@@ -66,7 +63,6 @@ export default function Navbar() {
     return parts.join(", ");
   };
 
-  // OPTIMIZATION: Consolidated logic and reused date formatter
   const formatWhenText = () => {
     if (activeTab === "flexible") {
       if (!flexibleMonths.length) return `Any ${stayLength}`;
@@ -118,21 +114,13 @@ export default function Navbar() {
               <SmallSearchBar
                 destination={destinationSearch || "Anywhere"}
                 when={formatWhenText()}
-                guests={formatGuestText()}
-                onMenuClick={(menu) => {
-                  setIsExpanded(true);
-                  setOpenMenu(menu);
-                }}
+                guests={location.pathname.includes("/services") ? (serviceType || "Add service") : formatGuestText()}
+                thirdMenuType={location.pathname.includes("/services") ? "service" : "guests"}
+                onMenuClick={(menu) => { setIsExpanded(true); setOpenMenu(menu); }}
               />
             ) : (
-              <div className="flex items-center gap-16 pt-4 transition-all duration-500">
-                {TABS.map((tab) => (
-                  <TopTab
-                    key={tab.path}
-                    {...tab}
-                    active={location.pathname === tab.path}
-                  />
-                ))}
+              <div className="flex items-center gap-16 pt-4 transition-all duration-500" onMouseDown={(e) => e.stopPropagation()}>
+                {TABS.map(tab => <TopTab key={tab.label} {...tab} active={location.pathname === tab.path} />)}
               </div>
             )}
           </div>
@@ -172,32 +160,12 @@ export default function Navbar() {
         >
           <SearchBar
             setIsExpanded={setIsExpanded}
-            openMenu={openMenu}
-            setOpenMenu={setOpenMenu}
-            destinationSearch={destinationSearch}
-            setDestinationSearch={setDestinationSearch}
-            checkInDate={checkInDate}
-            setCheckInDate={setCheckInDate}
-            checkOutDate={checkOutDate}
-            setCheckOutDate={setCheckOutDate}
-            exactDatesFlex={exactDatesFlex}
-            setExactDatesFlex={setExactDatesFlex}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            stayLength={stayLength}
-            setStayLength={setStayLength}
-            flexibleMonths={flexibleMonths}
-            setFlexibleMonths={setFlexibleMonths}
-            adults={adults}
-            setAdults={setAdults}
-            childrenCount={childrenCount}
-            setChildrenCount={setChildrenCount}
-            infants={infants}
-            setInfants={setInfants}
-            pets={pets}
-            setPets={setPets}
-            formatGuestText={formatGuestText}
-            formatWhenText={formatWhenText}
+            openMenu={openMenu} setOpenMenu={setOpenMenu} destinationSearch={destinationSearch} setDestinationSearch={setDestinationSearch}
+            checkInDate={checkInDate} setCheckInDate={setCheckInDate} checkOutDate={checkOutDate} setCheckOutDate={setCheckOutDate} serviceType={serviceType}
+            exactDatesFlex={exactDatesFlex} setExactDatesFlex={setExactDatesFlex} activeTab={activeTab} setActiveTab={setActiveTab}
+            stayLength={stayLength} setStayLength={setStayLength} flexibleMonths={flexibleMonths} setFlexibleMonths={setFlexibleMonths}
+            adults={adults} setAdults={setAdults} childrenCount={childrenCount} setChildrenCount={setChildrenCount} infants={infants}
+            setInfants={setInfants} pets={pets} setPets={setPets} formatGuestText={formatGuestText} formatWhenText={formatWhenText} setServiceType={setServiceType}
           />
         </div>
       )}
@@ -215,42 +183,26 @@ export default function Navbar() {
   );
 }
 
-function TopTab({ path, icon, label, badge, active = false }) {
+function TopTab({ icon, label, path, badge, active = false }) {
   return (
-    <Link
-      to={path}
-      className={`group relative flex flex-col items-center transition-all duration-300 hover:scale-105 ${
-        active ? "text-black" : "text-gray-500 hover:text-black"
-      }`}
-    >
+    <Link to={path} className={`group relative flex items-center gap-2 transition-all duration-300 hover:scale-105 ${active ? "text-black" : "text-gray-500 hover:text-black"}`}>
       {badge && (
-        <span className="absolute -top-5 left-1/2 -translate-x-1/2 rounded-full bg-slate-600 px-2 py-0.5 text-xs font-bold text-white shadow">
+        <span className="absolute left-7 -top-2.5 z-10 rounded-full bg-[#2A3B4C] px-1.5 py-[2px] text-[9px] font-bold tracking-wider text-white shadow-sm">
           {badge}
         </span>
       )}
-
-      <span className="text-3xl transition-transform duration-300 group-hover:-translate-y-1">
-        {icon}
-      </span>
-
-      <span className="mt-1 font-semibold">{label}</span>
-
-      {active && (
-        <span className="absolute -bottom-2 h-1 w-18 rounded-full bg-black" />
-      )}
+      <span className="text-[26px] leading-none transition-transform duration-300 group-hover:-translate-y-1">{icon}</span>
+      <span className="text-sm font-medium text-gray-800">{label}</span>
+      {active && <span className="absolute -bottom-3 left-0 h-[2px] w-full rounded-full bg-black" />}
     </Link>
   );
 }
 
-function SmallSearchBar({ destination, when, guests, onMenuClick }) {
-  // OPTIMIZATION: Variables strictly avoid typing out the same wrappers & functions 4 times
-  const click = (e, menu) => {
-    e.stopPropagation();
-    onMenuClick(menu);
-  };
+function SmallSearchBar({ destination, when, guests,thirdMenuType = "guests", onMenuClick }) {
+  const click = (e, menu) => { e.stopPropagation(); onMenuClick(menu); };
   const stop = (e) => e.stopPropagation();
-  const btnClass =
-    "h-full max-w-40 truncate px-5 text-sm font-semibold transition hover:bg-gray-100";
+  const btnClass = "h-full max-w-40 truncate px-5 text-sm cursor-pointer font-medium text-gray-700 transition hover:bg-gray-100";
+  const isDefaultThirdPill = guests === "Add guests" || guests === "Add service";
 
   return (
     <div
@@ -276,14 +228,9 @@ function SmallSearchBar({ destination, when, guests, onMenuClick }) {
         {when}
       </button>
       <div className="h-6 w-px bg-gray-300" />
-
-      <button
-        type="button"
-        onClick={(e) => click(e, "guests")}
-        onMouseDown={stop}
-        className={`${btnClass} flex items-center rounded-r-full text-gray-500`}
-      >
-        <span className="mr-3 max-w-40 truncate">{guests}</span>
+      
+      <button type="button" onClick={(e) => click(e, thirdMenuType)} onMouseDown={stop} className={`${btnClass} flex items-center !px-3 rounded-r-full`}>
+        <span className="mr-2 max-w-30 truncate">{guests}</span>
       </button>
 
       <button className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#E31C5F] text-white transition hover:bg-[#FF385C]">

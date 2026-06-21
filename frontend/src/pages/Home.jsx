@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import PropertySection from "../components/PropertySection";
+import GlobalCarousel from "../components/GlobalCarousel";
+import GlobalCard from "../components/GlobalCard";
 import { fetchProperties } from "../api/properties";
 
 export default function Home() {
-  const [searchParams] = useSearchParams();
+  const [searchParams ,setSearchParams] = useSearchParams();
   const activeSearch = searchParams.get("search") || "";
 
   const [properties, setProperties] = useState([]);
@@ -13,25 +14,23 @@ export default function Home() {
 
   useEffect(() => {
     let isMounted = true;
-
     async function load() {
       setLoading(true);
       setError(null);
       try {
         const data = await fetchProperties({ search: activeSearch });
-        if (isMounted) setProperties(data);
+        if (isMounted) {
+          const actualArray = data?.data ? data.data : data;
+          setProperties(Array.isArray(actualArray) ? actualArray : []);
+        }
       } catch (e) {
         if (isMounted) setError(e?.message || "Failed to load properties");
       } finally {
         if (isMounted) setLoading(false);
       }
     }
-
     load();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => {isMounted = false;};
   }, [activeSearch]);
 
   const titleTemplates = [
@@ -46,13 +45,13 @@ export default function Home() {
   ];
 
   const groupedEntries = useMemo(() => {
-    const groupedProperties = (properties || []).reduce((acc, property) => {
+    const safeProperties = Array.isArray(properties) ? properties : [];
+    const groupedProperties = safeProperties.reduce((acc, property) => {
       const location = property.location?.split(",")[0]?.trim() || "Unknown";
       if (!acc[location]) acc[location] = [];
       acc[location].push(property);
       return acc;
     }, {});
-
     return Object.entries(groupedProperties);
   }, [properties]);
 
@@ -65,17 +64,19 @@ export default function Home() {
       <div className="text-red-600">{error}</div>
     </main>
   ) : (
-    <main className="bg-white min-h-screen">
+    <main className="mx-auto min-h-screen max-w-[2520px] bg-white px-6 pt-28 pb-8 sm:px-10 md:px-16 xl:px-20">
       {groupedEntries.length > 0 ? (
         groupedEntries.map(([location, props], index) => (
-          <PropertySection
+          <GlobalCarousel
             key={location}
-            title={
-              activeSearch
-                ? `Search results in ${location}`
-                : `${titleTemplates[index % titleTemplates.length]} ${location}`
+            title={activeSearch ? `Search results in ${location}` : `Stay near ${location}`}
+            items={props}
+            routePrefix="property"
+            onTitleClick={
+              !activeSearch 
+                ? () => setSearchParams({ search: location }) 
+                : undefined
             }
-            properties={props}
           />
         ))
       ) : (

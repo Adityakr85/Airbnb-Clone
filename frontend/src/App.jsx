@@ -24,6 +24,7 @@ import MyProperties from "./pages/Host/MyProperties";
 import PropertyAnalytics from "./pages/Host/PropertyAnalytics";
 import HostReservations from "./pages/Host/HostReservations";
 import BecomeAHost from "./pages/Host/BecomeAHost";
+import Experiences from "./pages/Experiences";
 import { HostProvider } from "./pages/Host/HostContext";
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/Dashboard";
