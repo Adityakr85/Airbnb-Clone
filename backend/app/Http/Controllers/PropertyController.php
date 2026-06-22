@@ -76,10 +76,31 @@ class PropertyController extends Controller
 
     public function update(Request $request, string $id)
     {
+        $clerkId = $request->input('clerk_id');
+        $user = User::getOrCreateFromClerkId($clerkId);
+        
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
         $property = Property::find($id);
 
         if (!$property) {
             return response()->json(['success' => false, 'message' => 'Not found'], 404);
+        }
+
+        if ($property->host_id !== $user->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        // Support form file uploads for images
+        if ($request->hasFile('images')) {
+            $uploadedImages = [];
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('properties', 'public');
+                $uploadedImages[] = $path;
+            }
+            $request->merge(['images' => $uploadedImages]);
         }
 
         $property->update($request->all());

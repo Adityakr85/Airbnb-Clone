@@ -50,15 +50,38 @@ class ReservationController extends Controller
         ], 201);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $reservation = Reservation::with('property')->find($id);
+        $clerkId = $request->query('clerk_id');
+        if (!$clerkId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'clerk_id required'
+            ], 400);
+        }
+
+        $user = User::getOrCreateFromClerkId($clerkId);
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        $reservation = Reservation::with(['property.guest', 'property.host'])->find($id);
 
         if (!$reservation) {
             return response()->json([
                 'success' => false,
                 'message' => 'Reservation not found'
             ], 404);
+        }
+
+        if ($reservation->property->host_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 403);
         }
 
         return response()->json([
