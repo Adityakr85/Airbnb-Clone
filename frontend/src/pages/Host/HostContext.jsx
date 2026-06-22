@@ -10,6 +10,7 @@ export function HostProvider({ children }) {
   const { user, isLoaded } = useUser();
   const [properties, setProperties] = useState([]);
   const [reservations, setReservations] = useState([]);
+  const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,14 +32,46 @@ export function HostProvider({ children }) {
       }
     }
     fetchHostData();
+
+    // Fetch destinations
+    async function fetchDestinations() {
+      try {
+        const res = await axios.get(`${API_BASE}/api/properties/destinations`);
+        if (res.data?.success) {
+          setDestinations(res.data.data || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch destinations:", err);
+      }
+    }
+    fetchDestinations();
   }, [user?.id, isLoaded]);
 
-  const addProperty = async (property) => {
+  const addProperty = async (propertyData) => {
     if (!user?.id) return;
     try {
-      const res = await axios.post(`${API_BASE}/api/properties`, {
-        ...property,
-        clerk_id: user.id,
+      const formData = new FormData();
+      // Append regular fields
+      Object.keys(propertyData).forEach(key => {
+        if (propertyData[key] !== undefined && propertyData[key] !== null) {
+          if (key === 'images') {
+            // Handle file array
+            if (propertyData.images && propertyData.images.length) {
+              propertyData.images.forEach((file, index) => {
+                formData.append('images[]', file);
+              });
+            }
+          } else {
+            formData.append(key, propertyData[key]);
+          }
+        }
+      });
+      formData.append('clerk_id', user.id);
+
+      const res = await axios.post(`${API_BASE}/api/properties`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
       if (res.data?.success) {
         const newProp = res.data.data;
@@ -51,12 +84,34 @@ export function HostProvider({ children }) {
     }
   };
 
-  const updateProperty = async (id, updates) => {
+  const updateProperty = async (id, propertyData) => {
     try {
-      const res = await axios.put(`${API_BASE}/api/properties/${id}`, updates);
+      const formData = new FormData();
+      // Append regular fields
+      Object.keys(propertyData).forEach(key => {
+        if (propertyData[key] !== undefined && propertyData[key] !== null) {
+          if (key === 'images') {
+            // Handle file array
+            if (propertyData.images && propertyData.images.length) {
+              propertyData.images.forEach((file, index) => {
+                formData.append('images[]', file);
+              });
+            }
+          } else {
+            formData.append(key, propertyData[key]);
+          }
+        }
+      });
+      // Note: For update, we might need to include _method=PUT if axios.put doesn't work with FormData? 
+      // But axios.put with FormData should set correct headers.
+      const res = await axios.put(`${API_BASE}/api/properties/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       if (res.data?.success) {
         setProperties((prev) =>
-          prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
+          prev.map((p) => (p.id === id ? { ...p, ...propertyData } : p))
         );
       }
     } catch (err) {
@@ -96,6 +151,7 @@ export function HostProvider({ children }) {
       value={{
         properties,
         reservations,
+        destinations,
         addProperty,
         updateProperty,
         deleteProperty,

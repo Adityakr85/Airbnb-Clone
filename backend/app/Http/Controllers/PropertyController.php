@@ -126,4 +126,13 @@ class PropertyController extends Controller
             'message' => 'Property deleted'
         ]);
     }
+
+    public function destinations()
+    {
+        $locations = Property::distinct()->pluck('location');
+        return response()->json([
+            'success' => true,
+            'data' => $locations->all()
+        ]);
+    }
 }

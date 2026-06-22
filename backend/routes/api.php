@@ -52,3 +52,6 @@ Route::get('/user/profile', [UserProfileController::class, 'show']);
 Route::put('/user/profile', [UserProfileController::class, 'update']);
 Route::post('/user/profile/photo', [UserProfileController::class, 'uploadPhoto']);
 Route::delete('/user/profile/photo', [UserProfileController::class, 'deletePhoto']);
+
+// Additional property endpoints
+Route::get('/properties/destinations', [PropertyController::class, 'destinations']);
