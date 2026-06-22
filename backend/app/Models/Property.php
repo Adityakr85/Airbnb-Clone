@@ -17,7 +17,16 @@ class Property extends Model
         'base_price',
         'rating',
         'host_id', 
-        'images' 
+        'images',
+        'type',
+        'guests',
+        'bedrooms',
+        'bathrooms',
+        'category',
+        'status',
+        'views',
+        'bookings',
+        'earnings'
     ];
 
     protected $casts = ['images' => 'array'];

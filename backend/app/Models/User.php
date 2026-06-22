@@ -22,7 +22,30 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'clerk_id',
+        'role',
+        'profile_image',
     ];
+
+    public function profile()
+    {
+        return $this->hasOne(UserProfile::class, 'clerk_id', 'clerk_id');
+    }
+
+    public static function getOrCreateFromClerkId($clerkId, $name = 'User', $email = null)
+    {
+        if (!$clerkId) return null;
+        
+        return self::firstOrCreate(
+            ['clerk_id' => $clerkId],
+            [
+                'name' => $name,
+                'email' => $email ?? ($clerkId . '@clerk.com'),
+                'password' => bcrypt(\Illuminate\Support\Str::random(16)),
+                'role' => 'guest',
+            ]
+        );
+    }
 
     /**
      * The attributes that should be hidden for serialization.
