@@ -24,6 +24,7 @@ class Property extends Model
         'bathrooms',
         'category',
         'status',
+        'moderation_status',
         'views',
         'bookings',
         'earnings'

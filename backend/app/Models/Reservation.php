@@ -14,6 +14,7 @@ class Reservation extends Model
         'guests',
         'total',
         'status',
+        'payment_status',
         'message'
     ];
 

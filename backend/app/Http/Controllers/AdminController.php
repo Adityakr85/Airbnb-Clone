@@ -14,7 +14,12 @@ class AdminController extends Controller
      */
     protected function isAdmin($user)
     {
-        return $user && $user->role === 'admin';
+        if (!$user) return false;
+
+        // Allow different role capitalizations coming from Clerk / DB
+        $role = $user->role;
+
+        return is_string($role) && strtolower($role) === 'admin';
     }
 
     /**
@@ -23,7 +28,7 @@ class AdminController extends Controller
     public function dashboard(Request $request)
     {
         $clerkId = $request->query('clerk_id');
-        $user = User::getOrCreateFromClerkId($clerkId);
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin');
 
         if (!$this->isAdmin($user)) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -47,7 +52,7 @@ class AdminController extends Controller
     public function users(Request $request)
     {
         $clerkId = $request->query('clerk_id');
-        $user = User::getOrCreateFromClerkId($clerkId);
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin');
 
         if (!$this->isAdmin($user)) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -114,7 +119,7 @@ class AdminController extends Controller
     public function properties(Request $request)
     {
         $clerkId = $request->query('clerk_id');
-        $user = User::getOrCreateFromClerkId($clerkId);
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin');
 
         if (!$this->isAdmin($user)) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -146,26 +151,26 @@ class AdminController extends Controller
                 }
                 
                 // Format price
-                $priceFormatted = 'â‚¹' . number_format($property->price, 0);
-                
+                $priceFormatted = 'â‚¹' . number_format((float)($property->price ?? 0), 0);
+
                 // Format rating (ensure it's a float with 1 decimal)
                 $rating = $property->rating ? round((float)$property->rating, 1) : 0;
-                
+
                 // Format date
                 $created = $property->created_at ? $property->created_at->format('M d, Y') : 'Unknown';
 
                 return [
                     'id' => $property->id,
-                    'title' => $property->title,
-                    'host' => $property->host ? $property->host->name : 'Unknown',
-                    'location' => $property->location,
-                    'price' => $priceFormatted,
-                    'status' => $status,
-                    'rating' => $rating,
-                    'bookings' => (int)$property->bookings,
-                    'type' => $property->type,
-                    'created' => $created,
-                    'image' => $imageUrl,
+                    'title' => (string) ($property->title ?? ''),
+                    'host' => $property->host ? (string) ($property->host->name ?? 'Unknown') : 'Unknown',
+                    'location' => (string) ($property->location ?? ''),
+                    'price' => (string) $priceFormatted,
+                    'status' => (string) $status,
+                    'rating' => (float) $rating,
+                    'bookings' => (int) ($property->bookings ?? 0),
+                    'type' => (string) ($property->type ?? ''),
+                    'created' => (string) $created,
+                    'image' => (string) $imageUrl,
                 ];
             });
 
@@ -178,7 +183,7 @@ class AdminController extends Controller
     public function reservations(Request $request)
     {
         $clerkId = $request->query('clerk_id');
-        $user = User::getOrCreateFromClerkId($clerkId);
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin');
 
         if (!$this->isAdmin($user)) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -276,7 +281,7 @@ class AdminController extends Controller
     public function analytics(Request $request)
     {
         $clerkId = $request->query('clerk_id');
-        $user = User::getOrCreateFromClerkId($clerkId);
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin');
 
         if (!$this->isAdmin($user)) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);

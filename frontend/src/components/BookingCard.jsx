@@ -1,26 +1,38 @@
 import React, { useState } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { createReservation } from "../api/trips";
 
-function BookingCard({ property }) {
+function BookingCard({ property, defaultCheckIn, defaultCheckOut }) {
   const { user, isSignedIn } = useUser();
   const navigate = useNavigate();
   const price = property.price || 0;
-
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
+  
+  // Use default dates if provided, otherwise empty strings
+  const [checkIn, setCheckIn] = useState(defaultCheckIn 
+    ? defaultCheckIn.toISOString().split('T')[0] 
+    : "");
+  const [checkOut, setCheckOut] = useState(defaultCheckOut 
+    ? defaultCheckOut.toISOString().split('T')[0] 
+    : "");
   const [guests, setGuests] = useState(1);
   const [loading, setLoading] = useState(false);
 
   const calculateNights = () => {
     if (!checkIn || !checkOut) return 0;
-    const nights = Math.ceil(
-      (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)
-    );
-    return nights > 0 ? nights : 0;
+    try {
+      const checkInDate = new Date(checkIn);
+      const checkOutDate = new Date(checkOut);
+      if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) return 0;
+      const nights = Math.ceil(
+        (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)
+      );
+      return nights > 0 ? nights : 0;
+    } catch (error) {
+      return 0;
+    }
   };
-
+  
   const nights = calculateNights();
   const total = price * nights;
 

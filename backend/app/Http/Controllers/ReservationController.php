@@ -68,7 +68,7 @@ class ReservationController extends Controller
             ], 404);
         }
 
-        $reservation = Reservation::with(['property.guest', 'property.host'])->find($id);
+        $reservation = Reservation::with(['guest', 'property.host'])->find($id);
 
         if (!$reservation) {
             return response()->json([
