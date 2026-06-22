@@ -77,7 +77,8 @@ class ReservationController extends Controller
             ], 404);
         }
 
-        if ($reservation->property->host_id !== $user->id) {
+        // Check if the authenticated user is either the guest or the host of the property
+        if ($reservation->guest_id !== $user->id && $reservation->property->host_id !== $user->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized'

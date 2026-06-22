@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchReservationDetails } from "../../api/trips";
+import { useUser } from "@clerk/clerk-react";
 
 const BookingDetails = () => {
   const { id } = useParams();
+  const { user } = useUser();
+  const clerkId = user?.id;
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadDetails() {
       try {
-        const data = await fetchReservationDetails(id);
+        // If we don't have a clerkId, we still try to fetch without it (though the backend will require it)
+        const data = await fetchReservationDetails(id, clerkId);
         setTrip(data);
       } catch (err) {
         console.error("Error loading booking details:", err);
@@ -19,7 +23,7 @@ const BookingDetails = () => {
       }
     }
     loadDetails();
-  }, [id]);
+  }, [id, clerkId]);
 
   if (loading) {
     return <div className="p-10 text-center font-semibold">Loading booking details...</div>;
@@ -61,29 +65,29 @@ const BookingDetails = () => {
       </h1>
 
       <div className="mb-8 overflow-hidden rounded-2xl bg-white shadow-md">
-        <img
-          src={property.image || "/placeholder.jpg"}
-          alt={property.title}
-          className="h-[400px] w-full object-cover"
-        />
+          <img
+            src={property.images?.[0] || "/placeholder.jpg"}
+            alt={property.title}
+            className="h-[400px] w-full object-cover"
+          />
 
-        <div className="p-6">
-          <h2 className="text-3xl font-bold">
-            {property.title}
-          </h2>
+          <div className="p-6">
+            <h2 className="text-3xl font-bold">
+              {property.title}
+            </h2>
 
-          <p className="mt-2 text-gray-600">
-            📍 {property.location}
-          </p>
+            <p className="mt-2 text-gray-600">
+              📍 {property.location}
+            </p>
 
-          <p className="mt-2">
-            ⭐ {property.rating || "New"}
-          </p>
+            <p className="mt-2">
+              ⭐ {property.rating || "New"}
+            </p>
 
-          <p className="mt-2 text-gray-700">
-            {property.type || "Property"}
-          </p>
-        </div>
+            <p className="mt-2 text-gray-700">
+              {property.type || "Property"}
+            </p>
+          </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

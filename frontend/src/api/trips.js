@@ -24,9 +24,10 @@ export async function fetchGuestTrips(clerkId) {
   }
 }
 
-export async function fetchReservationDetails(id) {
+export async function fetchReservationDetails(id, clerkId = null) {
   try {
-    const res = await axios.get(`${API_BASE}/api/reservations/${id}`);
+    const params = clerkId ? { clerk_id: clerkId } : {};
+    const res = await axios.get(`${API_BASE}/api/reservations/${id}`, { params });
     return res.data?.data;
   } catch (error) {
     console.error(`Failed to fetch reservation ${id}:`, error);
