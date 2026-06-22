@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 
 import ImageGallery from "../components/ImageGallery";
 import Amenities from "../components/Amenities";
@@ -6,15 +7,35 @@ import Reviews from "../components/Reviews";
 import HostInfo from "../components/HostInfo";
 import BookingCard from "../components/BookingCard";
 
-import properties from "../data/properties";
+import { fetchPropertyById } from "../api/properties";
 import hosts from "../data/hosts";
 
 function PropertyDetails() {
   const { id } = useParams();
+  const [property, setProperty] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const property = properties.find(
-    (p) => p.id === Number(id)
-  );
+  useEffect(() => {
+    async function loadProperty() {
+      try {
+        const data = await fetchPropertyById(id);
+        setProperty(data);
+      } catch (err) {
+        console.error("Error loading property:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProperty();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-2xl font-semibold">
+        Loading property details...
+      </div>
+    );
+  }
 
   if (!property) {
     return (
@@ -24,7 +45,7 @@ function PropertyDetails() {
     );
   }
 
-  const host = hosts.find(
+  const host = property.host || hosts.find(
     (h) => h.id === property.host_id
   );
 
@@ -72,7 +93,7 @@ function PropertyDetails() {
 
         {/* Right Section */}
         <div>
-          <BookingCard price={property.price} />
+          <BookingCard property={property} />
         </div>
       </div>
     </div>

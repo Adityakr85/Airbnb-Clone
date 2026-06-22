@@ -1,14 +1,29 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import properties from "../../data/properties";
-import trips from "../../data/trips";
+import { fetchReservationDetails } from "../../api/trips";
 
 const BookingDetails = () => {
   const { id } = useParams();
+  const [trip, setTrip] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const trip = trips.find(
-    (trip) => trip.id === Number(id)
-  );
+  useEffect(() => {
+    async function loadDetails() {
+      try {
+        const data = await fetchReservationDetails(id);
+        setTrip(data);
+      } catch (err) {
+        console.error("Error loading booking details:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDetails();
+  }, [id]);
+
+  if (loading) {
+    return <div className="p-10 text-center font-semibold">Loading booking details...</div>;
+  }
 
   if (!trip) {
     return (
@@ -20,19 +35,24 @@ const BookingDetails = () => {
     );
   }
 
-  const property = properties.find(
-    (property) => property.id === trip.propertyId
-  );
+  const property = trip.property;
 
   if (!property) {
     return (
       <div className="mx-auto max-w-4xl p-8">
         <h1 className="text-3xl font-bold">
-          Property Not Found
+          Property Information Missing
         </h1>
       </div>
     );
   }
+
+  const nights = Math.ceil(
+    (new Date(trip.check_out) - new Date(trip.check_in)) /
+      (1000 * 60 * 60 * 24)
+  );
+
+  const totalPrice = trip.total || property.price * nights;
 
   return (
     <div className="mx-auto max-w-6xl px-8 py-10">
@@ -42,7 +62,7 @@ const BookingDetails = () => {
 
       <div className="mb-8 overflow-hidden rounded-2xl bg-white shadow-md">
         <img
-          src={property.image}
+          src={property.image || "/placeholder.jpg"}
           alt={property.title}
           className="h-[400px] w-full object-cover"
         />
@@ -57,7 +77,7 @@ const BookingDetails = () => {
           </p>
 
           <p className="mt-2">
-            ⭐ {property.rating}
+            ⭐ {property.rating || "New"}
           </p>
 
           <p className="mt-2 text-gray-700">
@@ -79,9 +99,7 @@ const BookingDetails = () => {
 
           <p className="mt-2">
             <strong>Status:</strong>{" "}
-            {trip.status === "upcoming"
-              ? "Confirmed"
-              : "Completed"}
+            <span className="capitalize font-semibold">{trip.status}</span>
           </p>
 
           <p className="mt-2">
@@ -95,11 +113,11 @@ const BookingDetails = () => {
           </h2>
 
           <p>
-            <strong>Check-in:</strong> {trip.checkIn}
+            <strong>Check-in:</strong> {trip.check_in}
           </p>
 
           <p className="mt-2">
-            <strong>Check-out:</strong> {trip.checkOut}
+            <strong>Check-out:</strong> {trip.check_out}
           </p>
         </div>
 
@@ -124,13 +142,13 @@ const BookingDetails = () => {
           </p>
 
           <p className="mt-2">
-            <strong>Guests:</strong>{" "}
+            <strong>Guests Limit:</strong>{" "}
             {property.guests || "N/A"}
           </p>
 
           <p className="mt-2">
             <strong>Price Per Night:</strong> ₹
-            {property.price.toLocaleString("en-IN")}
+            {Number(property.price).toLocaleString("en-IN")}
           </p>
         </div>
       </div>

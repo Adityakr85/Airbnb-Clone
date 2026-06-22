@@ -1,62 +1,75 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import properties from "../../data/properties";
-import trips from "../../data/trips";
+import { useUser } from "@clerk/clerk-react";
+import { fetchGuestTrips } from "../../api/trips";
 
 const Trips = () => {
   const navigate = useNavigate();
+  const { user, isLoaded } = useUser();
+  const [tripsList, setTripsList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const upcomingTrips = trips
-    .filter((trip) => trip.status === "upcoming")
-    .map((trip) => ({
-      ...trip,
-      property: properties.find(
-        (property) => property.id === trip.propertyId
-      ),
-    }))
-    .filter((trip) => trip.property);
+  useEffect(() => {
+    async function loadTrips() {
+      if (!isLoaded || !user?.id) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const data = await fetchGuestTrips(user.id);
+        setTripsList(data);
+      } catch (err) {
+        console.error("Failed to load trips:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadTrips();
+  }, [user?.id, isLoaded]);
 
-  const pastTrips = trips
-    .filter((trip) => trip.status === "completed")
-    .map((trip) => ({
-      ...trip,
-      property: properties.find(
-        (property) => property.id === trip.propertyId
-      ),
-    }))
-    .filter((trip) => trip.property);
+  if (!isLoaded || loading) {
+    return <div className="p-10 text-center font-semibold">Loading your trips...</div>;
+  }
+
+  const upcomingTrips = tripsList.filter(
+    (trip) => trip.status === "upcoming" || trip.status === "pending" || trip.status === "confirmed"
+  );
+
+  const pastTrips = tripsList.filter(
+    (trip) => trip.status === "completed" || trip.status === "cancelled"
+  );
 
   const TripCard = ({ trip }) => {
     const nights = Math.ceil(
-      (new Date(trip.checkOut) - new Date(trip.checkIn)) /
+      (new Date(trip.check_out) - new Date(trip.check_in)) /
         (1000 * 60 * 60 * 24)
     );
 
-    const totalPrice = trip.property.price * nights;
+    const totalPrice = trip.total || (trip.property ? trip.property.price * nights : 0);
 
     return (
       <div className="overflow-hidden rounded-2xl bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl">
         <img
-          src={trip.property.image}
-          alt={trip.property.title}
+          src={trip.property?.image || "/placeholder.jpg"}
+          alt={trip.property?.title}
           className="h-56 w-full object-cover"
         />
 
         <div className="p-5">
           <h3 className="text-xl font-bold">
-            {trip.property.title}
+            {trip.property?.title || "Property Listing"}
           </h3>
 
           <p className="mt-1 text-gray-500">
-            📍 {trip.property.location}
+            📍 {trip.property?.location || "Unknown location"}
           </p>
 
           <p className="mt-3 text-gray-700">
-            Check-in: {trip.checkIn}
+            Check-in: {trip.check_in}
           </p>
 
           <p className="text-gray-700">
-            Check-out: {trip.checkOut}
+            Check-out: {trip.check_out}
           </p>
 
           <p className="text-gray-700">
@@ -64,19 +77,21 @@ const Trips = () => {
           </p>
 
           <p className="mt-2 font-semibold">
-            ₹{totalPrice.toLocaleString("en-IN")}
+            ₹{Number(totalPrice).toLocaleString("en-IN")}
           </p>
 
           <span
-            className={`mt-3 inline-block rounded-full px-3 py-1 text-sm font-semibold ${
-              trip.status === "upcoming"
+            className={`mt-3 inline-block rounded-full px-3 py-1 text-sm font-semibold capitalize ${
+              trip.status === "confirmed"
                 ? "bg-green-100 text-green-700"
-                : "bg-gray-200 text-gray-700"
+                : trip.status === "pending"
+                ? "bg-yellow-100 text-yellow-700"
+                : trip.status === "completed"
+                ? "bg-blue-100 text-blue-700"
+                : "bg-red-100 text-red-700"
             }`}
           >
-            {trip.status === "upcoming"
-              ? "Confirmed"
-              : "Completed"}
+            {trip.status}
           </span>
 
           <button
@@ -104,21 +119,29 @@ const Trips = () => {
         Upcoming Trips
       </h2>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {upcomingTrips.map((trip) => (
-          <TripCard key={trip.id} trip={trip} />
-        ))}
-      </div>
+      {upcomingTrips.length === 0 ? (
+        <p className="text-gray-500 mb-8">No upcoming trips booked yet.</p>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {upcomingTrips.map((trip) => (
+            <TripCard key={trip.id} trip={trip} />
+          ))}
+        </div>
+      )}
 
       <h2 className="mb-6 mt-12 text-2xl font-semibold">
         Past Trips
       </h2>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {pastTrips.map((trip) => (
-          <TripCard key={trip.id} trip={trip} />
-        ))}
-      </div>
+      {pastTrips.length === 0 ? (
+        <p className="text-gray-500">No past trips recorded.</p>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {pastTrips.map((trip) => (
+            <TripCard key={trip.id} trip={trip} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

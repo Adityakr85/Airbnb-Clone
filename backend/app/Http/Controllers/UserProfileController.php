@@ -22,7 +22,10 @@ class UserProfileController extends Controller
             ], 400);
         }
 
-        $profile = UserProfile::where('clerk_id', $userId)->first();
+        // Auto-create/sync User
+        \App\Models\User::getOrCreateFromClerkId($userId);
+
+        $profile = UserProfile::firstOrCreate(['clerk_id' => $userId]);
 
         return response()->json([
             'success' => true,
@@ -43,6 +46,9 @@ class UserProfileController extends Controller
                 'message' => 'User ID required'
             ], 400);
         }
+
+        // Auto-create/sync User
+        \App\Models\User::getOrCreateFromClerkId($clerkId);
 
         $data = $request->only([
             'decade',
@@ -107,6 +113,9 @@ class UserProfileController extends Controller
 
         // Store file
         $path = $file->store('profile-photos', 'public');
+
+        // Auto-create/sync User
+        \App\Models\User::getOrCreateFromClerkId($clerkId);
 
         // Update user profile
         $profile = UserProfile::updateOrCreate(
