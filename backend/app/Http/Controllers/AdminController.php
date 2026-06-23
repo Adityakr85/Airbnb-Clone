@@ -28,7 +28,8 @@ class AdminController extends Controller
     public function dashboard(Request $request)
     {
         $clerkId = $request->query('clerk_id');
-        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin');
+        $role = $request->query('role');
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin', $role);
 
         if (!$this->isAdmin($user)) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -85,7 +86,7 @@ class AdminController extends Controller
             $lastLogin = $lastLoginDate ? $lastLoginDate->diffForHumans() : 'Unknown';
             
             // Format spent amount
-            $spent = 'â‚¹' . number_format($totalSpent, 0);
+            $spent = '₹' . number_format($totalSpent, 0);
             
             // Get profile image or use default
             $image = $user->profile_image 
@@ -119,7 +120,8 @@ class AdminController extends Controller
     public function properties(Request $request)
     {
         $clerkId = $request->query('clerk_id');
-        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin');
+        $role = $request->query('role');
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin', $role);
 
         if (!$this->isAdmin($user)) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -136,7 +138,7 @@ class AdminController extends Controller
                 
                 $imageUrl = $firstImage ? 
                     (filter_var($firstImage, FILTER_VALIDATE_URL) ? $firstImage : asset('storage/' . ltrim($firstImage, '/'))) :
-                    'https://via.placeholder.com/400x300';
+                    'https://picsum.photos/400/300';
                 
                 // Use moderation status if available, otherwise infer from status
                 if (!is_null($property->moderation_status)) {
@@ -151,14 +153,14 @@ class AdminController extends Controller
                 }
                 
                 // Format price
-                $priceFormatted = 'â‚¹' . number_format((float)($property->price ?? 0), 0);
-
+                $priceFormatted = '₹' . number_format((float)($property->price ?? 0), 0);
+                
                 // Format rating (ensure it's a float with 1 decimal)
                 $rating = $property->rating ? round((float)$property->rating, 1) : 0;
-
+                
                 // Format date
                 $created = $property->created_at ? $property->created_at->format('M d, Y') : 'Unknown';
-
+                
                 return [
                     'id' => $property->id,
                     'title' => (string) ($property->title ?? ''),
@@ -178,12 +180,63 @@ class AdminController extends Controller
     }
 
     /**
-     * Get all reservations
+     * Approve a property
+     */
+    public function approveProperty(Request $request, $id)
+    {
+        $clerkId = $request->query('clerk_id');
+        $role = $request->query('role');
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin', $role);
+
+        if (!$this->isAdmin($user)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $property = Property::find($id);
+        if (!$property) {
+            return response()->json(['success' => false, 'message' => 'Property not found'], 404);
+        }
+
+        $property->moderation_status = 'approved';
+        $property->status = 'active';
+        $property->save();
+
+        return response()->json(['success' => true, 'message' => 'Property approved successfully']);
+    }
+
+    /**
+     * Reject a property
+     */
+    public function rejectProperty(Request $request, $id)
+    {
+        $clerkId = $request->query('clerk_id');
+        $role = $request->query('role');
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin', $role);
+
+        if (!$this->isAdmin($user)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $property = Property::find($id);
+        if (!$property) {
+            return response()->json(['success' => false, 'message' => 'Property not found'], 404);
+        }
+
+        $property->moderation_status = 'rejected';
+        $property->status = 'inactive';
+        $property->save();
+
+        return response()->json(['success' => true, 'message' => 'Property rejected successfully']);
+    }
+
+    /**
+     * Get analytics data
      */
     public function reservations(Request $request)
     {
         $clerkId = $request->query('clerk_id');
-        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin');
+        $role = $request->query('role');
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin', $role);
 
         if (!$this->isAdmin($user)) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -209,22 +262,22 @@ class AdminController extends Controller
                 
                 // Format dates
                 $checkIn = $reservation->check_in ? 
-                    (new DateTime($reservation->check_in))->format('M d, Y') : 'Unknown';
+                    (new \DateTime($reservation->check_in))->format('M d, Y') : 'Unknown';
                 $checkOut = $reservation->check_out ? 
-                    (new DateTime($reservation->check_out))->format('M d, Y') : 'Unknown';
+                    (new \DateTime($reservation->check_out))->format('M d, Y') : 'Unknown';
                 $created = $reservation->created_at ? 
                     $reservation->created_at->format('M d, Y') : 'Unknown';
                 
                 // Calculate nights
                 $nights = 0;
                 if ($reservation->check_in && $reservation->check_out) {
-                    $checkInDt = new DateTime($reservation->check_in);
-                    $checkOutDt = new DateTime($reservation->check_out);
+                    $checkInDt = new \DateTime($reservation->check_in);
+                    $checkOutDt = new \DateTime($reservation->check_out);
                     $nights = $checkInDt->diff($checkOutDt)->days;
                 }
                 
                 // Format amount
-                $amount = 'â‚¹' . number_format($reservation->total, 0);
+                $amount = '₹' . number_format($reservation->total, 0);
                 
                 // Use payment status field if available, otherwise infer from reservation status
                 if (!is_null($reservation->payment_status)) {
@@ -255,7 +308,7 @@ class AdminController extends Controller
                     'cancelled' => 'Cancelled'
                 ];
                 $status = $statusMap[$reservation->status] ?? 'Pending';
-
+                
                 return [
                     'id' => $id,
                     'guest' => $guestName,
@@ -281,7 +334,8 @@ class AdminController extends Controller
     public function analytics(Request $request)
     {
         $clerkId = $request->query('clerk_id');
-        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin');
+        $role = $request->query('role');
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin', $role);
 
         if (!$this->isAdmin($user)) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);

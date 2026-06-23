@@ -170,12 +170,16 @@ export default function HostDashboard() {
                   <div key={r.id} className="px-6 py-4 hover:bg-gray-50 transition">
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-600 text-xs font-bold flex items-center justify-center">
-                            {r.guest.avatar}
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-600 text-xs font-bold flex items-center justify-center">
+                              {r.guest?.avatar ? (
+                                <img src={r.guest.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                              ) : (
+                                r.guest?.name?.charAt(0)?.toUpperCase() || 'G'
+                              )}
+                            </div>
+                            <p className="font-medium text-gray-900">{r.guest?.name || 'Guest'}</p>
                           </div>
-                          <p className="font-medium text-gray-900">{r.guest.name}</p>
-                        </div>
                         <p className="text-sm text-gray-500 mt-1">{r.propertyTitle}</p>
                         <p className="text-xs text-gray-400">
                           {r.checkIn} → {r.checkOut} · {r.guests} guests
@@ -212,10 +216,14 @@ export default function HostDashboard() {
                 <div key={r.id} className="px-6 py-4">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 text-sm font-bold flex items-center justify-center">
-                      {r.guest.avatar}
+                      {r.guest?.avatar ? (
+                        <img src={r.guest.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        r.guest?.name?.charAt(0)?.toUpperCase() || 'G'
+                      )}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{r.guest.name}</p>
+                      <p className="font-medium text-gray-900">{r.guest?.name || 'Guest'}</p>
                       <p className="text-xs text-gray-500">{r.propertyTitle}</p>
                     </div>
                     <span className="ml-auto bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Confirmed</span>

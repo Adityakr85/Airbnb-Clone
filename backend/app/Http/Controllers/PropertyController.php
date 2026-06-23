@@ -10,6 +10,10 @@ class PropertyController extends Controller
     public function index(Request $request)
     {
         $query = Property::query()->with('host');
+        
+        // Only show approved properties for public access
+        $query->where('moderation_status', 'approved');
+        
         $search = $request->input('search'); 
         
         if ($search && trim($search) !== '') {
@@ -41,6 +45,7 @@ class PropertyController extends Controller
 
         $data = $request->all();
         $data['host_id'] = $user->id;
+        $data['moderation_status'] = 'pending';
 
         // Support form file uploads for images
         if ($request->hasFile('images')) {
@@ -129,7 +134,7 @@ class PropertyController extends Controller
 
     public function destinations()
     {
-        $locations = Property::distinct()->pluck('location');
+        $locations = Property::where('moderation_status', 'approved')->distinct()->pluck('location');
         return response()->json([
             'success' => true,
             'data' => $locations->all()
