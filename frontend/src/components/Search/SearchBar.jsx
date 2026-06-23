@@ -59,30 +59,39 @@ export default function SearchBar({onSearch,
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [setIsExpanded]);
 
-  const handleSearch = (event) => {
-    event.preventDefault();
-    setOpenMenu(null);
-    
-    if (typeof setIsExpanded === 'function') {
-      setIsExpanded(false);
-    }
-    setTimeout(() => {
-      let basePath = '/';
-      if (location.pathname.includes('/experiences')) basePath = '/experiences';
-      if (location.pathname.includes('/services')) basePath = '/services';
+   const handleSearch = (event) => {
+     event.preventDefault();
+     setOpenMenu(null);
+     
+     if (typeof setIsExpanded === 'function') {
+       setIsExpanded(false);
+     }
+     setTimeout(() => {
+       let basePath = '/';
+       if (location.pathname.includes('/experiences')) basePath = '/experiences';
+       if (location.pathname.includes('/services')) basePath = '/services';
 
-      const finalSearch = destinationSearch.trim() ? destinationSearch.trim() : "nearby";
+       const finalSearch = destinationSearch.trim() ? destinationSearch.trim() : "nearby";
 
-      if (!destinationSearch.trim()) {
-        setDestinationSearch("nearby");
-      }
-      let searchUrl = `${basePath}?search=${encodeURIComponent(finalSearch)}`;
-      if (basePath === '/services' && serviceType) {
-        searchUrl += `&type=${encodeURIComponent(serviceType)}`;
-      }
-      navigate(searchUrl);
-    }, 300);
-  };
+       if (!destinationSearch.trim()) {
+         setDestinationSearch("nearby");
+       }
+       let searchUrl = `${basePath}?search=${encodeURIComponent(finalSearch)}`;
+       
+       // Add check-in and check-out dates to search URL if they exist
+       if (checkInDate) {
+         searchUrl += `&checkIn=${encodeURIComponent(checkInDate.toISOString().split('T')[0])}`;
+       }
+       if (checkOutDate) {
+         searchUrl += `&checkOut=${encodeURIComponent(checkOutDate.toISOString().split('T')[0])}`;
+       }
+       
+       if (basePath === '/services' && serviceType) {
+         searchUrl += `&type=${encodeURIComponent(serviceType)}`;
+       }
+       navigate(searchUrl);
+     }, 300);
+   };
 
   const advanceToNext = () => {
   if (openMenu === "where") {

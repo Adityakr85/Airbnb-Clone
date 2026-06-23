@@ -1,6 +1,6 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import LanguageCurrencyModal from "./LanguageCurrencyModal";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   Menu,
   Heart,
@@ -25,6 +25,7 @@ export default function MenuDropdown() {
   const menuRef = useRef(null);
   const { user } = useUser();
   const navigate = useNavigate();
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   useEffect(() => {
     const closeMenu = (e) => {
@@ -67,7 +68,11 @@ export default function MenuDropdown() {
 
             <div className="mx-6 border-gray-300 border-t" />
 
-            <Link to="/become-a-host" onClick={() => setOpen(false)} className="block w-full px-6 py-4 text-left hover:bg-gray-50">
+            <Link
+              to="/become-a-host"
+              onClick={() => setOpen(false)}
+              className="block w-full px-6 py-4 text-left hover:bg-gray-50"
+            >
               <h3>Become a host</h3>
               <p className="text-sm text-gray-500">
                 It's easy to start hosting and earn extra income.
@@ -132,16 +137,25 @@ export default function MenuDropdown() {
               to="/pages/User/AccountSettings"
             />
 
-            <MenuItem
-              icon={Globe}
-              label="Languages & Currency"
-              to="/Language&Currency"
-            />
+            <button
+              onClick={() => {
+                setShowLanguageModal(true);
+                setOpen(false);
+              }}
+              className="flex w-full items-center gap-4 px-6 py-3 text-left text-gray-700 hover:bg-gray-50 hover:text-black transition"
+            >
+              <Globe size={18} />
+              <span className="font-medium">Languages & Currency</span>
+            </button>
 
             <MenuItem icon={CircleHelp} label="Help Centre" to="/help" />
             <div className="mx-6 my-2 border-gray-300 border-t" />
 
-            <Link to="/become-a-host" onClick={() => setOpen(false)} className="flex w-full items-center justify-between px-6 py-4 text-left hover:bg-gray-50">
+            <Link
+              to="/become-a-host"
+              onClick={() => setOpen(false)}
+              className="flex w-full items-center justify-between px-6 py-4 text-left hover:bg-gray-50"
+            >
               <div>
                 <h3>Become a host</h3>
                 <p className="text-sm text-gray-500">
@@ -168,6 +182,10 @@ export default function MenuDropdown() {
             </SignOutButton>
           </SignedIn>
         </div>
+      )}
+
+      {showLanguageModal && (
+        <LanguageCurrencyModal onClose={() => setShowLanguageModal(false)} />
       )}
     </div>
   );

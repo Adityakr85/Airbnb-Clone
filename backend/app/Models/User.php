@@ -25,6 +25,8 @@ class User extends Authenticatable
         'clerk_id',
         'role',
         'profile_image',
+        'last_login_at',
+        'status',
     ];
 
     public function profile()
@@ -32,17 +34,17 @@ class User extends Authenticatable
         return $this->hasOne(UserProfile::class, 'clerk_id', 'clerk_id');
     }
 
-    public static function getOrCreateFromClerkId($clerkId, $name = 'User', $email = null)
+    public static function getOrCreateFromClerkId($clerkId, $name = 'User', $email = null, $defaultRole = 'guest')
     {
         if (!$clerkId) return null;
-        
+
         return self::firstOrCreate(
             ['clerk_id' => $clerkId],
             [
                 'name' => $name,
                 'email' => $email ?? ($clerkId . '@clerk.com'),
                 'password' => bcrypt(\Illuminate\Support\Str::random(16)),
-                'role' => 'guest',
+                'role' => $defaultRole,
             ]
         );
     }
