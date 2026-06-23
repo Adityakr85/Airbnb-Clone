@@ -148,7 +148,7 @@ export default function MenuDropdown() {
               <span className="font-medium">Languages & Currency</span>
             </button>
 
-            <MenuItem icon={CircleHelp} label="Help Centre" to="/HelpCentre" />
+            <MenuItem icon={CircleHelp} label="Help Centre" to="/help" />
             <div className="mx-6 my-2 border-gray-300 border-t" />
 
             <Link
