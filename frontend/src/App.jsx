@@ -18,13 +18,14 @@ import EditProfile from "./pages/User/UserProfile/EditProfile";
 import Notifications from "./pages/User/Notifications";
 import AccountSettings from "./pages/User/AccountSettings";
 
-import HostDashboard from "./pages/Host/HostDashboard";
-import AddProperty from "./pages/Host/AddProperty";
-import MyProperties from "./pages/Host/MyProperties";
-import PropertyAnalytics from "./pages/Host/PropertyAnalytics";
-import HostReservations from "./pages/Host/HostReservations";
-import BecomeAHost from "./pages/Host/BecomeAHost";
+import HostLayout from "./pages/Host/HostLayout";
 import { HostProvider } from "./pages/Host/HostContext";
+import BecomeAHost from "./pages/Host/BecomeAHost";
+import AddProperty from "./pages/Host/AddProperty";
+import HostDashboard from "./pages/Host/HostDashboard";
+import HostReservations from "./pages/Host/HostReservations";
+import HostProperties from "./pages/Host/HostProperties";
+import PropertyAnalytics from "./pages/Host/PropertyAnalytics";
 
 import ProtectedAdminPage from "./routes/ProtectedAdminPage";
 import AdminLayout from "./pages/Admin/AdminLayout";
@@ -79,14 +80,20 @@ const App = () => {
           path="/pages/User/AccountSettings"
           element={<AccountSettings />}
         />
+        <Route path="/become-a-host" element={<BecomeAHost />} />
         <Route
           path="/host"
           element={
             <HostProvider>
-              <HostDashboard />
+              <HostLayout />
             </HostProvider>
           }
-        />
+        >
+          <Route index element={<HostDashboard />} />
+          <Route path="reservations" element={<HostReservations />} />
+          <Route path="properties" element={<HostProperties />} />
+          <Route path="analytics" element={<PropertyAnalytics />} />
+        </Route>
         <Route
           path="/host/add-property"
           element={
@@ -95,31 +102,6 @@ const App = () => {
             </HostProvider>
           }
         />
-        <Route
-          path="/host/properties"
-          element={
-            <HostProvider>
-              <MyProperties />
-            </HostProvider>
-          }
-        />
-        <Route
-          path="/host/analytics"
-          element={
-            <HostProvider>
-              <PropertyAnalytics />
-            </HostProvider>
-          }
-        />
-        <Route
-          path="/host/reservations"
-          element={
-            <HostProvider>
-              <HostReservations />
-            </HostProvider>
-          }
-        />
-        <Route path="/become-a-host" element={<BecomeAHost />} />
         TODO: Protected routes for ADMIN pages based on roles and permissions
         <Route
           path="/admin"

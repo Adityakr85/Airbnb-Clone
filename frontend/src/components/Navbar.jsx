@@ -40,7 +40,7 @@ export default function Navbar() {
   const [serviceType, setServiceType] = useState("");
 
   const hideSearchBar =
-    /^\/pages\/User\/(Messages|Notifications|AccountSettings|UserProfile)/.test(
+    /^\/pages\/User\/(Messages|Notifications|AccountSettings|UserProfile|Trips|Wishlist)/.test(
       location.pathname,
     );
 
@@ -103,7 +103,9 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white">
       <nav
-        className={`relative flex items-center justify-between px-8 transition-all duration-500 ease-in-out ${(scrolled && !isExpanded) || hideSearchBar ? "h-20" : "h-28"}`}
+        className={`relative flex items-center justify-between px-8 transition-all duration-500 ease-in-out ${
+          hideSearchBar ? "h-20" : scrolled && !isExpanded ? "h-20" : "h-25"
+        }`}
       >
         <Link to="/" className="z-20 flex items-center">
           <img
@@ -134,7 +136,7 @@ export default function Navbar() {
               />
             ) : (
               <div
-                className="flex items-center gap-16 pt-4 transition-all duration-500"
+                className="flex items-center gap-16  transition-all duration-500"
                 onMouseDown={(e) => e.stopPropagation()}
               >
                 {TABS.map((tab) => (
@@ -242,7 +244,7 @@ function TopTab({ icon, label, path, badge, active = false }) {
       className={`group relative flex items-center gap-2 transition-all duration-300 hover:scale-105 ${active ? "text-black" : "text-gray-500 hover:text-black"}`}
     >
       {badge && (
-        <span className="absolute left-7 -top-2.5 z-10 rounded-full bg-[#2A3B4C] px-1.5 py-[2px] text-[9px] font-bold tracking-wider text-white shadow-sm">
+        <span className="absolute left-7 -top-4 z-10 rounded-full bg-[#2A3B4C] px-1.5 py-[2px] text-[9px] font-bold tracking-wider text-white shadow-sm">
           {badge}
         </span>
       )}

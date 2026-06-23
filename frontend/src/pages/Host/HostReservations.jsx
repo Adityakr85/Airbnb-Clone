@@ -1,18 +1,43 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft, CheckCircle, XCircle, Clock, User,
-  Phone, Mail, Calendar, Users, IndianRupee, MessageSquare, Filter
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  Clock,
+  User,
+  Phone,
+  Mail,
+  Calendar,
+  Users,
+  IndianRupee,
+  MessageSquare,
+  Filter,
 } from "lucide-react";
 import { useHost } from "../../pages/Host/HostContext";
 import toast from "react-hot-toast";
-import HostNavbar from "../../components/HostNavbar";
 
 const STATUS_CONFIG = {
-  pending: { label: "Pending", color: "bg-amber-100 text-amber-700", icon: Clock },
-  confirmed: { label: "Confirmed", color: "bg-green-100 text-green-700", icon: CheckCircle },
-  completed: { label: "Completed", color: "bg-blue-100 text-blue-700", icon: CheckCircle },
-  cancelled: { label: "Cancelled", color: "bg-red-100 text-red-600", icon: XCircle },
+  pending: {
+    label: "Pending",
+    color: "bg-amber-100 text-amber-700",
+    icon: Clock,
+  },
+  confirmed: {
+    label: "Confirmed",
+    color: "bg-green-100 text-green-700",
+    icon: CheckCircle,
+  },
+  completed: {
+    label: "Completed",
+    color: "bg-blue-100 text-blue-700",
+    icon: CheckCircle,
+  },
+  cancelled: {
+    label: "Cancelled",
+    color: "bg-red-100 text-red-600",
+    icon: XCircle,
+  },
 };
 
 export default function HostReservations() {
@@ -20,7 +45,10 @@ export default function HostReservations() {
   const [filter, setFilter] = useState("all");
   const [expandedId, setExpandedId] = useState(null);
 
-  const filtered = filter === "all" ? reservations : reservations.filter((r) => r.status === filter);
+  const filtered =
+    filter === "all"
+      ? reservations
+      : reservations.filter((r) => r.status === filter);
 
   const counts = {
     all: reservations.length,
@@ -48,16 +76,21 @@ export default function HostReservations() {
 
   return (
     <div className="min-h-screen bg-white">
-      <HostNavbar />
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-5 sticky top-0 z-10">
+      <div className="bg-white border-b border-gray-200 px-6 py-5">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <Link to="/host" className="p-2 rounded-full hover:bg-gray-100 transition">
+          <Link
+            to="/host"
+            className="p-2 rounded-full hover:bg-gray-100 transition"
+          >
             <ArrowLeft size={20} />
           </Link>
+
           <div>
             <h1 className="text-xl font-bold text-gray-900">Reservations</h1>
-            <p className="text-sm text-gray-500">{reservations.length} total bookings</p>
+
+            <p className="text-sm text-gray-500">
+              {reservations.length} total bookings
+            </p>
           </div>
         </div>
       </div>
@@ -74,7 +107,9 @@ export default function HostReservations() {
               >
                 {key.charAt(0).toUpperCase() + key.slice(1)}
                 {count > 0 && (
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${filter === key ? "bg-white/20" : "bg-gray-200"}`}>
+                  <span
+                    className={`text-xs px-1.5 py-0.5 rounded-full ${filter === key ? "bg-white/20" : "bg-gray-200"}`}
+                  >
                     {count}
                   </span>
                 )}
@@ -88,7 +123,9 @@ export default function HostReservations() {
         {filtered.length === 0 && (
           <div className="bg-white rounded-2xl p-12 text-center text-gray-400 border border-gray-100">
             <Calendar size={32} className="mx-auto mb-3 opacity-30" />
-            <p className="font-medium">No {filter !== "all" ? filter : ""} reservations</p>
+            <p className="font-medium">
+              No {filter !== "all" ? filter : ""} reservations
+            </p>
           </div>
         )}
 
@@ -98,7 +135,10 @@ export default function HostReservations() {
           const isExpanded = expandedId === r.id;
 
           return (
-            <div key={r.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div
+              key={r.id}
+              className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            >
               <div className="p-5">
                 {/* Top Row */}
                 <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -108,8 +148,12 @@ export default function HostReservations() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-gray-900">{r.guest.name}</p>
-                        <span className={`text-xs px-2.5 py-1 rounded-full flex items-center gap-1 ${STATUS_CONFIG[r.status]?.color}`}>
+                        <p className="font-semibold text-gray-900">
+                          {r.guest.name}
+                        </p>
+                        <span
+                          className={`text-xs px-2.5 py-1 rounded-full flex items-center gap-1 ${STATUS_CONFIG[r.status]?.color}`}
+                        >
                           <StatusIcon size={11} />
                           {STATUS_CONFIG[r.status]?.label}
                         </span>
@@ -118,7 +162,9 @@ export default function HostReservations() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xl font-bold text-gray-900">₹{r.total.toLocaleString("en-IN")}</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      ₹{r.total.toLocaleString("en-IN")}
+                    </p>
                     <p className="text-xs text-gray-400">{n} nights</p>
                   </div>
                 </div>
@@ -150,7 +196,9 @@ export default function HostReservations() {
                     <IndianRupee size={14} className="text-gray-400" />
                     <div>
                       <p className="text-xs text-gray-400">Per night</p>
-                      <p className="font-medium">₹{(r.total / n).toLocaleString("en-IN")}</p>
+                      <p className="font-medium">
+                        ₹{(r.total / n).toLocaleString("en-IN")}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -158,8 +206,13 @@ export default function HostReservations() {
                 {/* Guest message */}
                 {r.message && (
                   <div className="mt-3 flex items-start gap-2 bg-gray-50 rounded-xl px-4 py-3">
-                    <MessageSquare size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-gray-600 italic">"{r.message}"</p>
+                    <MessageSquare
+                      size={14}
+                      className="text-gray-400 mt-0.5 flex-shrink-0"
+                    />
+                    <p className="text-sm text-gray-600 italic">
+                      "{r.message}"
+                    </p>
                   </div>
                 )}
 
@@ -171,15 +224,27 @@ export default function HostReservations() {
                     </p>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Mail size={14} className="text-gray-400" />
-                      <a href={`mailto:${r.guest.email}`} className="hover:text-rose-500 transition">{r.guest.email}</a>
+                      <a
+                        href={`mailto:${r.guest.email}`}
+                        className="hover:text-rose-500 transition"
+                      >
+                        {r.guest.email}
+                      </a>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Phone size={14} className="text-gray-400" />
-                      <a href={`tel:${r.guest.phone}`} className="hover:text-rose-500 transition">{r.guest.phone}</a>
+                      <a
+                        href={`tel:${r.guest.phone}`}
+                        className="hover:text-rose-500 transition"
+                      >
+                        {r.guest.phone}
+                      </a>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <span className="text-gray-400 text-xs">Booking ID:</span>
-                      <span className="font-mono text-xs bg-white px-2 py-0.5 rounded border border-gray-200">{r.id}</span>
+                      <span className="font-mono text-xs bg-white px-2 py-0.5 rounded border border-gray-200">
+                        {r.id}
+                      </span>
                     </div>
                   </div>
                 )}
