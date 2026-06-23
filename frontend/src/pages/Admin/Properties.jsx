@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useUser } from "@clerk/clerk-react";
 import {
   Search,
   Download,
@@ -13,6 +14,7 @@ import {
   Trash2,
   Eye,
 } from "lucide-react";
+import { fetchAdminProperties, approveProperty, rejectProperty } from "../../api/admin";
 
 const propertiesData = [
   {
@@ -60,12 +62,95 @@ const propertiesData = [
 ];
 
 export default function Properties() {
+  const { user, isLoaded } = useUser();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const properties = useMemo(() => {
-    return propertiesData.filter((property) => {
+  // Fetch properties from API
+  const fetchProperties = async () => {
+    try {
+      if (!isLoaded) return;
+
+      const clerkId = user?.id;
+      const role = user?.publicMetadata?.role;
+      if (!clerkId) {
+        setProperties([]);
+        setError("Unable to load properties: User not authenticated");
+        return;
+      }
+
+      const data = await fetchAdminProperties(clerkId, role);
+      setProperties(data);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to load properties:", err);
+      setError("Failed to load properties. Please try again later.");
+      setProperties([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Approve property
+  const handleApprove = async (propertyId) => {
+    try {
+      const clerkId = user?.id;
+      const role = user?.publicMetadata?.role;
+      await approveProperty(clerkId, propertyId, role);
+      // Update local state
+      setProperties(prev => prev.map(p => 
+        p.id === propertyId ? { ...p, status: 'Approved' } : p
+      ));
+      setSelectedProperty(null);
+    } catch (err) {
+      console.error("Failed to approve property:", err);
+      alert("Failed to approve property. Please try again.");
+    }
+  };
+
+  // Reject property
+  const handleReject = async (propertyId) => {
+    try {
+      const clerkId = user?.id;
+      const role = user?.publicMetadata?.role;
+      await rejectProperty(clerkId, propertyId, role);
+      // Update local state
+      setProperties(prev => prev.map(p => 
+        p.id === propertyId ? { ...p, status: 'Rejected' } : p
+      ));
+      setSelectedProperty(null);
+    } catch (err) {
+      console.error("Failed to reject property:", err);
+      alert("Failed to reject property. Please try again.");
+    }
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchProperties();
+
+    // Set up polling for real-time updates (every 5 seconds)
+    const intervalId = setInterval(fetchProperties, 5000);
+
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, user?.id]);
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+  };
+
+  const handleStatusChange = (e) => {
+    setStatus(e.target.value);
+  };
+
+  const filteredProperties = useMemo(() => {
+    return properties.filter((property) => {
       const matchesSearch =
         property.title.toLowerCase().includes(search.toLowerCase()) ||
         property.host.toLowerCase().includes(search.toLowerCase()) ||
@@ -75,7 +160,7 @@ export default function Properties() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [search, status]);
+  }, [properties, search, status]);
 
   return (
     <div className="space-y-8">
@@ -94,10 +179,10 @@ export default function Properties() {
       </div>
 
       <div className="grid gap-5 md:grid-cols-4">
-        <StatCard title="Total Properties" value="324" icon={Home} />
-        <StatCard title="Approved" value="286" icon={CheckCircle} />
-        <StatCard title="Pending" value="27" icon={Clock} />
-        <StatCard title="Rejected" value="11" icon={XCircle} />
+        <StatCard title="Total Properties" value={properties.length} icon={Home} />
+        <StatCard title="Approved" value={properties.filter(p => p.status === 'Approved').length} icon={CheckCircle} />
+        <StatCard title="Pending" value={properties.filter(p => p.status === 'Pending').length} icon={Clock} />
+        <StatCard title="Rejected" value={properties.filter(p => p.status === 'Rejected').length} icon={XCircle} />
       </div>
 
       <div className="rounded-[1.7rem] border border-gray-100 bg-white p-5 shadow-sm">
@@ -110,7 +195,7 @@ export default function Properties() {
 
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={handleSearchChange}
               type="text"
               placeholder="Search by title, host, or location..."
               className="w-full rounded-2xl border border-gray-200 py-3 pl-11 pr-4 outline-none transition focus:border-rose-500"
@@ -119,7 +204,7 @@ export default function Properties() {
 
           <select
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            onChange={handleStatusChange}
             className="rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
           >
             <option>All</option>
@@ -131,7 +216,7 @@ export default function Properties() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        {properties.map((property) => (
+        {filteredProperties.map((property) => (
           <div
             key={property.id}
             className="overflow-hidden rounded-[1.8rem] border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
@@ -198,13 +283,15 @@ export default function Properties() {
         <PropertyDrawer
           property={selectedProperty}
           onClose={() => setSelectedProperty(null)}
+          onApprove={handleApprove}
+          onReject={handleReject}
         />
       )}
     </div>
   );
 }
 
-function PropertyDrawer({ property, onClose }) {
+function PropertyDrawer({ property, onClose, onApprove, onReject }) {
   return (
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
@@ -242,7 +329,10 @@ function PropertyDrawer({ property, onClose }) {
         </div>
 
         <div className="mt-8 space-y-3">
-          <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-bold text-white hover:bg-emerald-600">
+          <button
+            onClick={() => onApprove(property.id)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-bold text-white hover:bg-emerald-600"
+          >
             <CheckCircle size={18} />
             Approve Property
           </button>
@@ -252,7 +342,10 @@ function PropertyDrawer({ property, onClose }) {
             Mark as Pending
           </button>
 
-          <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 px-5 py-3 font-bold text-red-600 hover:bg-red-100">
+          <button
+            onClick={() => onReject(property.id)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 px-5 py-3 font-bold text-red-600 hover:bg-red-100"
+          >
             <XCircle size={18} />
             Reject Property
           </button>

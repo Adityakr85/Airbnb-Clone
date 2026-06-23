@@ -12,6 +12,9 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\AdminController;
 
+// Additional property endpoints
+Route::get('/properties/destinations', [PropertyController::class, 'destinations']);
+
 Route::apiResource('properties', PropertyController::class);
 Route::apiResource('experiences', ExperienceController::class);
 Route::apiResource('services', ServiceController::class);
@@ -44,6 +47,8 @@ Route::post('/messages', [MessageController::class, 'send']);
 Route::get('/admin/dashboard', [AdminController::class, 'dashboard']);
 Route::get('/admin/users', [AdminController::class, 'users']);
 Route::get('/admin/properties', [AdminController::class, 'properties']);
+Route::post('/admin/properties/{id}/approve', [AdminController::class, 'approveProperty']);
+Route::post('/admin/properties/{id}/reject', [AdminController::class, 'rejectProperty']);
 Route::get('/admin/reservations', [AdminController::class, 'reservations']);
 Route::get('/admin/analytics', [AdminController::class, 'analytics']);
 

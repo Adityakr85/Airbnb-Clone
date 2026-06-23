@@ -89,11 +89,11 @@ export default function Wishlist() {
                 className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-xl"
               >
                 <div className="relative">
-                  <img
-                    src={property.image}
-                    alt={property.title}
-                    className="h-64 w-full object-cover transition duration-300 group-hover:scale-105"
-                  />
+                   <img
+                     src={property.images?.[0] || "/placeholder.jpg"}
+                     alt={property.title}
+                     className="h-64 w-full object-cover transition duration-300 group-hover:scale-105"
+                   />
 
                   <button
                     onClick={() =>

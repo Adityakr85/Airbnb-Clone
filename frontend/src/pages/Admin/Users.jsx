@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useUser } from "@clerk/clerk-react";
 import {
   Search,
   Download,
@@ -10,6 +11,7 @@ import {
   X,
   Trash2,
 } from "lucide-react";
+import { fetchAdminUsers } from "../../api/admin";
 
 const usersData = [
   {
@@ -54,13 +56,65 @@ const usersData = [
 ];
 
 export default function Users() {
+  const { user, isLoaded } = useUser();
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("All");
   const [status, setStatus] = useState("All");
   const [selectedUser, setSelectedUser] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const users = useMemo(() => {
-    return usersData.filter((user) => {
+   // Fetch users from API
+   const fetchUsers = async () => {
+     try {
+       if (!isLoaded) return;
+
+       const clerkId = user?.id;
+       const role = user?.publicMetadata?.role;
+       if (!clerkId) {
+         setUsers([]);
+         setError("Unable to load users: User not authenticated");
+         return;
+       }
+
+       const data = await fetchAdminUsers(clerkId, role);
+       setUsers(data);
+       setError(null);
+     } catch (err) {
+       console.error("Failed to load users:", err);
+       setError("Failed to load users. Please try again later.");
+       setUsers([]);
+     } finally {
+       setLoading(false);
+     }
+   };
+
+   // Fetch data on component mount
+   useEffect(() => {
+     fetchUsers();
+     
+     // Set up polling for real-time updates (every 5 seconds)
+     const intervalId = setInterval(fetchUsers, 5000);
+     
+     // Clean up interval on unmount
+     return () => clearInterval(intervalId);
+   }, [isLoaded, user?.id, user?.publicMetadata?.role]);
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+  };
+
+  const handleRoleChange = (e) => {
+    setRole(e.target.value);
+  };
+
+  const handleStatusChange = (e) => {
+    setStatus(e.target.value);
+  };
+
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
       const matchesSearch =
         user.name.toLowerCase().includes(search.toLowerCase()) ||
         user.email.toLowerCase().includes(search.toLowerCase());
@@ -70,7 +124,7 @@ export default function Users() {
 
       return matchesSearch && matchesRole && matchesStatus;
     });
-  }, [search, role, status]);
+  }, [users, search, role, status]);
 
   return (
     <div className="space-y-8">
@@ -89,10 +143,10 @@ export default function Users() {
       </div>
 
       <div className="grid gap-5 md:grid-cols-4">
-        <StatCard title="Total Users" value="1,248" icon={UsersIcon} />
-        <StatCard title="Hosts" value="324" icon={UserCheck} />
-        <StatCard title="Admins" value="4" icon={ShieldCheck} />
-        <StatCard title="Blocked" value="21" icon={Ban} />
+        <StatCard title="Total Users" value={users.length} icon={UsersIcon} />
+        <StatCard title="Hosts" value={users.filter(user => user.role === 'Host').length} icon={UserCheck} />
+        <StatCard title="Admins" value={users.filter(user => user.role === 'Admin').length} icon={ShieldCheck} />
+        <StatCard title="Blocked" value={users.filter(user => user.status === 'Blocked').length} icon={Ban} />
       </div>
 
       <div className="rounded-[1.7rem] border border-gray-100 bg-white p-5 shadow-sm">
@@ -105,7 +159,7 @@ export default function Users() {
 
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={handleSearchChange}
               type="text"
               placeholder="Search by name or email..."
               className="w-full rounded-2xl border border-gray-200 py-3 pl-11 pr-4 outline-none transition focus:border-rose-500"
@@ -114,7 +168,7 @@ export default function Users() {
 
           <select
             value={role}
-            onChange={(e) => setRole(e.target.value)}
+            onChange={handleRoleChange}
             className="rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
           >
             <option>All</option>
@@ -125,7 +179,7 @@ export default function Users() {
 
           <select
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            onChange={handleStatusChange}
             className="rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
           >
             <option>All</option>
@@ -152,7 +206,7 @@ export default function Users() {
             </thead>
 
             <tbody className="divide-y divide-gray-100">
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <tr key={user.id} className="transition hover:bg-gray-50">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">

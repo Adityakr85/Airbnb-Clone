@@ -25,6 +25,8 @@ class User extends Authenticatable
         'clerk_id',
         'role',
         'profile_image',
+        'last_login_at',
+        'status',
     ];
 
     public function profile()
@@ -32,19 +34,37 @@ class User extends Authenticatable
         return $this->hasOne(UserProfile::class, 'clerk_id', 'clerk_id');
     }
 
-    public static function getOrCreateFromClerkId($clerkId, $name = 'User', $email = null)
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class, 'guest_id');
+    }
+
+    public function hostedProperties()
+    {
+        return $this->hasMany(Property::class, 'host_id');
+    }
+
+    public static function getOrCreateFromClerkId($clerkId, $name = 'User', $email = null, $defaultRole = 'guest', $role = null)
     {
         if (!$clerkId) return null;
-        
-        return self::firstOrCreate(
+
+        $user = self::firstOrCreate(
             ['clerk_id' => $clerkId],
             [
                 'name' => $name,
                 'email' => $email ?? ($clerkId . '@clerk.com'),
                 'password' => bcrypt(\Illuminate\Support\Str::random(16)),
-                'role' => 'guest',
+                'role' => $defaultRole,
             ]
         );
+
+        // If a specific role is provided, update the role if it's different
+        if ($role !== null && $user->role !== $role) {
+            $user->role = $role;
+            $user->save();
+        }
+
+        return $user;
     }
 
     /**

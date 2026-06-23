@@ -19,6 +19,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { fetchAdminAnalytics } from "../../api/admin";
 
 const revenueData = [
   { month: "Jan", revenue: 42000 },
@@ -68,6 +69,111 @@ const topProperties = [
 ];
 
 export default function Analytics() {
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+   // Fetch analytics data from API
+   const fetchAnalytics = async () => {
+     try {
+       if (!isLoaded) return;
+
+       const clerkId = user?.id;
+       const role = user?.publicMetadata?.role;
+       if (!clerkId) {
+         setAnalyticsData(getMockAnalyticsData());
+         setError("Unable to load analytics: User not authenticated");
+         return;
+       }
+
+       const data = await fetchAdminAnalytics(clerkId, role);
+       setAnalyticsData(data);
+       setError(null);
+     } catch (err) {
+       console.error("Failed to load analytics:", err);
+       // Fall back to mock data on error
+       setAnalyticsData(getMockAnalyticsData());
+       setError("Failed to load analytics. Showing sample data.");
+     } finally {
+       setLoading(false);
+     }
+   };
+
+   // Fetch data on component mount
+   useEffect(() => {
+     fetchAnalytics();
+     
+     // Set up polling for real-time updates (every 30 seconds for analytics)
+     const intervalId = setInterval(fetchAnalytics, 30000);
+     
+     // Clean up interval on unmount
+     return () => clearInterval(intervalId);
+   }, [isLoaded, user?.id, user?.publicMetadata?.role]);
+
+  // Mock data function for fallback
+  const getMockAnalyticsData = () => ({
+    revenueData: [
+      { month: "Jan", revenue: 42000 },
+      { month: "Feb", revenue: 58000 },
+      { month: "Mar", revenue: 64000 },
+      { month: "Apr", revenue: 72000 },
+      { month: "May", revenue: 91000 },
+      { month: "Jun", revenue: 125000 },
+    ],
+    bookingData: [
+      { month: "Jan", bookings: 180 },
+      { month: "Feb", bookings: 220 },
+      { month: "Mar", bookings: 270 },
+      { month: "Apr", bookings: 320 },
+      { month: "May", bookings: 410 },
+      { month: "Jun", bookings: 540 },
+    ],
+    usersData: [
+      { name: "Guests", value: 72 },
+      { name: "Hosts", value: 22 },
+      { name: "Admins", value: 6 },
+    ],
+    topProperties: [
+      {
+        id: 1,
+        name: "Luxury Villa Goa",
+        bookings: 142,
+        revenue: "₹6.4L",
+      },
+      {
+        id: 2,
+        name: "Mountain Cabin Manali",
+        bookings: 118,
+        revenue: "₹4.9L",
+      },
+      {
+        id: 3,
+        name: "Mumbai Skyline Apartment",
+        bookings: 104,
+        revenue: "₹4.3L",
+      },
+    ],
+    stats: {
+      revenue: "₹8.4L",
+      revenueChange: "+18.6%",
+      bookings: "1,248",
+      bookingsChange: "+12.3%",
+      users: "4,842",
+      usersChange: "+8.9%",
+      properties: "624",
+      propertiesChange: "-1.4%",
+    },
+    miniMetrics: [
+      { title: "Conversion Rate", value: "12.4%" },
+      { title: "Average Booking", value: "₹6,820" },
+      { title: "Avg Stay", value: "4.8 Days" },
+      { title: "Occupancy", value: "78%" },
+    ],
+  });
+
+  // Use real data if available, otherwise use mock data
+  const data = analyticsData || getMockAnalyticsData();
+
   return (
     <div className="space-y-8">
       <div>
@@ -78,175 +184,175 @@ export default function Analytics() {
         </p>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          title="Revenue"
-          value="₹8.4L"
-          change="+18.6%"
-          positive
-          icon={IndianRupee}
-        />
+       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+         <StatCard
+           title="Revenue"
+           value={data.stats.revenue}
+           change={data.stats.revenueChange}
+           positive={data.stats.revenueChange.startsWith('+')}
+           icon={IndianRupee}
+         />
 
-        <StatCard
-          title="Bookings"
-          value="1,248"
-          change="+12.3%"
-          positive
-          icon={CalendarCheck}
-        />
+         <StatCard
+           title="Bookings"
+           value={data.stats.bookings}
+           change={data.stats.bookingsChange}
+           positive={data.stats.bookingsChange.startsWith('+')}
+           icon={CalendarCheck}
+         />
 
-        <StatCard
-          title="Users"
-          value="4,842"
-          change="+8.9%"
-          positive
-          icon={Users}
-        />
+         <StatCard
+           title="Users"
+           value={data.stats.users}
+           change={data.stats.usersChange}
+           positive={data.stats.usersChange.startsWith('+')}
+           icon={Users}
+         />
 
-        <StatCard
-          title="Properties"
-          value="624"
-          change="-1.4%"
-          positive={false}
-          icon={Home}
-        />
-      </div>
+         <StatCard
+           title="Properties"
+           value={data.stats.properties}
+           change={data.stats.propertiesChange}
+           positive={data.stats.propertiesChange.startsWith('+')}
+           icon={Home}
+         />
+       </div>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <div className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm xl:col-span-2">
-          <div className="mb-6">
-            <h2 className="text-xl font-black">Revenue Growth</h2>
+       <div className="grid gap-6 xl:grid-cols-3">
+         <div className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm xl:col-span-2">
+           <div className="mb-6">
+             <h2 className="text-xl font-black">Revenue Growth</h2>
 
-            <p className="text-sm text-gray-500">Monthly platform revenue</p>
-          </div>
+             <p className="text-sm text-gray-500">Monthly platform revenue</p>
+           </div>
 
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueData}>
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
+           <div className="h-80">
+             <ResponsiveContainer width="100%" height="100%">
+               <AreaChart data={data.revenueData}>
+                 <XAxis dataKey="month" />
+                 <YAxis />
+                 <Tooltip />
 
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#f43f5e"
-                  fill="#ffe4e6"
-                  strokeWidth={3}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+                 <Area
+                   type="monotone"
+                   dataKey="revenue"
+                   stroke="#f43f5e"
+                   fill="#ffe4e6"
+                   strokeWidth={3}
+                 />
+               </AreaChart>
+             </ResponsiveContainer>
+           </div>
+         </div>
 
-        <div className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-black">User Distribution</h2>
+         <div className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm">
+           <h2 className="text-xl font-black">User Distribution</h2>
 
-          <div className="mt-8 h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={usersData} dataKey="value" outerRadius={100}>
-                  {usersData.map((_, index) => (
-                    <Cell key={index} fill={COLORS[index]} />
-                  ))}
-                </Pie>
+           <div className="mt-8 h-72">
+             <ResponsiveContainer width="100%" height="100%">
+               <PieChart>
+                 <Pie data={data.usersData} dataKey="value" outerRadius={100}>
+                   {data.usersData.map((_, index) => (
+                     <Cell key={index} fill={COLORS[index]} />
+                   ))}
+                 </Pie>
 
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+                 <Tooltip />
+               </PieChart>
+             </ResponsiveContainer>
+           </div>
 
-          <div className="space-y-3">
-            {usersData.map((item, index) => (
-              <div
-                key={item.name}
-                className="flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{
-                      backgroundColor: COLORS[index],
-                    }}
-                  />
+           <div className="space-y-3">
+             {data.usersData.map((item, index) => (
+               <div
+                 key={item.name}
+                 className="flex items-center justify-between"
+               >
+                 <div className="flex items-center gap-3">
+                   <div
+                     className="h-3 w-3 rounded-full"
+                     style={{
+                       backgroundColor: COLORS[index],
+                     }}
+                   />
 
-                  <span className="font-semibold">{item.name}</span>
-                </div>
+                   <span className="font-semibold">{item.name}</span>
+                 </div>
 
-                <span className="font-black">{item.value}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+                 <span className="font-black">{item.value}%</span>
+               </div>
+             ))}
+           </div>
+         </div>
+       </div>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <div className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="mb-6">
-            <h2 className="text-xl font-black">Booking Growth</h2>
+       <div className="grid gap-6 xl:grid-cols-2">
+         <div className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm">
+           <div className="mb-6">
+             <h2 className="text-xl font-black">Booking Growth</h2>
 
-            <p className="text-sm text-gray-500">Monthly reservations</p>
-          </div>
+             <p className="text-sm text-gray-500">Monthly reservations</p>
+           </div>
 
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={bookingData}>
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
+           <div className="h-80">
+             <ResponsiveContainer width="100%" height="100%">
+               <BarChart data={data.bookingData}>
+                 <XAxis dataKey="month" />
+                 <YAxis />
+                 <Tooltip />
 
-                <Bar dataKey="bookings" fill="#f43f5e" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+                 <Bar dataKey="bookings" fill="#f43f5e" radius={[8, 8, 0, 0]} />
+               </BarChart>
+             </ResponsiveContainer>
+           </div>
+         </div>
 
-        <div className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="mb-6">
-            <h2 className="text-xl font-black">Top Performing Properties</h2>
+         <div className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm">
+           <div className="mb-6">
+             <h2 className="text-xl font-black">Top Performing Properties</h2>
 
-            <p className="text-sm text-gray-500">
-              Highest revenue generating listings
-            </p>
-          </div>
+             <p className="text-sm text-gray-500">
+               Highest revenue generating listings
+             </p>
+           </div>
 
-          <div className="space-y-4">
-            {topProperties.map((property, index) => (
-              <div
-                key={property.id}
-                className="flex items-center justify-between rounded-2xl bg-gray-50 p-4"
-              >
-                <div>
-                  <p className="font-black">
-                    #{index + 1} {property.name}
-                  </p>
+           <div className="space-y-4">
+             {data.topProperties.map((property, index) => (
+               <div
+                 key={property.id}
+                 className="flex items-center justify-between rounded-2xl bg-gray-50 p-4"
+               >
+                 <div>
+                   <p className="font-black">
+                     #{index + 1} {property.name}
+                   </p>
 
-                  <p className="text-sm text-gray-500">
-                    {property.bookings} bookings
-                  </p>
-                </div>
+                   <p className="text-sm text-gray-500">
+                     {property.bookings} bookings
+                   </p>
+                 </div>
 
-                <p className="text-lg font-black text-rose-500">
-                  {property.revenue}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+                 <p className="text-lg font-black text-rose-500">
+                   {property.revenue}
+                 </p>
+               </div>
+             ))}
+           </div>
+         </div>
+       </div>
 
-      <div className="grid gap-5 md:grid-cols-4">
-        <MiniMetric title="Conversion Rate" value="12.4%" />
-
-        <MiniMetric title="Average Booking" value="₹6,820" />
-
-        <MiniMetric title="Avg Stay" value="4.8 Days" />
-
-        <MiniMetric title="Occupancy" value="78%" />
-      </div>
-    </div>
-  );
-}
+       <div className="grid gap-5 md:grid-cols-4">
+         {data.miniMetrics.map((metric, index) => (
+           <MiniMetric
+             key={index}
+             title={metric.title}
+             value={metric.value}
+           />
+         ))}
+       </div>
+     </div>
+   );
+ }
 
 function StatCard({ title, value, change, positive, icon: Icon }) {
   return (

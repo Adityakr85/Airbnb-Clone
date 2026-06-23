@@ -12,17 +12,34 @@ class HostController extends Controller
     public function dashboard(Request $request)
     {
         $clerkId = $request->query('clerk_id');
+        $role = $request->query('role');
         if (!$clerkId) {
             return response()->json(['success' => false, 'message' => 'clerk_id required'], 400);
         }
 
-        $user = User::getOrCreateFromClerkId($clerkId);
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'host', $role);
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'User not found'], 404);
         }
 
         // Get properties
-        $properties = Property::where('host_id', $user->id)->get();
+        $properties = Property::where('host_id', $user->id)->get()->map(function ($property) {
+            $images = is_array($property->images) ? $property->images : [];
+            $firstImage = $images[0] ?? null;
+
+            return [
+                'id' => $property->id,
+                'title' => (string) ($property->title ?? ''),
+                'location' => (string) ($property->location ?? ''),
+                'rating' => (float) ($property->rating ?? 0),
+                'views' => (int) ($property->views ?? 0),
+                'bookings' => (int) ($property->bookings ?? 0),
+                // HostDashboard uses price.toLocaleString("en-IN")
+                'price' => (float) ($property->price ?? 0),
+                'earnings' => (float) ($property->earnings ?? 0),
+                'image' => $firstImage,
+            ];
+        })->values();
 
         // Get reservations for these properties
         $propertyIds = $properties->pluck('id');
@@ -34,30 +51,47 @@ class HostController extends Controller
         $mappedReservations = $reservations->map(function ($r) {
             return [
                 'id' => $r->id,
-                'guest' => [
-                    'name' => $r->guest->name ?? 'Guest',
-                    'avatar' => strtoupper(substr($r->guest->name ?? 'G', 0, 1)),
+                'property_id' => $r->property_id,
+                'property_title' => $r->property ? $r->property->title : '',
+                'guest' => $r->guest ? [
+                    'name' => $r->guest->name,
+                    'avatar' => $r->guest->profile_image 
+                        ? (filter_var($r->guest->profile_image, FILTER_VALIDATE_URL) 
+                            ? $r->guest->profile_image 
+                            : asset('storage/' . ltrim($r->guest->profile_image, '/'))) 
+                        : null,
+                ] : [
+                    'name' => 'Guest',
+                    'avatar' => null,
                 ],
-                'propertyTitle' => $r->property->title ?? 'Property',
-                'checkIn' => $r->check_in,
-                'checkOut' => $r->check_out,
-                'guests' => $r->guests,
-                'total' => (float)$r->total,
+                'check_in' => $r->check_in,
+                'check_out' => $r->check_out,
                 'status' => $r->status,
-                'message' => $r->message,
+                'total' => (float) $r->total,
+                'guests' => $r->guests,
+                'created_at' => $r->created_at,
             ];
-        });
+        })->values();
 
-        $totalRevenue = $properties->sum('earnings');
-        $totalBookings = $properties->sum('bookings');
+        // Calculate stats
+        $totalProperties = $properties->count();
+        $totalReservations = $reservations->count();
+        $totalEarnings = $properties->sum('earnings');
+        $pendingReservations = $reservations->where('status', 'pending')->count();
+        $confirmedReservations = $reservations->where('status', 'confirmed')->count();
 
         return response()->json([
             'success' => true,
             'data' => [
                 'properties' => $properties,
                 'reservations' => $mappedReservations,
-                'totalRevenue' => $totalRevenue,
-                'totalBookings' => $totalBookings,
+                'stats' => [
+                    'totalProperties' => $totalProperties,
+                    'totalReservations' => $totalReservations,
+                    'totalEarnings' => $totalEarnings,
+                    'pendingReservations' => $pendingReservations,
+                    'confirmedReservations' => $confirmedReservations,
+                ]
             ]
         ]);
     }
