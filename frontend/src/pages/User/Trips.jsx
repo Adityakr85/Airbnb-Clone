@@ -49,11 +49,11 @@ const Trips = () => {
 
     return (
       <div className="overflow-hidden rounded-2xl bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl">
-        <img
-          src={trip.property?.image || "/placeholder.jpg"}
-          alt={trip.property?.title}
-          className="h-56 w-full object-cover"
-        />
+         <img
+           src={trip.property?.images?.[0] || "/placeholder.jpg"}
+           alt={trip.property?.title}
+           className="h-56 w-full object-cover"
+         />
 
         <div className="p-5">
           <h3 className="text-xl font-bold">

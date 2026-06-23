@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useUser } from "@clerk/clerk-react";
 import {
   Search,
   Download,
@@ -13,6 +14,7 @@ import {
   Trash2,
   Eye,
 } from "lucide-react";
+import { fetchAdminProperties } from "../../api/admin";
 
 const propertiesData = [
   {
@@ -60,12 +62,60 @@ const propertiesData = [
 ];
 
 export default function Properties() {
+  const { user, isLoaded } = useUser();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const properties = useMemo(() => {
-    return propertiesData.filter((property) => {
+  // Fetch properties from API
+  const fetchProperties = async () => {
+    try {
+      if (!isLoaded) return;
+
+      const clerkId = user?.id;
+      if (!clerkId) {
+        setProperties([]);
+        setError("Unable to load properties: User not authenticated");
+        return;
+      }
+
+      const data = await fetchAdminProperties(clerkId);
+      setProperties(data);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to load properties:", err);
+      setError("Failed to load properties. Please try again later.");
+      setProperties([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchProperties();
+
+    // Set up polling for real-time updates (every 5 seconds)
+    const intervalId = setInterval(fetchProperties, 5000);
+
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, user?.id]);
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+  };
+
+  const handleStatusChange = (e) => {
+    setStatus(e.target.value);
+  };
+
+  const filteredProperties = useMemo(() => {
+    return properties.filter((property) => {
       const matchesSearch =
         property.title.toLowerCase().includes(search.toLowerCase()) ||
         property.host.toLowerCase().includes(search.toLowerCase()) ||
@@ -75,7 +125,7 @@ export default function Properties() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [search, status]);
+  }, [properties, search, status]);
 
   return (
     <div className="space-y-8">
@@ -94,10 +144,104 @@ export default function Properties() {
       </div>
 
       <div className="grid gap-5 md:grid-cols-4">
-        <StatCard title="Total Properties" value="324" icon={Home} />
-        <StatCard title="Approved" value="286" icon={CheckCircle} />
-        <StatCard title="Pending" value="27" icon={Clock} />
-        <StatCard title="Rejected" value="11" icon={XCircle} />
+        <StatCard title="Total Properties" value={properties.length} icon={Home} />
+        <StatCard title="Approved" value={properties.filter(p => p.status === 'Approved').length} icon={CheckCircle} />
+        <StatCard title="Pending" value={properties.filter(p => p.status === 'Pending').length} icon={Clock} />
+        <StatCard title="Rejected" value={properties.filter(p => p.status === 'Rejected').length} icon={XCircle} />
+      </div>
+
+      <div className="rounded-[1.7rem] border border-gray-100 bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row">
+          <div className="relative flex-1">
+            <Search
+              size={18}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+
+            <input
+              value={search}
+              onChange={handleSearchChange}
+              type="text"
+              placeholder="Search by title, host, or location..."
+              className="w-full rounded-2xl border border-gray-200 py-3 pl-11 pr-4 outline-none transition focus:border-rose-500"
+            />
+          </div>
+
+          <select
+            value={status}
+            onChange={handleStatusChange}
+            className="rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
+          >
+            <option>All</option>
+            <option>Approved</option>
+            <option>Pending</option>
+            <option>Rejected</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-3">
+        {filteredProperties.map((property) => (
+          <div
+            key={property.id}
+            className="overflow-hidden rounded-[1.8rem] border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+          >
+            <div className="relative h-56">
+              <img
+                src={property.image}
+                alt={property.title}
+                className="h-full w-full object-cover"
+              />
+
+              <Badge status={property.status} />
+
+              <button
+                onClick={() => setSelectedProperty(property)}
+                className="absolute right-4 top-4 rounded-full bg-white/90 p-2 transition hover:bg-white"
+              >
+                <MoreVertical size={18} />
+              </button>
+            </div>
+
+            <div className="p-5">
+              <h2 className="truncate text-lg font-black">{property.title}</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Hosted by {property.host}
+              </p>
+
+              <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
+                <MapPin size={16} />
+                {property.location}
+              </div>
+
+              <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
+                <span>{property.type}</span>
+                <span className="flex items-center gap-1">
+                  <Star
+                    size={16}
+                    className="text-rose-500"
+                    fill="currentColor"
+                  />
+                  {property.rating}
+                </span>
+              </div>
+
+              <div className="mt-5 flex items-center justify-between">
+                <div>
+                  <p className="text-xl font-black">{property.price}</p>
+                  <p className="text-xs text-gray-500">per night</p>
+                </div>
+
+                <button
+                  onClick={() => setSelectedProperty(property)}
+                  className="rounded-xl bg-gray-100 px-4 py-2 text-sm font-bold transition hover:bg-gray-200"
+                >
+                  Manage
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="rounded-[1.7rem] border border-gray-100 bg-white p-5 shadow-sm">

@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useUser } from "@clerk/clerk-react";
 import {
   Search,
   Download,
@@ -13,6 +14,7 @@ import {
   RotateCcw,
   Mail,
 } from "lucide-react";
+import { fetchAdminReservations } from "../../api/admin";
 
 const reservationsData = [
   {
@@ -60,12 +62,60 @@ const reservationsData = [
 ];
 
 export default function Reservations() {
+  const { user, isLoaded } = useUser();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [selectedReservation, setSelectedReservation] = useState(null);
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const reservations = useMemo(() => {
-    return reservationsData.filter((item) => {
+  // Fetch reservations from API
+  const fetchReservations = async () => {
+    try {
+      if (!isLoaded) return;
+
+      const clerkId = user?.id;
+      if (!clerkId) {
+        setReservations([]);
+        setError("Unable to load reservations: User not authenticated");
+        return;
+      }
+
+      const data = await fetchAdminReservations(clerkId);
+      setReservations(data);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to load reservations:", err);
+      setError("Failed to load reservations. Please try again later.");
+      setReservations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchReservations();
+
+    // Set up polling for real-time updates (every 5 seconds)
+    const intervalId = setInterval(fetchReservations, 5000);
+
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, user?.id]);
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+  };
+
+  const handleStatusChange = (e) => {
+    setStatus(e.target.value);
+  };
+
+  const filteredReservations = useMemo(() => {
+    return reservations.filter((item) => {
       const matchesSearch =
         item.id.toLowerCase().includes(search.toLowerCase()) ||
         item.guest.toLowerCase().includes(search.toLowerCase()) ||
@@ -76,7 +126,7 @@ export default function Reservations() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [search, status]);
+  }, [reservations, search, status]);
 
   return (
     <div className="space-y-8">
@@ -292,9 +342,9 @@ function StatusBadge({ status }) {
   const style =
     status === "Confirmed"
       ? "bg-emerald-50 text-emerald-600"
-      : status === "Pending"
-        ? "bg-yellow-50 text-yellow-600"
-        : "bg-red-50 text-red-600";
+    : status === "Pending"
+      ? "bg-yellow-50 text-yellow-600"
+      : "bg-red-50 text-red-600";
 
   return (
     <span className={`rounded-full px-3 py-1 text-xs font-black ${style}`}>
@@ -307,9 +357,13 @@ function PaymentBadge({ status }) {
   const style =
     status === "Paid"
       ? "bg-emerald-50 text-emerald-600"
-      : status === "Pending"
-        ? "bg-yellow-50 text-yellow-600"
-        : "bg-blue-50 text-blue-600";
+    : status === "Pending"
+      ? "bg-yellow-50 text-yellow-600"
+    : status === "Refunded"
+      ? "bg-blue-50 text-blue-600"
+    : status === "Failed"
+      ? "bg-red-50 text-red-600"
+      : "bg-gray-50 text-gray-600";
 
   return (
     <span className={`rounded-full px-3 py-1 text-xs font-black ${style}`}>
