@@ -138,7 +138,7 @@ export default function MenuDropdown() {
               to="/Language&Currency"
             />
 
-            <MenuItem icon={CircleHelp} label="Help Centre" to="/HelpCentre" />
+            <MenuItem icon={CircleHelp} label="Help Centre" to="/help" />
             <div className="mx-6 my-2 border-gray-300 border-t" />
 
             <Link to="/become-a-host" onClick={() => setOpen(false)} className="flex w-full items-center justify-between px-6 py-4 text-left hover:bg-gray-50">
