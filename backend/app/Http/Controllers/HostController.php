@@ -12,11 +12,12 @@ class HostController extends Controller
     public function dashboard(Request $request)
     {
         $clerkId = $request->query('clerk_id');
+        $role = $request->query('role');
         if (!$clerkId) {
             return response()->json(['success' => false, 'message' => 'clerk_id required'], 400);
         }
 
-        $user = User::getOrCreateFromClerkId($clerkId);
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'host', $role);
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'User not found'], 404);
         }
@@ -50,32 +51,47 @@ class HostController extends Controller
         $mappedReservations = $reservations->map(function ($r) {
             return [
                 'id' => $r->id,
-                'guest' => [
-                    'name' => $r->guest->name ?? 'Guest',
-                    'email' => $r->guest->email ?? '',
-                    'phone' => $r->guest->phone ?? '',
-                    'avatar' => strtoupper(substr($r->guest->name ?? 'G', 0, 1)),
+                'property_id' => $r->property_id,
+                'property_title' => $r->property ? $r->property->title : '',
+                'guest' => $r->guest ? [
+                    'name' => $r->guest->name,
+                    'avatar' => $r->guest->profile_image 
+                        ? (filter_var($r->guest->profile_image, FILTER_VALIDATE_URL) 
+                            ? $r->guest->profile_image 
+                            : asset('storage/' . ltrim($r->guest->profile_image, '/'))) 
+                        : null,
+                ] : [
+                    'name' => 'Guest',
+                    'avatar' => null,
                 ],
-                'propertyTitle' => $r->property->title ?? 'Property',
-                'checkIn' => $r->check_in,
-                'checkOut' => $r->check_out,
-                'guests' => $r->guests,
-                'total' => (float)$r->total,
+                'check_in' => $r->check_in,
+                'check_out' => $r->check_out,
                 'status' => $r->status,
-                'message' => $r->message,
+                'total' => (float) $r->total,
+                'guests' => $r->guests,
+                'created_at' => $r->created_at,
             ];
-        });
+        })->values();
 
-        $totalRevenue = $properties->sum('earnings');
-        $totalBookings = $properties->sum('bookings');
+        // Calculate stats
+        $totalProperties = $properties->count();
+        $totalReservations = $reservations->count();
+        $totalEarnings = $properties->sum('earnings');
+        $pendingReservations = $reservations->where('status', 'pending')->count();
+        $confirmedReservations = $reservations->where('status', 'confirmed')->count();
 
         return response()->json([
             'success' => true,
             'data' => [
                 'properties' => $properties,
                 'reservations' => $mappedReservations,
-                'totalRevenue' => $totalRevenue,
-                'totalBookings' => $totalBookings,
+                'stats' => [
+                    'totalProperties' => $totalProperties,
+                    'totalReservations' => $totalReservations,
+                    'totalEarnings' => $totalEarnings,
+                    'pendingReservations' => $pendingReservations,
+                    'confirmedReservations' => $confirmedReservations,
+                ]
             ]
         ]);
     }

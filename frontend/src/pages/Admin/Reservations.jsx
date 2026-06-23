@@ -70,29 +70,30 @@ export default function Reservations() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch reservations from API
-  const fetchReservations = async () => {
-    try {
-      if (!isLoaded) return;
+   // Fetch reservations from API
+   const fetchReservations = async () => {
+     try {
+       if (!isLoaded) return;
 
-      const clerkId = user?.id;
-      if (!clerkId) {
-        setReservations([]);
-        setError("Unable to load reservations: User not authenticated");
-        return;
-      }
+       const clerkId = user?.id;
+       const role = user?.publicMetadata?.role;
+       if (!clerkId) {
+         setReservations([]);
+         setError("Unable to load reservations: User not authenticated");
+         return;
+       }
 
-      const data = await fetchAdminReservations(clerkId);
-      setReservations(data);
-      setError(null);
-    } catch (err) {
-      console.error("Failed to load reservations:", err);
-      setError("Failed to load reservations. Please try again later.");
-      setReservations([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+       const data = await fetchAdminReservations(clerkId, role);
+       setReservations(data);
+       setError(null);
+     } catch (err) {
+       console.error("Failed to load reservations:", err);
+       setError("Failed to load reservations. Please try again later.");
+       setReservations([]);
+     } finally {
+       setLoading(false);
+     }
+   };
 
   // Fetch data on component mount
   useEffect(() => {
