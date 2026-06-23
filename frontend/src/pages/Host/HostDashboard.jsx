@@ -25,7 +25,6 @@ export default function HostDashboard() {
   const pendingReservations = reservations.filter(
     (r) => r.status === "pending",
   );
-
   const confirmedReservations = reservations.filter(
     (r) => r.status === "confirmed",
   );
@@ -119,7 +118,7 @@ export default function HostDashboard() {
                     <img
                       src={p.image ? `${p.image}?w=80&q=70` : ""}
                       alt={p.title}
-                      className="h-14 w-14 flex-shrink-0 rounded-xl object-cover bg-gray-100"
+                      className="h-14 w-14 flex-shrink-0 rounded-xl bg-gray-100 object-cover"
                     />
 
                     <div className="min-w-0 flex-1">

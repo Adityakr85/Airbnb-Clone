@@ -1,27 +1,38 @@
 import { Globe } from "lucide-react";
 import { FaFacebook, FaInstagram, FaXTwitter } from "react-icons/fa6";
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
     <footer className="bg-[#f7f7f7] border-t border-gray-200 px-8 py-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-8">
-        <div>
+       <div>
           <h3 className="font-semibold mb-4">Support</h3>
           {[
-            "Help Centre",
-            "Get help with a safety issue",
-            "AirCover",
-            "Anti-discrimination",
-            "Disability support",
-            "Cancellation options",
-            "Report neighbourhood concern",
+            { name: "Help Centre", path:"/help"},
+            { name: "Get help with a safety issue", path: "/guest/messages/safety" },
+            { name: "AirCover", path: null },
+            { name: "Anti-discrimination", path: null },
+            { name: "Disability support", path: null },
+            { name: "Cancellation options", path: "/help/Cancellations" },
+            { name: "Report neighbourhood concern", path: "/help" },
           ].map((item) => (
-            <p
-              key={item}
-              className="mb-4 text-sm hover:underline cursor-pointer"
-            >
-              {item}
-            </p>
+            item.path ? (
+              <Link 
+                key={item.name} 
+                to={item.path} 
+                className="block mb-4 text-sm hover:underline cursor-pointer"
+              >
+                {item.name}
+              </Link>
+            ) : (
+              <p
+                key={item.name}
+                className="mb-4 text-sm hover:underline cursor-pointer"
+              >
+                {item.name}
+              </p>
+            )
           ))}
         </div>
 

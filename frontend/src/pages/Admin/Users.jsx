@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { useUser } from "@clerk/clerk-react";
 import {
   Search,
   Download,
@@ -55,6 +56,7 @@ const usersData = [
 ];
 
 export default function Users() {
+  const { user, isLoaded } = useUser();
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("All");
   const [status, setStatus] = useState("All");
@@ -63,41 +65,41 @@ export default function Users() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch users from API
-  const fetchUsers = async () => {
-    try {
-      // In a real app, you would get the clerkId from auth context
-      // For now, we'll use a placeholder or get it from localStorage/session
-      const clerkId = localStorage.getItem('clerkId') || 'placeholder';
-      
-      if (clerkId && clerkId !== 'placeholder') {
-        const data = await fetchAdminUsers(clerkId);
-        setUsers(data);
-        setError(null);
-      } else {
-        // If we don't have a clerkId, keep empty array but don't error
-        setUsers([]);
-        setError("Unable to load users: User not authenticated");
-      }
-    } catch (err) {
-      console.error("Failed to load users:", err);
-      setError("Failed to load users. Please try again later.");
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+   // Fetch users from API
+   const fetchUsers = async () => {
+     try {
+       if (!isLoaded) return;
 
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchUsers();
-    
-    // Set up polling for real-time updates (every 5 seconds)
-    const intervalId = setInterval(fetchUsers, 5000);
-    
-    // Clean up interval on unmount
-    return () => clearInterval(intervalId);
-  }, []);
+       const clerkId = user?.id;
+       const role = user?.publicMetadata?.role;
+       if (!clerkId) {
+         setUsers([]);
+         setError("Unable to load users: User not authenticated");
+         return;
+       }
+
+       const data = await fetchAdminUsers(clerkId, role);
+       setUsers(data);
+       setError(null);
+     } catch (err) {
+       console.error("Failed to load users:", err);
+       setError("Failed to load users. Please try again later.");
+       setUsers([]);
+     } finally {
+       setLoading(false);
+     }
+   };
+
+   // Fetch data on component mount
+   useEffect(() => {
+     fetchUsers();
+     
+     // Set up polling for real-time updates (every 5 seconds)
+     const intervalId = setInterval(fetchUsers, 5000);
+     
+     // Clean up interval on unmount
+     return () => clearInterval(intervalId);
+   }, [isLoaded, user?.id, user?.publicMetadata?.role]);
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);

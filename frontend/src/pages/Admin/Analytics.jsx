@@ -73,42 +73,42 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch analytics data from API
-  const fetchAnalytics = async () => {
-    try {
-      // In a real app, you would get the clerkId from auth context
-      // For now, we'll use a placeholder or get it from localStorage/session
-      const clerkId = localStorage.getItem('clerkId') || 'placeholder';
-      
-      if (clerkId && clerkId !== 'placeholder') {
-        const data = await fetchAdminAnalytics(clerkId);
-        setAnalyticsData(data);
-        setError(null);
-      } else {
-        // If we don't have a clerkId, use mock data for now
-        setAnalyticsData(getMockAnalyticsData());
-        setError("Unable to load analytics: User not authenticated");
-      }
-    } catch (err) {
-      console.error("Failed to load analytics:", err);
-      // Fall back to mock data on error
-      setAnalyticsData(getMockAnalyticsData());
-      setError("Failed to load analytics. Showing sample data.");
-    } finally {
-      setLoading(false);
-    }
-  };
+   // Fetch analytics data from API
+   const fetchAnalytics = async () => {
+     try {
+       if (!isLoaded) return;
 
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchAnalytics();
-    
-    // Set up polling for real-time updates (every 30 seconds for analytics)
-    const intervalId = setInterval(fetchAnalytics, 30000);
-    
-    // Clean up interval on unmount
-    return () => clearInterval(intervalId);
-  }, []);
+       const clerkId = user?.id;
+       const role = user?.publicMetadata?.role;
+       if (!clerkId) {
+         setAnalyticsData(getMockAnalyticsData());
+         setError("Unable to load analytics: User not authenticated");
+         return;
+       }
+
+       const data = await fetchAdminAnalytics(clerkId, role);
+       setAnalyticsData(data);
+       setError(null);
+     } catch (err) {
+       console.error("Failed to load analytics:", err);
+       // Fall back to mock data on error
+       setAnalyticsData(getMockAnalyticsData());
+       setError("Failed to load analytics. Showing sample data.");
+     } finally {
+       setLoading(false);
+     }
+   };
+
+   // Fetch data on component mount
+   useEffect(() => {
+     fetchAnalytics();
+     
+     // Set up polling for real-time updates (every 30 seconds for analytics)
+     const intervalId = setInterval(fetchAnalytics, 30000);
+     
+     // Clean up interval on unmount
+     return () => clearInterval(intervalId);
+   }, [isLoaded, user?.id, user?.publicMetadata?.role]);
 
   // Mock data function for fallback
   const getMockAnalyticsData = () => ({

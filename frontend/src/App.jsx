@@ -48,16 +48,23 @@ import ActivityLogs from "./pages/Admin/ActivityLogs";
 import Monitoring from "./pages/Admin/Monitoring";
 import SystemSettings from "./pages/Admin/SystemSettings";
 
+import Cancellations from "./pages/help/Cancellations";
+import HelpCenterNavbar from "./pages/help/HelpCenterNavbar";
+
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
   const isHostRoute =
     useLocation().pathname.startsWith("/host") ||
     useLocation().pathname === "/become-a-host";
+  const isHelpRoute = useLocation().pathname.startsWith("/help");
   return (
     <>
-      {!isAdminRoute && !isHostRoute && <Navbar />}
+      {!isAdminRoute &&
+        !isHostRoute &&
+        (isHelpRoute ? <HelpCenterNavbar /> : <Navbar />)}
       <Toaster />
       <Routes>
+        <Route path="/help/Cancellations" element={<Cancellations />} />
         <Route path="/" element={<Home />} />
         <Route path="/experiences" element={<Experiences />} />
         <Route path="/experience/:id" element={<ExperienceDetails />} />
