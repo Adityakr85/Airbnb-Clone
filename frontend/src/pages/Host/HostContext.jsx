@@ -52,13 +52,13 @@ export function HostProvider({ children }) {
     try {
       const formData = new FormData();
       // Append regular fields
-      Object.keys(propertyData).forEach(key => {
+      Object.keys(propertyData).forEach((key) => {
         if (propertyData[key] !== undefined && propertyData[key] !== null) {
-          if (key === 'images') {
+          if (key === "images") {
             // Handle file array
             if (propertyData.images && propertyData.images.length) {
               propertyData.images.forEach((file, index) => {
-                formData.append('images[]', file);
+                formData.append("images[]", file);
               });
             }
           } else {
@@ -66,11 +66,11 @@ export function HostProvider({ children }) {
           }
         }
       });
-      formData.append('clerk_id', user.id);
+      formData.append("clerk_id", user.id);
 
       const res = await axios.post(`${API_BASE}/api/properties`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
       if (res.data?.success) {
@@ -88,13 +88,13 @@ export function HostProvider({ children }) {
     try {
       const formData = new FormData();
       // Append regular fields
-      Object.keys(propertyData).forEach(key => {
+      Object.keys(propertyData).forEach((key) => {
         if (propertyData[key] !== undefined && propertyData[key] !== null) {
-          if (key === 'images') {
+          if (key === "images") {
             // Handle file array
             if (propertyData.images && propertyData.images.length) {
               propertyData.images.forEach((file, index) => {
-                formData.append('images[]', file);
+                formData.append("images[]", file);
               });
             }
           } else {
@@ -102,16 +102,20 @@ export function HostProvider({ children }) {
           }
         }
       });
-      // Note: For update, we might need to include _method=PUT if axios.put doesn't work with FormData? 
+      // Note: For update, we might need to include _method=PUT if axios.put doesn't work with FormData?
       // But axios.put with FormData should set correct headers.
-      const res = await axios.put(`${API_BASE}/api/properties/${id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
+      const res = await axios.put(
+        `${API_BASE}/api/properties/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         },
-      });
+      );
       if (res.data?.success) {
         setProperties((prev) =>
-          prev.map((p) => (p.id === id ? { ...p, ...propertyData } : p))
+          prev.map((p) => (p.id === id ? { ...p, ...propertyData } : p)),
         );
       }
     } catch (err) {
@@ -132,10 +136,13 @@ export function HostProvider({ children }) {
 
   const updateReservation = async (id, updates) => {
     try {
-      const res = await axios.patch(`${API_BASE}/api/reservations/${id}/status`, updates);
+      const res = await axios.patch(
+        `${API_BASE}/api/reservations/${id}/status`,
+        updates,
+      );
       if (res.data?.success) {
         setReservations((prev) =>
-          prev.map((r) => (r.id === id ? { ...r, ...updates } : r))
+          prev.map((r) => (r.id === id ? { ...r, ...updates } : r)),
         );
       }
     } catch (err) {
@@ -143,8 +150,14 @@ export function HostProvider({ children }) {
     }
   };
 
-  const totalRevenue = properties.reduce((sum, p) => sum + Number(p.earnings || 0), 0);
-  const totalBookings = properties.reduce((sum, p) => sum + Number(p.bookings || 0), 0);
+  const totalRevenue = properties.reduce(
+    (sum, p) => sum + Number(p.earnings || 0),
+    0,
+  );
+  const totalBookings = properties.reduce(
+    (sum, p) => sum + Number(p.bookings || 0),
+    0,
+  );
 
   return (
     <HostContext.Provider
@@ -171,4 +184,3 @@ export function useHost() {
   if (!ctx) throw new Error("useHost must be used within HostProvider");
   return ctx;
 }
-

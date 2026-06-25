@@ -1,13 +1,21 @@
-import { Link } from "react-router-dom";
 import {
-  ArrowLeft,
   TrendingUp,
   Eye,
   CalendarCheck,
   IndianRupee,
   Star,
 } from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { useHost } from "./HostContext";
+
 const monthlyData = [
   { month: "Jan", views: 45, bookings: 3, earnings: 12600 },
   { month: "Feb", views: 62, bookings: 4, earnings: 16800 },
@@ -17,234 +25,216 @@ const monthlyData = [
   { month: "Jun", views: 130, bookings: 7, earnings: 29400 },
 ];
 
-function SimpleBar({ value, max, color = "bg-rose-400" }) {
-  const pct = Math.round((value / max) * 100);
-  return (
-    <div className="flex-1 flex flex-col items-center gap-1">
-      <div className="w-full flex flex-col justify-end" style={{ height: 80 }}>
-        <div
-          className={`w-full rounded-t-lg ${color} transition-all duration-700`}
-          style={{ height: `${pct}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
 export default function PropertyAnalytics() {
   const { properties, totalRevenue, totalBookings } = useHost();
 
-  const totalViews = properties.reduce((s, p) => s + p.views, 0);
+  const totalViews = properties.reduce((s, p) => s + Number(p.views || 0), 0);
+
+  const ratedProps = properties.filter((p) => Number(p.rating || 0) > 0);
   const avgRating =
-    properties.filter((p) => p.rating > 0).length > 0
+    ratedProps.length > 0
       ? (
-          properties
-            .filter((p) => p.rating > 0)
-            .reduce((s, p) => s + p.rating, 0) /
-          properties.filter((p) => p.rating > 0).length
+          ratedProps.reduce((s, p) => s + Number(p.rating || 0), 0) /
+          ratedProps.length
         ).toFixed(1)
       : "N/A";
-
-  const maxEarnings = Math.max(...monthlyData.map((d) => d.earnings));
-  const maxViews = Math.max(...monthlyData.map((d) => d.views));
-  const maxBookings = Math.max(...monthlyData.map((d) => d.bookings));
 
   const summaryCards = [
     {
       label: "Total Views",
       value: totalViews,
       icon: Eye,
-      color: "text-blue-500 bg-blue-50",
+      color: "bg-blue-50 text-blue-500",
     },
     {
       label: "Total Bookings",
       value: totalBookings,
       icon: CalendarCheck,
-      color: "text-violet-500 bg-violet-50",
+      color: "bg-violet-50 text-violet-500",
     },
     {
       label: "Total Revenue",
-      value: `₹${totalRevenue.toLocaleString("en-IN")}`,
+      value: `₹${Number(totalRevenue || 0).toLocaleString("en-IN")}`,
       icon: IndianRupee,
-      color: "text-green-500 bg-green-50",
+      color: "bg-green-50 text-green-500",
     },
     {
       label: "Avg Rating",
       value: avgRating,
       icon: Star,
-      color: "text-yellow-500 bg-yellow-50",
+      color: "bg-yellow-50 text-yellow-500",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-          <p className="text-gray-500 text-sm">
-            Performance overview for all your listings
+    <div className="min-h-screen bg-gray-50">
+      <section className="border-b border-gray-200 bg-white px-6 py-8">
+        <div className="mx-auto max-w-6xl">
+          <p className="text-sm font-semibold text-rose-500">
+            Host performance
+          </p>
+          <h1 className="mt-1 text-3xl font-bold text-gray-900">Analytics</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Review revenue, bookings, views and conversion across your listings.
           </p>
         </div>
-        <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {summaryCards.map(({ label, value, icon: Icon, color }) => (
+      </section>
+
+      <main className="mx-auto max-w-6xl space-y-8 px-6 py-8">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {summaryCards.map(({ label, value, icon: Icon, color }) => (
+            <div
+              key={label}
+              className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md"
+            >
               <div
-                key={label}
-                className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100"
+                className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl ${color}`}
               >
-                <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${color} mb-3`}
-                >
-                  <Icon size={20} />
-                </div>
-                <p className="text-2xl font-bold text-gray-900">{value}</p>
-                <p className="text-sm text-gray-500 mt-1">{label}</p>
+                <Icon size={21} />
               </div>
-            ))}
-          </div>
+              <p className="text-2xl font-bold text-gray-900">{value}</p>
+              <p className="mt-1 text-sm font-medium text-gray-500">{label}</p>
+            </div>
+          ))}
+        </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="font-semibold text-gray-900">
-                  Monthly Earnings
-                </h2>
-                <p className="text-sm text-gray-500">Last 6 months</p>
-              </div>
-              <div className="flex items-center gap-1.5 text-green-600 text-sm font-medium bg-green-50 px-3 py-1 rounded-full">
-                <TrendingUp size={14} /> +18% vs last period
-              </div>
-            </div>
-            <div className="flex items-end gap-2 h-24">
-              {monthlyData.map((d) => (
-                <div
-                  key={d.month}
-                  className="flex-1 flex flex-col items-center gap-1"
-                >
-                  <div
-                    className="w-full flex flex-col justify-end"
-                    style={{ height: 80 }}
-                  >
-                    <div
-                      className="w-full rounded-t-lg bg-rose-400 hover:bg-rose-500 transition-all cursor-pointer"
-                      style={{
-                        height: `${Math.round((d.earnings / maxEarnings) * 100)}%`,
-                      }}
-                      title={`₹${d.earnings.toLocaleString("en-IN")}`}
-                    />
-                  </div>
-                  <span className="text-xs text-gray-400">{d.month}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between text-xs text-gray-400 mt-2 px-1">
-              <span>₹0</span>
-              <span>₹{maxEarnings.toLocaleString("en-IN")}</span>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h2 className="font-semibold text-gray-900 mb-1">
-                Monthly Views
+        <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+          <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">
+                Revenue Overview
               </h2>
-              <p className="text-sm text-gray-500 mb-5">Listing page visits</p>
-              <div className="flex items-end gap-2 h-20">
-                {monthlyData.map((d) => (
-                  <div
-                    key={d.month}
-                    className="flex-1 flex flex-col items-center gap-1"
-                  >
-                    <div
-                      className="w-full flex flex-col justify-end"
-                      style={{ height: 64 }}
-                    >
-                      <div
-                        className="w-full rounded-t-lg bg-blue-400 hover:bg-blue-500 transition-all"
-                        style={{
-                          height: `${Math.round((d.views / maxViews) * 100)}%`,
-                        }}
-                        title={`${d.views} views`}
-                      />
-                    </div>
-                    <span className="text-xs text-gray-400">{d.month}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h2 className="font-semibold text-gray-900 mb-1">
-                Monthly Bookings
-              </h2>
-              <p className="text-sm text-gray-500 mb-5">
-                Confirmed reservations
+              <p className="mt-1 text-sm text-gray-500">
+                Monthly earnings trend for the last 6 months.
               </p>
-              <div className="flex items-end gap-2 h-20">
-                {monthlyData.map((d) => (
-                  <div
-                    key={d.month}
-                    className="flex-1 flex flex-col items-center gap-1"
-                  >
-                    <div
-                      className="w-full flex flex-col justify-end"
-                      style={{ height: 64 }}
-                    >
-                      <div
-                        className="w-full rounded-t-lg bg-violet-400 hover:bg-violet-500 transition-all"
-                        style={{
-                          height: `${Math.round((d.bookings / maxBookings) * 100)}%`,
-                        }}
-                        title={`${d.bookings} bookings`}
-                      />
-                    </div>
-                    <span className="text-xs text-gray-400">{d.month}</span>
-                  </div>
-                ))}
-              </div>
+            </div>
+
+            <div className="flex w-fit items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-sm font-semibold text-green-600">
+              <TrendingUp size={15} />
+              +18% vs last period
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="font-semibold text-gray-900">
-                Property Breakdown
-              </h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-gray-500 border-b border-gray-100">
-                    <th className="text-left px-6 py-3 font-medium">
-                      Property
-                    </th>
-                    <th className="text-right px-4 py-3 font-medium">Views</th>
-                    <th className="text-right px-4 py-3 font-medium">
-                      Bookings
-                    </th>
-                    <th className="text-right px-6 py-3 font-medium">
-                      Earnings
-                    </th>
-                    <th className="text-right px-6 py-3 font-medium">Rating</th>
+          <div className="h-80 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={monthlyData}>
+                <defs>
+                  <linearGradient
+                    id="earningsGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="5%" stopColor="#FF385C" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#FF385C" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => `₹${value / 1000}k`}
+                />
+                <Tooltip
+                  formatter={(value) => [
+                    `₹${Number(value).toLocaleString("en-IN")}`,
+                    "Earnings",
+                  ]}
+                  contentStyle={{
+                    borderRadius: "14px",
+                    border: "1px solid #eee",
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="earnings"
+                  stroke="#FF385C"
+                  strokeWidth={3}
+                  fill="url(#earningsGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <MiniAreaCard
+            title="Listing Views"
+            subtitle="Monthly page visits"
+            dataKey="views"
+            gradientId="viewsGradient"
+            stroke="#3B82F6"
+            formatter={(value) => [`${value} views`, "Views"]}
+          />
+
+          <MiniAreaCard
+            title="Bookings"
+            subtitle="Confirmed reservations"
+            dataKey="bookings"
+            gradientId="bookingsGradient"
+            stroke="#8B5CF6"
+            formatter={(value) => [`${value} bookings`, "Bookings"]}
+          />
+        </div>
+
+        <section className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+          <div className="border-b border-gray-100 px-6 py-4">
+            <h2 className="font-bold text-gray-900">Property Breakdown</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Compare performance across individual listings.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50 text-gray-500">
+                  <th className="px-6 py-3 text-left font-semibold">
+                    Property
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold">Views</th>
+                  <th className="px-4 py-3 text-right font-semibold">
+                    Bookings
+                  </th>
+                  <th className="px-6 py-3 text-right font-semibold">
+                    Earnings
+                  </th>
+                  <th className="px-6 py-3 text-right font-semibold">Rating</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-gray-50">
+                {properties.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-6 py-12 text-center text-gray-400"
+                    >
+                      No property analytics available yet.
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {properties.map((p) => {
+                ) : (
+                  properties.map((p) => {
+                    const views = Number(p.views || 0);
+                    const bookings = Number(p.bookings || 0);
                     const convRate =
-                      p.views > 0
-                        ? ((p.bookings / p.views) * 100).toFixed(1)
-                        : "0.0";
+                      views > 0 ? ((bookings / views) * 100).toFixed(1) : "0.0";
+
                     return (
-                      <tr key={p.id} className="hover:bg-gray-50 transition">
+                      <tr key={p.id} className="transition hover:bg-gray-50">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <img
-                              src={`${p.image}?w=48&q=60`}
+                              src={p.image ? `${p.image}?w=48&q=60` : ""}
                               alt=""
-                              className="w-10 h-10 rounded-lg object-cover"
+                              className="h-10 w-10 rounded-lg bg-gray-100 object-cover"
                             />
                             <div>
-                              <p className="font-medium text-gray-900">
+                              <p className="font-semibold text-gray-900">
                                 {p.title}
                               </p>
                               <p className="text-xs text-gray-400">
@@ -253,24 +243,28 @@ export default function PropertyAnalytics() {
                             </div>
                           </div>
                         </td>
+
                         <td className="px-4 py-4 text-right text-gray-700">
-                          {p.views}
+                          {views}
                         </td>
+
                         <td className="px-4 py-4 text-right text-gray-700">
-                          {p.bookings}
-                          <span className="text-xs text-gray-400 ml-1">
+                          {bookings}
+                          <span className="ml-1 text-xs text-gray-400">
                             ({convRate}%)
                           </span>
                         </td>
+
                         <td className="px-6 py-4 text-right font-semibold text-gray-900">
-                          ₹{p.earnings.toLocaleString("en-IN")}
+                          ₹{Number(p.earnings || 0).toLocaleString("en-IN")}
                         </td>
+
                         <td className="px-6 py-4 text-right">
-                          {p.rating > 0 ? (
-                            <span className="flex items-center justify-end gap-1">
+                          {Number(p.rating || 0) > 0 ? (
+                            <span className="flex items-center justify-end gap-1 font-medium text-gray-700">
                               <Star
                                 size={13}
-                                className="text-yellow-400 fill-yellow-400"
+                                className="fill-yellow-400 text-yellow-400"
                               />
                               {p.rating}
                             </span>
@@ -280,10 +274,13 @@ export default function PropertyAnalytics() {
                         </td>
                       </tr>
                     );
-                  })}
-                </tbody>
+                  })
+                )}
+              </tbody>
+
+              {properties.length > 0 && (
                 <tfoot>
-                  <tr className="bg-gray-50 border-t border-gray-200 font-semibold">
+                  <tr className="border-t border-gray-200 bg-gray-50 font-semibold">
                     <td className="px-6 py-3 text-gray-700">Total</td>
                     <td className="px-4 py-3 text-right text-gray-700">
                       {totalViews}
@@ -292,18 +289,68 @@ export default function PropertyAnalytics() {
                       {totalBookings}
                     </td>
                     <td className="px-6 py-3 text-right text-gray-900">
-                      ₹{totalRevenue.toLocaleString("en-IN")}
+                      ₹{Number(totalRevenue || 0).toLocaleString("en-IN")}
                     </td>
                     <td className="px-6 py-3 text-right text-gray-700">
                       {avgRating}
                     </td>
                   </tr>
                 </tfoot>
-              </table>
-            </div>
+              )}
+            </table>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
+  );
+}
+
+function MiniAreaCard({
+  title,
+  subtitle,
+  dataKey,
+  gradientId,
+  stroke,
+  formatter,
+}) {
+  return (
+    <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+      <div className="mb-5">
+        <h2 className="font-bold text-gray-900">{title}</h2>
+        <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+      </div>
+
+      <div className="h-56 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={monthlyData}>
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={stroke} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={stroke} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="month" tickLine={false} axisLine={false} />
+            <YAxis tickLine={false} axisLine={false} />
+            <Tooltip
+              formatter={formatter}
+              contentStyle={{
+                borderRadius: "14px",
+                border: "1px solid #eee",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey={dataKey}
+              stroke={stroke}
+              strokeWidth={3}
+              fill={`url(#${gradientId})`}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </section>
   );
 }

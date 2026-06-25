@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { Search, Globe, User } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, SignInButton } from "@clerk/clerk-react";
 
 import MenuDropdown from "./MenuDropdown";
 import SearchBar from "./Search/SearchBar";
 import airbnbLogo from "../assets/Airbnb-logo.png";
 import LanguageCurrencyModal from "./LanguageCurrencyModal";
+
+const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 
 const TABS = [
   { icon: "🏠", label: "Homes", path: "/", active: true },
@@ -16,7 +19,7 @@ const TABS = [
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const { user, isSignedIn } = useUser();
+  const { user, isSignedIn, isLoaded } = useUser();
   const [scrolled, setScrolled] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [openMenu, setOpenMenu] = useState("null");
@@ -38,6 +41,30 @@ export default function Navbar() {
   const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   const [serviceType, setServiceType] = useState("");
+  const [isHost, setIsHost] = useState(false);
+
+  useEffect(() => {
+    async function checkHostStatus() {
+      if (!isLoaded || !isSignedIn || !user?.id) {
+        setIsHost(false);
+        return;
+      }
+
+      try {
+        const res = await axios.get(`${API_BASE}/api/host/dashboard`, {
+          params: { clerk_id: user.id },
+        });
+
+        const properties = res.data?.data?.properties || [];
+        setIsHost(res.data?.success && properties.length > 0);
+      } catch (err) {
+        console.error("Failed to check host status:", err);
+        setIsHost(false);
+      }
+    }
+
+    checkHostStatus();
+  }, [isLoaded, isSignedIn, user?.id]);
 
   const hideSearchBar =
     /^\/pages\/User\/(Messages|Notifications|AccountSettings|UserProfile|Trips|Wishlist)/.test(
@@ -152,12 +179,20 @@ export default function Navbar() {
         )}
 
         <div className="z-20 flex items-center gap-4">
-          <Link
-            to="/become-a-host"
-            className="hidden rounded-full px-4 py-3 font-semibold transition hover:bg-gray-100 md:block"
-          >
-            Become a host
-          </Link>
+          {!isSignedIn ? (
+            <SignInButton mode="modal">
+              <button className="hidden rounded-full px-4 py-3 font-semibold transition hover:bg-gray-100 md:block">
+                Become a host
+              </button>
+            </SignInButton>
+          ) : (
+            <Link
+              to={isHost ? "/host" : "/become-a-host"}
+              className="hidden rounded-full px-4 py-3 font-semibold transition hover:bg-gray-100 md:block"
+            >
+              {isHost ? "Switch to hosting" : "Become a host"}
+            </Link>
+          )}
 
           {isSignedIn ? (
             <button

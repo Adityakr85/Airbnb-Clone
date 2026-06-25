@@ -26,6 +26,7 @@ import HostDashboard from "./pages/Host/HostDashboard";
 import HostReservations from "./pages/Host/HostReservations";
 import HostProperties from "./pages/Host/HostProperties";
 import PropertyAnalytics from "./pages/Host/PropertyAnalytics";
+import HostMessages from "./pages/Host/HostMessages";
 
 import ProtectedAdminPage from "./routes/ProtectedAdminPage";
 import AdminLayout from "./pages/Admin/AdminLayout";
@@ -48,7 +49,6 @@ import ActivityLogs from "./pages/Admin/ActivityLogs";
 import Monitoring from "./pages/Admin/Monitoring";
 import SystemSettings from "./pages/Admin/SystemSettings";
 
-import Cancellations from "./pages/help/Cancellations";
 import HelpCenterNavbar from "./pages/help/HelpCenterNavbar";
 
 const App = () => {
@@ -64,7 +64,6 @@ const App = () => {
         (isHelpRoute ? <HelpCenterNavbar /> : <Navbar />)}
       <Toaster />
       <Routes>
-        <Route path="/help/Cancellations" element={<Cancellations />} />
         <Route path="/" element={<Home />} />
         <Route path="/experiences" element={<Experiences />} />
         <Route path="/experience/:id" element={<ExperienceDetails />} />
@@ -87,28 +86,23 @@ const App = () => {
           path="/pages/User/AccountSettings"
           element={<AccountSettings />}
         />
-        <Route path="/become-a-host" element={<BecomeAHost />} />
+        TODO: Host Routes
         <Route
-          path="/host"
           element={
             <HostProvider>
               <HostLayout />
             </HostProvider>
           }
         >
-          <Route index element={<HostDashboard />} />
-          <Route path="reservations" element={<HostReservations />} />
-          <Route path="properties" element={<HostProperties />} />
-          <Route path="analytics" element={<PropertyAnalytics />} />
+          <Route path="/become-a-host" element={<BecomeAHost />} />
+          <Route path="/host/add-property" element={<AddProperty />} />
+
+          <Route path="/host" element={<HostDashboard />} />
+          <Route path="/host/reservations" element={<HostReservations />} />
+          <Route path="/host/properties" element={<HostProperties />} />
+          <Route path="/host/analytics" element={<PropertyAnalytics />} />
+          <Route path="/host/messages" element={<HostMessages />} />
         </Route>
-        <Route
-          path="/host/add-property"
-          element={
-            <HostProvider>
-              <AddProperty />
-            </HostProvider>
-          }
-        />
         TODO: Protected routes for ADMIN pages based on roles and permissions
         <Route
           path="/admin"
