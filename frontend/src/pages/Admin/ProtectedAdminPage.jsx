@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
-import { canAccess, isAdminStaff } from "../config/AdminAccess";
+import { canAccess, isAdminStaff } from "../../config/AdminAccess";
 
 export default function ProtectedAdminPage({ page, children }) {
   const { isLoaded, isSignedIn, user } = useUser();

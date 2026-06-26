@@ -28,7 +28,7 @@ import HostProperties from "./pages/Host/HostProperties";
 import PropertyAnalytics from "./pages/Host/PropertyAnalytics";
 import HostMessages from "./pages/Host/HostMessages";
 
-import ProtectedAdminPage from "./routes/ProtectedAdminPage";
+import ProtectedAdminPage from "./pages/Admin/ProtectedAdminPage";
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import Users from "./pages/Admin/Users";
