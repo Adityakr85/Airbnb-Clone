@@ -8,45 +8,42 @@ use Illuminate\Database\Eloquent\Model;
 class Property extends Model
 {
     use HasFactory;
+
     protected $fillable = [
-        'title', 
-        'description', 
-        'location', 
-        'price', 
-        'price_per_night',
-        'base_price',
-        'rating',
-        'host_id', 
-        'images',
+        'host_id',
+        'title',
+        'description',
+        'location',
+        'address',
+        'latitude',
+        'longitude',
         'type',
+        'price',
         'guests',
         'bedrooms',
+        'beds',
         'bathrooms',
         'category',
         'status',
         'moderation_status',
+        'rating',
         'views',
         'bookings',
-        'earnings'
+        'earnings',
     ];
-
-    protected $casts = ['images' => 'array'];
 
     public function host()
     {
         return $this->belongsTo(User::class, 'host_id');
     }
 
-    public function getImagesAttribute($value)
+    public function images()
     {
-        $images = is_string($value) ? json_decode($value, true) : $value;
-        if (!is_array($images)) {
-            $images = [];
-        }
+        return $this->hasMany(PropertyImage::class);
+    }
 
-        return array_map(function ($imagePath) {
-            if (filter_var($imagePath, FILTER_VALIDATE_URL)) return $imagePath;
-            return asset('storage/' . ltrim($imagePath, '/'));
-        }, $images);
+    public function coverImage()
+    {
+        return $this->hasOne(PropertyImage::class)->where('is_cover', true);
     }
 }

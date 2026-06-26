@@ -6,23 +6,17 @@ export default function PastTripsTab() {
 
   const pastTrips = trips
     .filter(
-      (trip) =>
-        trip.userId === currentUserId &&
-        trip.status === "completed"
+      (trip) => trip.userId === currentUserId && trip.status === "completed",
     )
     .map((trip) => ({
       ...trip,
-      property: properties.find(
-        (property) => property.id === trip.propertyId
-      ),
+      property: properties.find((property) => property.id === trip.propertyId),
     }))
     .filter((trip) => trip.property);
 
   return (
     <div>
-      <h2 className="text-3xl font-semibold">
-        Past Trips
-      </h2>
+      <h2 className="text-3xl font-semibold">Past Trips</h2>
 
       {pastTrips.length === 0 ? (
         <div className="mt-20 flex flex-col items-center justify-center">
@@ -54,9 +48,7 @@ export default function PastTripsTab() {
               />
 
               <div className="p-5">
-                <h3 className="text-lg font-semibold">
-                  {trip.property.title}
-                </h3>
+                <h3 className="text-lg font-semibold">{trip.property.title}</h3>
 
                 <p className="mt-1 text-gray-500">
                   📍 {trip.property.location}
@@ -66,9 +58,7 @@ export default function PastTripsTab() {
                   {trip.checkIn} - {trip.checkOut}
                 </p>
 
-                <p className="mt-2 text-gray-700">
-                  Guests: {trip.guests}
-                </p>
+                <p className="mt-2 text-gray-700">Guests: {trip.guests}</p>
 
                 <span className="mt-3 inline-block rounded-full bg-gray-200 px-3 py-1 text-sm font-medium text-gray-700">
                   Completed

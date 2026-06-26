@@ -14,7 +14,11 @@ import {
   Trash2,
   Eye,
 } from "lucide-react";
-import { fetchAdminProperties, approveProperty, rejectProperty } from "../../api/admin";
+import {
+  fetchAdminProperties,
+  approveProperty,
+  rejectProperty,
+} from "../../api/admin";
 
 const propertiesData = [
   {
@@ -102,9 +106,11 @@ export default function Properties() {
       const role = user?.publicMetadata?.role;
       await approveProperty(clerkId, propertyId, role);
       // Update local state
-      setProperties(prev => prev.map(p => 
-        p.id === propertyId ? { ...p, status: 'Approved' } : p
-      ));
+      setProperties((prev) =>
+        prev.map((p) =>
+          p.id === propertyId ? { ...p, status: "Approved" } : p,
+        ),
+      );
       setSelectedProperty(null);
     } catch (err) {
       console.error("Failed to approve property:", err);
@@ -119,9 +125,11 @@ export default function Properties() {
       const role = user?.publicMetadata?.role;
       await rejectProperty(clerkId, propertyId, role);
       // Update local state
-      setProperties(prev => prev.map(p => 
-        p.id === propertyId ? { ...p, status: 'Rejected' } : p
-      ));
+      setProperties((prev) =>
+        prev.map((p) =>
+          p.id === propertyId ? { ...p, status: "Rejected" } : p,
+        ),
+      );
       setSelectedProperty(null);
     } catch (err) {
       console.error("Failed to reject property:", err);
@@ -179,10 +187,26 @@ export default function Properties() {
       </div>
 
       <div className="grid gap-5 md:grid-cols-4">
-        <StatCard title="Total Properties" value={properties.length} icon={Home} />
-        <StatCard title="Approved" value={properties.filter(p => p.status === 'Approved').length} icon={CheckCircle} />
-        <StatCard title="Pending" value={properties.filter(p => p.status === 'Pending').length} icon={Clock} />
-        <StatCard title="Rejected" value={properties.filter(p => p.status === 'Rejected').length} icon={XCircle} />
+        <StatCard
+          title="Total Properties"
+          value={properties.length}
+          icon={Home}
+        />
+        <StatCard
+          title="Approved"
+          value={properties.filter((p) => p.status === "Approved").length}
+          icon={CheckCircle}
+        />
+        <StatCard
+          title="Pending"
+          value={properties.filter((p) => p.status === "Pending").length}
+          icon={Clock}
+        />
+        <StatCard
+          title="Rejected"
+          value={properties.filter((p) => p.status === "Rejected").length}
+          icon={XCircle}
+        />
       </div>
 
       <div className="rounded-[1.7rem] border border-gray-100 bg-white p-5 shadow-sm">

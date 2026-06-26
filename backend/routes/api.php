@@ -18,6 +18,7 @@ Route::get('/properties/destinations', [PropertyController::class, 'destinations
 Route::apiResource('properties', PropertyController::class);
 Route::apiResource('experiences', ExperienceController::class);
 Route::apiResource('services', ServiceController::class);
+Route::post('/properties', [PropertyController::class, 'store']);
 
 // Host routes
 Route::get('/host/dashboard', [HostController::class, 'dashboard']);
