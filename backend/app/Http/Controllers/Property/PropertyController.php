@@ -7,15 +7,18 @@ use App\Models\Property\Property;
 use App\Models\Property\PropertyImage;
 use App\Models\User\User;
 use App\Services\Notification\NotificationService;
+use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
 
 class PropertyController extends Controller
 {
     protected $notificationService;
+    protected $cloudinaryService;
 
-    public function __construct(NotificationService $notificationService)
+    public function __construct(NotificationService $notificationService, CloudinaryService $cloudinaryService)
     {
         $this->notificationService = $notificationService;
+        $this->cloudinaryService = $cloudinaryService;
     }
 
     public function index(Request $request)
@@ -132,11 +135,11 @@ class PropertyController extends Controller
         ]);
 
         foreach ($request->file('images') as $index => $image) {
-            $path = $image->store('properties', 'public');
-
+            $uploadResult = $this->cloudinaryService->upload($image, 'properties');
+            
             PropertyImage::create([
                 'property_id' => $property->id,
-                'image_path' => $path,
+                'image_path' => $uploadResult['url'],
                 'is_cover' => $index === 0,
             ]);
         }
@@ -270,11 +273,11 @@ class PropertyController extends Controller
             $hasCover = $property->images()->where('is_cover', true)->exists();
 
             foreach ($request->file('images') as $index => $image) {
-                $path = $image->store('properties', 'public');
+                $uploadResult = $this->cloudinaryService->upload($image, 'properties');
 
                 PropertyImage::create([
                     'property_id' => $property->id,
-                    'image_path' => $path,
+                    'image_path' => $uploadResult['url'],
                     'is_cover' => !$hasCover && $index === 0,
                 ]);
             }
@@ -289,13 +292,21 @@ class PropertyController extends Controller
 
     public function destroy(string $id)
     {
-        $property = Property::find($id);
+        $property = Property::with('images')->find($id);
 
         if (!$property) {
             return response()->json([
                 'success' => false,
                 'message' => 'Not found',
             ], 404);
+        }
+
+        // Delete images from Cloudinary
+        foreach ($property->images as $image) {
+            // Extract public_id from Cloudinary URL
+            if (preg_match('/\/upload\/(?:v\d+\/)?(.+)\.(jpg|jpeg|png|webp)/i', $image->image_path, $matches)) {
+                $this->cloudinaryService->delete($matches[1]);
+            }
         }
 
         $property->delete();
