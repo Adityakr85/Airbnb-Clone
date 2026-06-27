@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Search, Globe, User } from "lucide-react";
+import { Search, Globe, User, Bell } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useUser, SignInButton } from "@clerk/clerk-react";
 
@@ -40,16 +40,16 @@ export default function Navbar() {
   const [pets, setPets] = useState(0);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
 
-  const [serviceType, setServiceType] = useState("");
-  const [isHost, setIsHost] = useState(false);
+const [serviceType, setServiceType] = useState("");
+const [isHost, setIsHost] = useState(false);
+const [unreadNotifications, setUnreadNotifications] = useState(0);
 
-  useEffect(() => {
+useEffect(() => {
     async function checkHostStatus() {
       if (!isLoaded || !isSignedIn || !user?.id) {
         setIsHost(false);
         return;
       }
-
       try {
         const res = await axios.get(`${API_BASE}/api/host/dashboard`, {
           params: { clerk_id: user.id },
@@ -64,6 +64,25 @@ export default function Navbar() {
     }
 
     checkHostStatus();
+  }, [isLoaded, isSignedIn, user?.id]);
+
+  // Fetch unread notification count
+  useEffect(() => {
+    async function fetchUnreadCount() {
+      if (!isLoaded || !isSignedIn || !user?.id) {
+        setUnreadNotifications(0);
+        return;
+      }
+      try {
+        const res = await axios.get(`${API_BASE}/api/notifications/unread-count`, {
+          params: { clerk_id: user.id },
+        });
+        setUnreadNotifications(res.data?.count || 0);
+      } catch (err) {
+        console.error("Failed to fetch unread notifications:", err);
+      }
+    }
+    fetchUnreadCount();
   }, [isLoaded, isSignedIn, user?.id]);
 
   const hideSearchBar =
@@ -195,16 +214,29 @@ export default function Navbar() {
           )}
 
           {isSignedIn ? (
-            <button
-              onClick={() => navigate("/pages/User/UserProfile/Profile")}
-              className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-gray-100 transition hover:bg-gray-200"
-            >
-              <img
-                src={user?.imageUrl}
-                alt="Profile"
-                className="h-full w-full object-cover"
-              />
-            </button>
+            <>
+              <Link
+                to="/pages/User/Notifications"
+                className="flex h-11 w-11 items-center justify-center relative rounded-full bg-gray-100 transition hover:bg-gray-200"
+              >
+                <Bell size={22} className="text-gray-700" />
+                {unreadNotifications > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
+                    {unreadNotifications > 9 ? "9+" : unreadNotifications}
+                  </span>
+                )}
+              </Link>
+              <button
+                onClick={() => navigate("/pages/User/UserProfile/Profile")}
+                className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-gray-100 transition hover:bg-gray-200"
+              >
+                <img
+                  src={user?.imageUrl}
+                  alt="Profile"
+                  className="h-full w-full object-cover"
+                />
+              </button>
+            </>
           ) : (
             <button
               onClick={() => setShowLanguageModal(true)}

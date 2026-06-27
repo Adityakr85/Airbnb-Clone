@@ -136,9 +136,13 @@ export function HostProvider({ children }) {
 
   const updateReservation = async (id, updates) => {
     try {
+      if (!user?.id) return;
       const res = await axios.patch(
         `${API_BASE}/api/reservations/${id}/status`,
-        updates,
+        {
+          ...updates,
+          clerk_id: user.id,
+        },
       );
       if (res.data?.success) {
         setReservations((prev) =>
