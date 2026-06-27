@@ -303,7 +303,6 @@ class PropertiesSeeder extends Seeder
                 'location' => $data['location'],
                 'bedrooms' => $data['bedrooms'],
                 'bathrooms' => $data['bathrooms'],
-                'images' => json_encode($data['images']),
                 'type' => $data['type'] ?? null,
                 'category' => $data['category'] ?? null,
                 'status' => $data['status'] ?? 'active',
