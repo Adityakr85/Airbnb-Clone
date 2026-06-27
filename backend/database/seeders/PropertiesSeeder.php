@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Property;
-use App\Models\User;
+use App\Models\Property\Property;
+use App\Models\Property\PropertyImage;
+use App\Models\User\User;
 use Illuminate\Database\Seeder;
 
 class PropertiesSeeder extends Seeder
@@ -294,7 +295,7 @@ class PropertiesSeeder extends Seeder
                 continue;
             }
 
-            Property::create([
+            $property = Property::create([
                 'host_id' => $host->id,
                 'title' => $data['title'],
                 'description' => $data['description'] ?? '',
@@ -302,15 +303,25 @@ class PropertiesSeeder extends Seeder
                 'location' => $data['location'],
                 'bedrooms' => $data['bedrooms'],
                 'bathrooms' => $data['bathrooms'],
-                'images' => $data['images'],
+                'images' => json_encode($data['images']),
                 'type' => $data['type'] ?? null,
                 'category' => $data['category'] ?? null,
                 'status' => $data['status'] ?? 'active',
+                'moderation_status' => 'approved',
                 'rating' => $data['rating'] ?? null,
                 'views' => $data['views'] ?? 0,
                 'bookings' => $data['bookings'] ?? 0,
                 'earnings' => $data['earnings'] ?? 0,
             ]);
+
+            // Create PropertyImage records for the images
+            foreach ($data['images'] as $index => $imageUrl) {
+                PropertyImage::create([
+                    'property_id' => $property->id,
+                    'image_path' => $imageUrl,
+                    'is_cover' => $index === 0,
+                ]);
+            }
         }
 
     }

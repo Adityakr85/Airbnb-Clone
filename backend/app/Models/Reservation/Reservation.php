@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Reservation;
 
+use App\Models\Property\Property;
+use App\Models\User\User;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class Reservation extends Model
 {
@@ -17,19 +18,10 @@ class Reservation extends Model
         'status',
         'payment_status',
         'message',
+        'cancellation_reason'
     ];
 
-    protected $casts = [
-        'check_in' => 'date',
-        'check_out' => 'date',
-        'total' => 'decimal:2',
-    ];
-
-    protected $appends = [
-        'checkIn',
-        'checkOut',
-        'realtime_status',
-    ];
+    protected $appends = ['checkIn', 'checkOut'];
 
     public function getCheckInAttribute()
     {
@@ -39,19 +31,6 @@ class Reservation extends Model
     public function getCheckOutAttribute()
     {
         return $this->attributes['check_out'] ?? null;
-    }
-
-    public function getRealtimeStatusAttribute()
-    {
-        if ($this->status === 'cancelled') {
-            return 'cancelled';
-        }
-
-        if (Carbon::parse($this->check_out)->lt(Carbon::today())) {
-            return 'completed';
-        }
-
-        return 'pending';
     }
 
     public function property()

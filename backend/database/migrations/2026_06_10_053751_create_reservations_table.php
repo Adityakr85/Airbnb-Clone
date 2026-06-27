@@ -17,7 +17,9 @@ return new class extends Migration
             $table->integer('guests');
             $table->decimal('total', 10, 2);
             $table->enum('status', ['pending', 'confirmed', 'completed', 'cancelled'])->default('pending');
+            $table->enum('payment_status', ['pending', 'paid', 'refunded', 'failed'])->default('pending');
             $table->text('message')->nullable();
+            $table->text('cancellation_reason')->nullable();
             $table->timestamps();
         });
     }

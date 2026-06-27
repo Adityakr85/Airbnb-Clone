@@ -1,14 +1,26 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Models\User;
-use App\Models\Property;
-use App\Models\Reservation;
+use App\Http\Controllers\Controller;
+use App\Models\User\User;
+use App\Models\Property\Property;
+use App\Models\Reservation\Reservation;
+use App\Models\Review\Review;
+use App\Models\Wishlist\Wishlist;
+use App\Models\Message\Message;
+use App\Services\Notification\NotificationService;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     /**
      * Check if the user is an admin
      */
@@ -127,15 +139,14 @@ class AdminController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        $properties = Property::with(['host'])
+        $properties = Property::with(['host', 'images'])
             ->get()
             ->map(function ($property) {
-                // Get first image or use placeholder
-                $firstImage = null;
-                if (!empty($property->images) && is_array($property->images)) {
-                    $firstImage = $property->images[0];
-                }
-                
+                // Get images from relationship
+                $images = $property->images->pluck('image_path')->toArray();
+                $coverImage = $property->images->where('is_cover', true)->first();
+                $firstImage = $coverImage ? $coverImage->image_path : ($images[0] ?? null);
+
                 $imageUrl = $firstImage ? 
                     (filter_var($firstImage, FILTER_VALIDATE_URL) ? $firstImage : asset('storage/' . ltrim($firstImage, '/'))) :
                     'https://picsum.photos/400/300';
@@ -173,13 +184,15 @@ class AdminController extends Controller
                     'type' => (string) ($property->type ?? ''),
                     'created' => (string) $created,
                     'image' => (string) $imageUrl,
+                    'images' => $images,
+                    'moderation_status' => $property->moderation_status,
                 ];
             });
 
         return response()->json(['success' => true, 'data' => $properties]);
     }
 
-    /**
+/**
      * Approve a property
      */
     public function approveProperty(Request $request, $id)
@@ -200,6 +213,10 @@ class AdminController extends Controller
         $property->moderation_status = 'approved';
         $property->status = 'active';
         $property->save();
+
+        // Notify host about approval
+        $property->load('host');
+        $this->notificationService->notifyHostPropertyApproved($property);
 
         return response()->json(['success' => true, 'message' => 'Property approved successfully']);
     }
@@ -222,11 +239,16 @@ class AdminController extends Controller
             return response()->json(['success' => false, 'message' => 'Property not found'], 404);
         }
 
+        $reason = $request->input('reason', '');
         $property->moderation_status = 'rejected';
         $property->status = 'inactive';
         $property->save();
 
-        return response()->json(['success' => true, 'message' => 'Property rejected successfully']);
+        // Notify host about rejection
+        $property->load('host');
+        $this->notificationService->notifyHostPropertyRejected($property, $reason);
+
+return response()->json(['success' => true, 'message' => 'Property rejected successfully']);
     }
 
     /**
@@ -361,5 +383,77 @@ class AdminController extends Controller
         ];
 
         return response()->json(['success' => true, 'data' => $analytics]);
+    }
+
+    /**
+     * Get all notifications for admin
+     */
+    public function notifications(Request $request)
+    {
+        $clerkId = $request->query('clerk_id');
+        $role = $request->query('role');
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin', $role);
+
+        if (!$this->isAdmin($user)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $notifications = \App\Models\Notification\Notification::latest()
+            ->paginate(20);
+
+        return response()->json([
+            'success' => true,
+            'data' => $notifications,
+        ]);
+    }
+
+    /**
+     * Send a notification to users
+     */
+    public function sendNotification(Request $request)
+    {
+        $clerkId = $request->query('clerk_id');
+        $role = $request->query('role');
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin', $role);
+
+        if (!$this->isAdmin($user)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'message' => 'required|string',
+            'audience' => 'required|in:all,guests,hosts,admins',
+            'type' => 'required|string|max:50',
+        ]);
+
+        // Send to all users based on audience
+        $usersQuery = User::query();
+        
+        if ($validated['audience'] === 'guests') {
+            $usersQuery->where('role', 'guest');
+        } elseif ($validated['audience'] === 'hosts') {
+            $usersQuery->where('role', 'host');
+        } elseif ($validated['audience'] === 'admins') {
+            $usersQuery->where('role', 'admin');
+        }
+
+        $users = $usersQuery->get();
+        
+        foreach ($users as $targetUser) {
+            \App\Models\Notification\Notification::create([
+                'user_id' => $targetUser->id,
+                'title' => $validated['title'],
+                'message' => $validated['message'],
+                'type' => $validated['type'],
+                'data' => ['audience' => $validated['audience']],
+                'is_read' => false,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Notification sent to ' . count($users) . ' users',
+        ]);
     }
 }

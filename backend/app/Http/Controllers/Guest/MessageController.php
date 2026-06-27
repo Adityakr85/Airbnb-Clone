@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Guest;
 
-use App\Models\Message;
-use App\Models\User;
+use App\Http\Controllers\Controller;
+use App\Models\Message\Message;
+use App\Models\User\User;
+use App\Models\Reservation\Reservation;
 use Illuminate\Http\Request;
 
 class MessageController extends Controller

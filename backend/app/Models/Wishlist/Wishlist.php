@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Wishlist;
 
+use App\Models\Property\Property;
+use App\Models\User\User;
 use Illuminate\Database\Eloquent\Model;
 
 class Wishlist extends Model

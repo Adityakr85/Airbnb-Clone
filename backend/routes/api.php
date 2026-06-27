@@ -1,16 +1,17 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserProfileController;
-use App\Http\Controllers\PropertyController;
-use App\Http\Controllers\ExperienceController;
-use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\HostController;
-use App\Http\Controllers\ReservationController;
-use App\Http\Controllers\WishlistController;
-use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\MessageController;
-use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Guest\UserProfileController;
+use App\Http\Controllers\Property\PropertyController;
+use App\Http\Controllers\Api\ExperienceController;
+use App\Http\Controllers\Api\ServiceController;
+use App\Http\Controllers\Host\HostController;
+use App\Http\Controllers\Reservation\ReservationController;
+use App\Http\Controllers\Guest\WishlistController;
+use App\Http\Controllers\Guest\ReviewController;
+use App\Http\Controllers\Guest\MessageController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Api\NotificationController;
 
 // Additional property endpoints
 Route::get('/properties/destinations', [PropertyController::class, 'destinations']);
@@ -26,9 +27,10 @@ Route::get('/host/dashboard', [HostController::class, 'dashboard']);
 // Reservation & Trip routes
 Route::post('/reservations', [ReservationController::class, 'store']);
 Route::get('/reservations/{id}', [ReservationController::class, 'show']);
-Route::get('/trips', [ReservationController::class, 'guestTrips']);
 Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
+Route::post('/reservations/{id}/cancel', [ReservationController::class, 'cancel']);
 Route::patch('/reservations/{id}/cancel', [ReservationController::class, 'cancel']);
+Route::get('/trips', [ReservationController::class, 'guestTrips']);
 
 // Wishlist routes
 Route::get('/wishlist', [WishlistController::class, 'index']);
@@ -53,9 +55,18 @@ Route::post('/admin/properties/{id}/approve', [AdminController::class, 'approveP
 Route::post('/admin/properties/{id}/reject', [AdminController::class, 'rejectProperty']);
 Route::get('/admin/reservations', [AdminController::class, 'reservations']);
 Route::get('/admin/analytics', [AdminController::class, 'analytics']);
+Route::get('/admin/notifications', [AdminController::class, 'notifications']);
+Route::post('/admin/notifications/send', [AdminController::class, 'sendNotification']);
 
 // User Profile routes
 Route::get('/user/profile', [UserProfileController::class, 'show']);
 Route::put('/user/profile', [UserProfileController::class, 'update']);
 Route::post('/user/profile/photo', [UserProfileController::class, 'uploadPhoto']);
 Route::delete('/user/profile/photo', [UserProfileController::class, 'deletePhoto']);
+
+// Notification routes
+Route::get('/notifications', [NotificationController::class, 'index']);
+Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);

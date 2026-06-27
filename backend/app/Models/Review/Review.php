@@ -1,7 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Review;
 
+use App\Models\User\User;
+use App\Models\Property\Property;
+use App\Models\Reservation\Reservation;
 use Illuminate\Database\Eloquent\Model;
 
 class Review extends Model

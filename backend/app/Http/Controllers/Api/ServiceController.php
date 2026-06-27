@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Service;
+use App\Http\Controllers\Controller;
+use App\Models\Service\Service;
 use Illuminate\Http\Request;
 
 class ServiceController extends Controller
@@ -24,9 +25,23 @@ class ServiceController extends Controller
             $query->where('type', trim($type));
         }
 
+        $services = $query->get()->map(function ($service) {
+            return [
+                'id' => $service->id,
+                'title' => $service->title,
+                'type' => $service->type,
+                'location' => $service->location,
+                'price' => (float) $service->price,
+                'description' => $service->description,
+                'images' => $service->images ?? [],
+                'image' => ($service->images && count($service->images) > 0) ? $service->images[0] : '/placeholder.jpg',
+                'image_urls' => $service->images ?? [],
+            ];
+        });
+
         return response()->json([
             'success' => true,
-            'data' => $query->get(),
+            'data' => $services,
         ]);
     }
     
@@ -50,7 +65,17 @@ class ServiceController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $service
+            'data' => [
+                'id' => $service->id,
+                'title' => $service->title,
+                'type' => $service->type,
+                'location' => $service->location,
+                'price' => (float) $service->price,
+                'description' => $service->description,
+                'images' => $service->images ?? [],
+                'image' => ($service->images && count($service->images) > 0) ? $service->images[0] : '/placeholder.jpg',
+                'image_urls' => $service->images ?? [],
+            ]
         ]);
     }
 
