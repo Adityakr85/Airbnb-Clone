@@ -23,9 +23,10 @@ function normalizeProperty(property) {
   return {
     ...property,
     image: fallbackImage,
-    images: finalImages, 
-    image_urls: finalImages, 
-    price: property.price ?? property.price_per_night ?? property.base_price ?? 0,
+    images: finalImages,
+    image_urls: finalImages,
+    price:
+      property.price ?? property.price_per_night ?? property.base_price ?? 0,
   };
 }
 
@@ -34,10 +35,11 @@ export async function fetchProperties(params = {}) {
     const response = await axios.get(`${API_BASE}/api/properties`, { params });
     const rawData = response.data?.data || response.data || [];
     return rawData.map(normalizeProperty);
-    
   } catch (error) {
     console.error("Error fetching properties:", error);
-    throw new Error(error.response?.data?.message || "Failed to load properties from server.");
+    throw new Error(
+      error.response?.data?.message || "Failed to load properties from server.",
+    );
   }
 }
 
@@ -59,7 +61,8 @@ export async function createProperty(payload) {
     return data ? normalizeProperty(data) : undefined;
   } catch (error) {
     console.error("Failed to create property:", error);
-    throw new Error(error.response?.data?.message || "Failed to save to database.");
+    throw new Error(
+      error.response?.data?.message || "Failed to save to database.",
+    );
   }
 }
-

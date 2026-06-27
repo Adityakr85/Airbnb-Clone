@@ -3,20 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Property;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ReservationController extends Controller
 {
-    /**
-     * Create a new booking/reservation request
-     */
     public function store(Request $request)
     {
         $clerkId = $request->input('clerk_id');
         $user = User::getOrCreateFromClerkId($clerkId);
-        
+
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -46,13 +43,14 @@ class ReservationController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $reservation
+            'data' => $reservation->load(['property.host'])
         ], 201);
     }
 
     public function show(Request $request, $id)
     {
         $clerkId = $request->query('clerk_id');
+
         if (!$clerkId) {
             return response()->json([
                 'success' => false,
@@ -61,6 +59,7 @@ class ReservationController extends Controller
         }
 
         $user = User::getOrCreateFromClerkId($clerkId);
+
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -77,13 +76,18 @@ class ReservationController extends Controller
             ], 404);
         }
 
-        // Check if the authenticated user is either the guest or the host of the property
-        if ($reservation->guest_id !== $user->id && $reservation->property->host_id !== $user->id) {
+        if (
+            $reservation->guest_id !== $user->id &&
+            $reservation->property->host_id !== $user->id
+        ) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized'
             ], 403);
         }
+
+        $reservation->status = $this->getRealtimeStatus($reservation);
+        $reservation->save();
 
         return response()->json([
             'success' => true,
@@ -91,12 +95,10 @@ class ReservationController extends Controller
         ]);
     }
 
-    /**
-     * Get the authenticated guest's trip/booking history
-     */
     public function guestTrips(Request $request)
     {
         $clerkId = $request->query('clerk_id');
+
         if (!$clerkId) {
             return response()->json([
                 'success' => false,
@@ -105,6 +107,7 @@ class ReservationController extends Controller
         }
 
         $user = User::getOrCreateFromClerkId($clerkId);
+
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -115,7 +118,13 @@ class ReservationController extends Controller
         $trips = Reservation::with('property')
             ->where('guest_id', $user->id)
             ->orderBy('check_in', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($reservation) {
+                $reservation->status = $this->getRealtimeStatus($reservation);
+                $reservation->save();
+
+                return $reservation;
+            });
 
         return response()->json([
             'success' => true,
@@ -123,9 +132,66 @@ class ReservationController extends Controller
         ]);
     }
 
-    /**
-     * Update reservation status (host action)
-     */
+    public function cancel(Request $request, $id)
+    {
+        $clerkId = $request->input('clerk_id');
+
+        if (!$clerkId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'clerk_id required'
+            ], 400);
+        }
+
+        $user = User::getOrCreateFromClerkId($clerkId);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        $reservation = Reservation::with('property')
+            ->where('id', $id)
+            ->where('guest_id', $user->id)
+            ->first();
+
+        if (!$reservation) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Reservation not found'
+            ], 404);
+        }
+
+        $currentStatus = $this->getRealtimeStatus($reservation);
+
+        if ($currentStatus === 'completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Completed booking cannot be cancelled'
+            ], 422);
+        }
+
+        if ($currentStatus === 'cancelled') {
+            return response()->json([
+                'success' => true,
+                'message' => 'Reservation already cancelled',
+                'data' => $reservation
+            ]);
+        }
+
+        $reservation->update([
+            'status' => 'cancelled'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservation cancelled successfully',
+            'data' => $reservation->fresh()->load('property')
+        ]);
+    }
+
     public function updateStatus(Request $request, $id)
     {
         $reservation = Reservation::with('property')->find($id);
@@ -146,9 +212,9 @@ class ReservationController extends Controller
 
         $reservation->update(['status' => $newStatus]);
 
-        // If status changed to confirmed, update property stats
         if ($newStatus === 'confirmed' && $oldStatus !== 'confirmed') {
             $property = $reservation->property;
+
             if ($property) {
                 $property->increment('bookings');
                 $property->increment('earnings', $reservation->total);
@@ -159,5 +225,18 @@ class ReservationController extends Controller
             'success' => true,
             'data' => $reservation
         ]);
+    }
+
+    private function getRealtimeStatus($reservation)
+    {
+        if ($reservation->status === 'cancelled') {
+            return 'cancelled';
+        }
+
+        if (Carbon::parse($reservation->check_out)->lt(Carbon::today())) {
+            return 'completed';
+        }
+
+        return 'pending';
     }
 }

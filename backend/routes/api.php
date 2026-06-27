@@ -28,6 +28,7 @@ Route::post('/reservations', [ReservationController::class, 'store']);
 Route::get('/reservations/{id}', [ReservationController::class, 'show']);
 Route::get('/trips', [ReservationController::class, 'guestTrips']);
 Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
+Route::patch('/reservations/{id}/cancel', [ReservationController::class, 'cancel']);
 
 // Wishlist routes
 Route::get('/wishlist', [WishlistController::class, 'index']);

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Reservation extends Model
 {
@@ -15,10 +16,20 @@ class Reservation extends Model
         'total',
         'status',
         'payment_status',
-        'message'
+        'message',
     ];
 
-    protected $appends = ['checkIn', 'checkOut'];
+    protected $casts = [
+        'check_in' => 'date',
+        'check_out' => 'date',
+        'total' => 'decimal:2',
+    ];
+
+    protected $appends = [
+        'checkIn',
+        'checkOut',
+        'realtime_status',
+    ];
 
     public function getCheckInAttribute()
     {
@@ -28,6 +39,19 @@ class Reservation extends Model
     public function getCheckOutAttribute()
     {
         return $this->attributes['check_out'] ?? null;
+    }
+
+    public function getRealtimeStatusAttribute()
+    {
+        if ($this->status === 'cancelled') {
+            return 'cancelled';
+        }
+
+        if (Carbon::parse($this->check_out)->lt(Carbon::today())) {
+            return 'completed';
+        }
+
+        return 'pending';
     }
 
     public function property()

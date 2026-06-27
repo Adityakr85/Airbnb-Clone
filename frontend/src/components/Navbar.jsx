@@ -67,7 +67,7 @@ export default function Navbar() {
   }, [isLoaded, isSignedIn, user?.id]);
 
   const hideSearchBar =
-    /^\/pages\/User\/(Messages|Notifications|AccountSettings|UserProfile|Trips|Wishlist)/.test(
+    /^\/pages\/User\/(Messages|Notifications|AccountSettings|UserProfile|Trips|BookingDetails|Wishlist)/.test(
       location.pathname,
     );
 
