@@ -43,7 +43,7 @@ class NotificationService
                 'title' => $title,
                 'message' => $message,
                 'type' => $type,
-                'data' => $data,
+                'data' => json_encode($data),
                 'is_read' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
