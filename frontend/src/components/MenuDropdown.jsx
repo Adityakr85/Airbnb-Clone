@@ -114,7 +114,7 @@ export default function MenuDropdown() {
             <MenuItem
               icon={MessageSquare}
               label="Messages"
-              to="/pages/User/Messages"
+              to="/pages/User/SafetyMessages"
             />
 
             <MenuItem

@@ -10,12 +10,12 @@ export default function Footer() {
           <h3 className="font-semibold mb-4">Support</h3>
           {[
             { name: "Help Centre", path:"/help"},
-            { name: "Get help with a safety issue", path: "/guest/messages/safety" },
-            { name: "AirCover", path: null },
-            { name: "Anti-discrimination", path: null },
-            { name: "Disability support", path: null },
-            { name: "Cancellation options", path: "/help/Cancellations" },
-            { name: "Report neighbourhood concern", path: "/help" },
+            { name: "Get help with a safety issue", path: "pages/User/Messages" },
+            { name: "AirCover", path: "/help/article/2" },
+            { name: "Anti-discrimination", path: "/help/search?q=discrimination" },
+            { name: "Disability support", path: "/help/search?q=disability" },
+            { name: "Cancellation options", path: "/help/search?q=cancellations" },
+            { name: "Report neighbourhood concern", path: "/help/search?q=neighbourhood" },
           ].map((item) => (
             item.path ? (
               <Link 
@@ -39,23 +39,33 @@ export default function Footer() {
         <div>
           <h3 className="font-semibold mb-4">Hosting</h3>
           {[
-            "Airbnb your home",
-            "Airbnb your experience",
-            "Airbnb your service",
-            "AirCover for Hosts",
-            "Hosting resources",
-            "Community forum",
-            "Hosting responsibly",
-            "Join a free hosting class",
-            "Find a co-host",
-            "Refer a host",
+            { name: "Airbnb your home", path: "/become-a-host" },
+            { name: "Airbnb your experience", path: "/become-a-host" },
+            { name: "Airbnb your service", path: "/become-a-host" },
+            { name: "AirCover for Hosts", path: "/help/search?q=AirCover+for+Hosts" },
+            { name: "Hosting resources", path: null },
+            { name: "Community forum", path: null },
+            { name: "Hosting responsibly", path: "/help/search?q=responsible" },
+            { name: "Join a free hosting class", path: null },
+            { name: "Find a co-host", path: null },
+            { name: "Refer a host", path: null },
           ].map((item) => (
-            <p
-              key={item}
-              className="mb-4 text-sm hover:underline cursor-pointer"
-            >
-              {item}
-            </p>
+            item.path ? (
+              <Link 
+                key={item.name} 
+                to={item.path} 
+                className="block mb-4 text-sm hover:underline cursor-pointer"
+              >
+                {item.name}
+              </Link>
+            ) : (
+              <p
+                key={item.name}
+                className="mb-4 text-sm hover:underline cursor-pointer"
+              >
+                {item.name}
+              </p>
+            )
           ))}
         </div>
 

@@ -1,11 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import GlobalCarousel from "../components/GlobalCarousel";
-import GlobalCard from "../components/GlobalCard";
 import { fetchProperties } from "../api/properties";
 
 export default function Home() {
-  const [searchParams ,setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const activeSearch = searchParams.get("search") || "";
 
   const [properties, setProperties] = useState([]);
@@ -30,7 +29,9 @@ export default function Home() {
       }
     }
     load();
-    return () => {isMounted = false;};
+    return () => {
+      isMounted = false;
+    };
   }, [activeSearch]);
 
   const titleTemplates = [
@@ -43,6 +44,16 @@ export default function Home() {
     "Explore",
     "Discover",
   ];
+
+  const getLocationTitle = (location) => {
+    const hash = location
+      .split("")
+      .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+
+    const template = titleTemplates[hash % titleTemplates.length];
+
+    return `${template} ${location}`;
+  };
 
   const groupedEntries = useMemo(() => {
     const safeProperties = Array.isArray(properties) ? properties : [];
@@ -66,15 +77,19 @@ export default function Home() {
   ) : (
     <main className="mx-auto min-h-screen max-w-[2520px] bg-white px-6 pt-28 pb-8 sm:px-10 md:px-16 xl:px-20">
       {groupedEntries.length > 0 ? (
-        groupedEntries.map(([location, props], index) => (
+        groupedEntries.map(([location, props]) => (
           <GlobalCarousel
             key={location}
-            title={activeSearch ? `Search results in ${location}` : `Stay near ${location}`}
+            title={
+              activeSearch
+                ? `Search results in ${location}`
+                : getLocationTitle(location)
+            }
             items={props}
             routePrefix="property"
             onTitleClick={
-              !activeSearch 
-                ? () => setSearchParams({ search: location }) 
+              !activeSearch
+                ? () => setSearchParams({ search: location })
                 : undefined
             }
           />
@@ -96,4 +111,3 @@ export default function Home() {
     </main>
   );
 }
-

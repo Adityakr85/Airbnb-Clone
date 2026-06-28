@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Property;
-use App\Models\User;
+use App\Models\Property\Property;
+use App\Models\User\User;
 
 class PropertySeeder extends Seeder
 {

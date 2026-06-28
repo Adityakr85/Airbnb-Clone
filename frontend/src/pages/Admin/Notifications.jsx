@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useUser } from "@clerk/clerk-react";
 import {
   Search,
   Download,
@@ -12,54 +13,86 @@ import {
   X,
   Eye,
 } from "lucide-react";
-
-const notificationsData = [
-  {
-    id: "NOT-1001",
-    title: "New booking confirmed",
-    message: "Rahul booked Luxury Villa in Goa.",
-    audience: "Admin",
-    status: "Sent",
-    type: "Booking",
-    date: "Jun 15, 2026",
-  },
-  {
-    id: "NOT-1002",
-    title: "Property approval pending",
-    message: "A new property is waiting for admin approval.",
-    audience: "Hosts",
-    status: "Pending",
-    type: "Approval",
-    date: "Jun 16, 2026",
-  },
-  {
-    id: "NOT-1003",
-    title: "Weekend discount offer",
-    message: "Special travel offer sent to all users.",
-    audience: "All Users",
-    status: "Sent",
-    type: "Promotion",
-    date: "Jun 18, 2026",
-  },
-];
+import { fetchAdminNotifications, sendAdminNotification } from "../../api/admin";
 
 export default function Notifications() {
+  const { user, isLoaded } = useUser();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [selectedNotification, setSelectedNotification] = useState(null);
+  const [notificationsData, setNotificationsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch notifications from API
+  const fetchNotifications = async () => {
+    try {
+      if (!isLoaded) return;
+
+      const clerkId = user?.id;
+      const role = user?.publicMetadata?.role;
+      if (!clerkId) {
+        setNotificationsData([]);
+        setError("Unable to load notifications: User not authenticated");
+        return;
+      }
+
+      const data = await fetchAdminNotifications(clerkId, role);
+      setNotificationsData(data);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to load notifications:", err);
+      setError("Failed to load notifications. Please try again later.");
+      setNotificationsData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Send notification
+  const handleSendNotification = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const payload = {
+      title: formData.get("title"),
+      message: formData.get("message"),
+      audience: formData.get("audience"),
+      type: formData.get("type"),
+    };
+
+    try {
+      const clerkId = user?.id;
+      const role = user?.publicMetadata?.role;
+      await sendAdminNotification(clerkId, payload, role);
+      e.target.reset();
+      fetchNotifications(); // Refresh list
+    } catch (err) {
+      console.error("Failed to send notification:", err);
+      alert("Failed to send notification. Please try again.");
+    }
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchNotifications();
+  }, [isLoaded, user?.id]);
 
   const notifications = useMemo(() => {
     return notificationsData.filter((item) => {
       const matchesSearch =
-        item.title.toLowerCase().includes(search.toLowerCase()) ||
-        item.message.toLowerCase().includes(search.toLowerCase()) ||
-        item.audience.toLowerCase().includes(search.toLowerCase());
+        item.title?.toLowerCase().includes(search.toLowerCase()) ||
+        item.message?.toLowerCase().includes(search.toLowerCase()) ||
+        item.audience?.toLowerCase().includes(search.toLowerCase()) ||
+        item.type?.toLowerCase().includes(search.toLowerCase());
 
       const matchesStatus = status === "All" || item.status === status;
 
       return matchesSearch && matchesStatus;
     });
-  }, [search, status]);
+  }, [notificationsData, search, status]);
+
+  const unreadCount = notificationsData.filter(n => !n.is_read).length;
+  const totalSent = notificationsData.length;
 
   return (
     <div className="space-y-8">
@@ -78,9 +111,9 @@ export default function Notifications() {
       </div>
 
       <div className="grid gap-5 md:grid-cols-4">
-        <StatCard title="Total Sent" value="1,420" icon={Bell} />
-        <StatCard title="Read Rate" value="82%" icon={CheckCircle} />
-        <StatCard title="Pending" value="12" icon={Clock} />
+        <StatCard title="Total Sent" value={totalSent.toLocaleString()} icon={Bell} />
+        <StatCard title="Read Rate" value={totalSent > 0 ? `${Math.round(((totalSent - unreadCount) / totalSent) * 100)}%` : "0%"} icon={CheckCircle} />
+        <StatCard title="Pending" value={unreadCount} icon={Clock} />
         <StatCard title="Audiences" value="4" icon={Users} />
       </div>
 
@@ -88,31 +121,53 @@ export default function Notifications() {
         <div className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm">
           <h2 className="text-xl font-black">Create Notification</h2>
 
-          <div className="mt-6 space-y-4">
+          <form onSubmit={handleSendNotification} className="mt-6 space-y-4">
             <input
+              name="title"
               type="text"
               placeholder="Notification title"
+              required
               className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
             />
 
             <textarea
+              name="message"
               rows="5"
               placeholder="Write message..."
+              required
               className="w-full resize-none rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
             />
 
-            <select className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500">
-              <option>All Users</option>
-              <option>Guests</option>
-              <option>Hosts</option>
-              <option>Admins</option>
+            <select
+              name="audience"
+              required
+              className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
+            >
+              <option value="">Select audience</option>
+              <option value="all">All Users</option>
+              <option value="guests">Guests</option>
+              <option value="hosts">Hosts</option>
+              <option value="admins">Admins</option>
             </select>
 
-            <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-500 px-5 py-3 font-black text-white transition hover:bg-rose-600">
+            <select
+              name="type"
+              required
+              className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
+            >
+              <option value="">Select type</option>
+              <option value="booking">Booking</option>
+              <option value="approval">Approval</option>
+              <option value="promotion">Promotion</option>
+              <option value="system">System</option>
+              <option value="other">Other</option>
+            </select>
+
+            <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-500 px-5 py-3 font-black text-white transition hover:bg-rose-600">
               <Send size={18} />
               Send Notification
             </button>
-          </div>
+          </form>
         </div>
 
         <div className="space-y-5 xl:col-span-2">
@@ -144,39 +199,49 @@ export default function Notifications() {
             </div>
           </div>
 
-          {notifications.map((item) => (
-            <div
-              key={item.id}
-              className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <h2 className="font-black text-gray-950">{item.title}</h2>
-                    <StatusBadge status={item.status} />
-                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-black text-gray-600">
-                      {item.type}
-                    </span>
-                  </div>
-
-                  <p className="mt-3 text-sm text-gray-600">{item.message}</p>
-
-                  <div className="mt-4 flex flex-wrap gap-4 text-xs font-bold text-gray-500">
-                    <span>Audience: {item.audience}</span>
-                    <span>Date: {item.date}</span>
-                    <span>ID: {item.id}</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setSelectedNotification(item)}
-                  className="rounded-full p-2 transition hover:bg-gray-100"
-                >
-                  <MoreVertical size={18} />
-                </button>
-              </div>
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <div className="text-gray-600">Loading notifications...</div>
             </div>
-          ))}
+          ) : error ? (
+            <div className="text-red-600 text-center py-10">{error}</div>
+          ) : notifications.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">No notifications found</div>
+          ) : (
+            notifications.map((item) => (
+              <div
+                key={item.id}
+                className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+              >
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <h2 className="font-black text-gray-950">{item.title}</h2>
+                      <StatusBadge status={item.is_read ? "Sent" : "Pending"} />
+                      <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-black text-gray-600">
+                        {item.type}
+                      </span>
+                    </div>
+
+                    <p className="mt-3 text-sm text-gray-600">{item.message}</p>
+
+                    <div className="mt-4 flex flex-wrap gap-4 text-xs font-bold text-gray-500">
+                      <span>Audience: {item.data?.audience || 'N/A'}</span>
+                      <span>Date: {item.created_at ? new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown'}</span>
+                      <span>ID: {item.id}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedNotification(item)}
+                    className="rounded-full p-2 transition hover:bg-gray-100"
+                  >
+                    <MoreVertical size={18} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

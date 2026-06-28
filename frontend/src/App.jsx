@@ -12,21 +12,23 @@ import PropertyDetails from "./pages/PropertyDetails";
 import Wishlist from "./pages/User/Wishlist";
 import Trips from "./pages/User/Trips";
 import BookingDetails from "./pages/User/BookingDetails";
-import Messages from "./pages/User/Messages";
+import Messages from "./pages/User/SafetyMessages";
 import Profile from "./pages/User/UserProfile/Profile";
 import EditProfile from "./pages/User/UserProfile/EditProfile";
 import Notifications from "./pages/User/Notifications";
 import AccountSettings from "./pages/User/AccountSettings";
 
-import HostDashboard from "./pages/Host/HostDashboard";
-import AddProperty from "./pages/Host/AddProperty";
-import MyProperties from "./pages/Host/MyProperties";
-import PropertyAnalytics from "./pages/Host/PropertyAnalytics";
-import HostReservations from "./pages/Host/HostReservations";
-import BecomeAHost from "./pages/Host/BecomeAHost";
+import HostLayout from "./pages/Host/HostLayout";
 import { HostProvider } from "./pages/Host/HostContext";
+import BecomeAHost from "./pages/Host/BecomeAHost";
+import AddProperty from "./pages/Host/AddProperty";
+import HostDashboard from "./pages/Host/HostDashboard";
+import HostReservations from "./pages/Host/HostReservations";
+import HostProperties from "./pages/Host/HostProperties";
+import PropertyAnalytics from "./pages/Host/PropertyAnalytics";
+import HostMessages from "./pages/Host/HostMessages";
 
-import ProtectedAdminPage from "./routes/ProtectedAdminPage";
+import ProtectedAdminPage from "./pages/Admin/ProtectedAdminPage";
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import Users from "./pages/Admin/Users";
@@ -51,6 +53,7 @@ import ArticleDetails from "./pages/Help/ArticleDetails";
 import AllTopics from "./pages/Help/AllTopics";
 import Cancellations from './pages/Help/Cancellations';
 import HelpCenterNavbar from "./pages/Help/HelpCenterNavbar";
+import SearchResultsPage from "./pages/Help/SearchResultsPages";
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
@@ -61,15 +64,11 @@ const App = () => {
   const isHelpRoute = currentPath.startsWith("/help") || currentPath.startsWith("/pages/help");
   return (
     <>
-      {!isAdminRoute && !isHostRoute && (
-        isHelpRoute ? <HelpCenterNavbar /> : <Navbar />
-      )}
+      {!isAdminRoute &&
+        !isHostRoute &&
+        (isHelpRoute ? <HelpCenterNavbar /> : <Navbar />)}
       <Toaster />
       <Routes>
-        <Route path="/help" element={<Landing />} />
-        <Route path="/help/article/:id" element={<ArticleDetails />} />
-        <Route path="/help/all-topics" element={<AllTopics />} />
-        <Route path="/help/topic/:id" element={<Cancellations />} />
         <Route path="/" element={<Home />} />
         <Route path="/experiences" element={<Experiences />} />
         <Route path="/experience/:id" element={<ExperienceDetails />} />
@@ -81,7 +80,7 @@ const App = () => {
           path="/pages/User/BookingDetails/:id"
           element={<BookingDetails />}
         />
-        <Route path="/pages/User/Messages" element={<Messages />} />
+        <Route path="/pages/User/SafetyMessages" element={<Messages />} />
         <Route path="/pages/User/UserProfile/Profile" element={<Profile />} />
         <Route
           path="/pages/User/UserProfile/EditProfile"
@@ -92,47 +91,23 @@ const App = () => {
           path="/pages/User/AccountSettings"
           element={<AccountSettings />}
         />
+        TODO: Host Routes
         <Route
-          path="/host"
           element={
             <HostProvider>
-              <HostDashboard />
+              <HostLayout />
             </HostProvider>
           }
-        />
-        <Route
-          path="/host/add-property"
-          element={
-            <HostProvider>
-              <AddProperty />
-            </HostProvider>
-          }
-        />
-        <Route
-          path="/host/properties"
-          element={
-            <HostProvider>
-              <MyProperties />
-            </HostProvider>
-          }
-        />
-        <Route
-          path="/host/analytics"
-          element={
-            <HostProvider>
-              <PropertyAnalytics />
-            </HostProvider>
-          }
-        />
-        <Route
-          path="/host/reservations"
-          element={
-            <HostProvider>
-              <HostReservations />
-            </HostProvider>
-          }
-        />
-        <Route path="/become-a-host" element={<BecomeAHost />} />
+        >
+          <Route path="/become-a-host" element={<BecomeAHost />} />
+          <Route path="/host/add-property" element={<AddProperty />} />
+
+          <Route path="/host" element={<HostDashboard />} />
+          <Route path="/host/reservations" element={<HostReservations />} />
+          <Route path="/host/properties" element={<HostProperties />} />
+          <Route path="/host/analytics" element={<PropertyAnalytics />} />
+          <Route path="/host/messages" element={<HostMessages />} />
+        </Route>
         TODO: Protected routes for ADMIN pages based on roles and permissions
         <Route
           path="/admin"
@@ -288,6 +263,13 @@ const App = () => {
               </ProtectedAdminPage>
             }
           />
+        </Route>
+        <Route path="/help">
+          <Route index element={<Landing />} />
+          <Route path="article/:id" element={<ArticleDetails />} />
+          <Route path="all-topics" element={<AllTopics />} />
+          <Route path="topic/:id" element={<Cancellations />} />
+          <Route path="search" element={<SearchResultsPage />} />
         </Route>
       </Routes>
       {!isAdminRoute && !isHostRoute && <Footer />}

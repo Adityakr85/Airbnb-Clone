@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser, SignInButton } from "@clerk/clerk-react";
-import airbnbLogo from "../../assets/Airbnb-logo.png";
+import axios from "axios";
+
+const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 
 const steps = [
   {
@@ -23,19 +26,58 @@ const steps = [
   },
 ];
 
-// Set this to false once you're ready to require real sign-in via Clerk.
-// While true, "Get started" skips the auth popup entirely — useful for
-// local development when you don't want to set up email/OTP each time.
 const SKIP_AUTH_FOR_DEV = true;
 
 export default function BecomeAHost() {
   const navigate = useNavigate();
-  const { isSignedIn, isLoaded } = useUser();
+  const { user, isSignedIn, isLoaded } = useUser();
 
-  // Decide where "Get started" should send the user:
-  // first-time hosts go through the wizard, returning hosts who
-  // already have a listing skip straight to their dashboard.
-  const hasListedBefore = localStorage.getItem("hasListedProperty") === "true";
+  const [checkingHost, setCheckingHost] = useState(true);
+  const [hasListedBefore, setHasListedBefore] = useState(false);
+
+  useEffect(() => {
+    async function checkHostStatus() {
+      if (!isLoaded) return;
+
+      if (!SKIP_AUTH_FOR_DEV && !isSignedIn) {
+        setCheckingHost(false);
+        return;
+      }
+
+      if (!user?.id) {
+        setCheckingHost(false);
+        return;
+      }
+
+      try {
+        const res = await axios.get(`${API_BASE}/api/host/dashboard`, {
+          params: { clerk_id: user.id },
+        });
+
+        const properties = res.data?.data?.properties || [];
+
+        if (res.data?.success && properties.length > 0) {
+          setHasListedBefore(true);
+          navigate("/host", { replace: true });
+          return;
+        }
+
+        localStorage.removeItem("hasListedProperty");
+        setHasListedBefore(false);
+      } catch (err) {
+        console.error("Failed to check host status:", err);
+
+        const localStatus =
+          localStorage.getItem("hasListedProperty") === "true";
+
+        setHasListedBefore(localStatus);
+      } finally {
+        setCheckingHost(false);
+      }
+    }
+
+    checkHostStatus();
+  }, [isLoaded, isSignedIn, user?.id, navigate]);
 
   const handleGetStarted = () => {
     if (hasListedBefore) {
@@ -47,31 +89,30 @@ export default function BecomeAHost() {
 
   if (!SKIP_AUTH_FOR_DEV && !isLoaded) return null;
 
-  return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Minimal navbar */}
-      <nav className="flex items-center justify-between px-8 py-5 border-b border-gray-100">
-        <img src={airbnbLogo} alt="Airbnb" className="h-8 w-auto object-contain" />
-        <div className="flex gap-3">
-          <button onClick={() => navigate("/")} className="px-4 py-2 rounded-full text-sm font-semibold hover:bg-gray-100 transition border border-gray-200">
-            Questions?
-          </button>
-          <button onClick={() => navigate("/")} className="px-4 py-2 rounded-full text-sm font-semibold hover:bg-gray-100 transition border border-gray-200">
-            Exit
-          </button>
-        </div>
-      </nav>
+  if (checkingHost) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <p className="text-gray-500">Checking host status...</p>
+      </div>
+    );
+  }
 
+  return (
+    <div className="flex min-h-[calc(100vh-5rem)] flex-col bg-white">
       <div className="flex flex-1 items-center justify-center px-8 py-16">
         <div className="flex w-full max-w-4xl items-center gap-20">
-
           <div className="flex-1">
-            <h1 className="text-4xl font-bold text-gray-900 leading-tight mb-3">
-              It's easy to get<br />started on Airbnb
+            <h1 className="mb-3 text-4xl font-bold leading-tight text-gray-900">
+              It's easy to get
+              <br />
+              started on Airbnb
             </h1>
+
             <p className="text-sm text-gray-500">
               Not listing a home?{" "}
-              <span className="underline cursor-pointer">Host an experience or service</span>
+              <span className="cursor-pointer underline">
+                Host an experience or service
+              </span>
             </p>
           </div>
 
@@ -80,23 +121,32 @@ export default function BecomeAHost() {
               <div key={s.number} className="flex items-center gap-6">
                 <div className="flex-1 border-b border-gray-100 pb-6">
                   <div className="flex items-start gap-4">
-                    <span className="text-lg font-semibold text-gray-400 mt-0.5">{s.number}</span>
+                    <span className="mt-0.5 text-lg font-semibold text-gray-400">
+                      {s.number}
+                    </span>
+
                     <div>
-                      <p className="font-semibold text-gray-900 text-base">{s.title}</p>
-                      <p className="text-sm text-gray-500 mt-1 leading-relaxed">{s.desc}</p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {s.title}
+                      </p>
+                      <p className="mt-1 text-sm leading-relaxed text-gray-500">
+                        {s.desc}
+                      </p>
                     </div>
                   </div>
                 </div>
+
                 <img
                   src={s.img}
                   alt=""
-                  className="w-16 h-16 object-contain flex-shrink-0"
+                  className="h-16 w-16 flex-shrink-0 object-contain"
                   onError={(e) => {
                     e.target.style.display = "none";
                     e.target.nextSibling.style.display = "flex";
                   }}
                 />
-                <span className="w-16 h-16 text-3xl hidden items-center justify-center flex-shrink-0">
+
+                <span className="hidden h-16 w-16 flex-shrink-0 items-center justify-center text-3xl">
                   {["🛏️", "🏠", "🚪"][i]}
                 </span>
               </div>
@@ -105,20 +155,17 @@ export default function BecomeAHost() {
         </div>
       </div>
 
-      <div className="border-t border-gray-200 px-8 py-4 flex justify-end">
+      <div className="flex justify-end border-t border-gray-200 px-8 py-4">
         {!SKIP_AUTH_FOR_DEV && !isSignedIn ? (
-          // Not signed in → "Get started" opens the Clerk sign-in popup
-          // instead of navigating anywhere. Skipped entirely while
-          // SKIP_AUTH_FOR_DEV is true.
           <SignInButton mode="modal">
-            <button className="bg-[#FF385C] hover:bg-[#E31C5F] text-white px-8 py-3 rounded-lg font-semibold text-sm transition">
+            <button className="rounded-lg bg-[#FF385C] px-8 py-3 text-sm font-semibold text-white transition hover:bg-[#E31C5F]">
               Get started
             </button>
           </SignInButton>
         ) : (
           <button
             onClick={handleGetStarted}
-            className="bg-[#FF385C] hover:bg-[#E31C5F] text-white px-8 py-3 rounded-lg font-semibold text-sm transition"
+            className="rounded-lg bg-[#FF385C] px-8 py-3 text-sm font-semibold text-white transition hover:bg-[#E31C5F]"
           >
             Get started
           </button>

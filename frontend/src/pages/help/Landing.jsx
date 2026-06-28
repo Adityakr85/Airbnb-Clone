@@ -166,24 +166,22 @@ export default function HelpCenterLanding() {
             <button 
               type="submit"
               className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FF385C] text-white hover:bg-[#e22b4c] transition shrink-0 cursor-pointer">
-              <Search size={18} strokeWidth={3} />
+              <Search size={16} strokeWidth={3} />
             </button>
           </form>
         </div>
       </div>
 
       {/* TAB BAR WITH GLIDER */}
-      <div className="mb-8 overflow-x-auto scrollbar-hide select-none">
-        <div className="relative flex items-center gap-8 border-b border-gray-200 w-max min-w-full">
+      <div className="mb-10 overflow-x-auto scrollbar-hide select-none">
+        <div className="relative flex gap-8 border-b border-gray-200 w-max min-w-full">
           {staticTabs.map((tab, idx) => (
           <button
             key={tab}
             ref={el => { if (el) tabsRef.current[idx] = el; }}
             onClick={() => setActiveTab(tab)}
-            className={`pb-3 text-[15px] font-medium transition-colors duration-150 whitespace-nowrap cursor-pointer outline-none border-none bg-transparent ${
-                activeTab === tab
-                  ? "text-[#222222]"
-                  : "text-[#717171] hover:text-[#222222]"
+            className={`pb-4 text-[16px] font-medium transition-colors duration-300 cursor-pointer ${
+                activeTab === tab ? "text-[#222222]": "text-[#717171] hover:text-[#222222]"
               }`}
             >
               {tab}

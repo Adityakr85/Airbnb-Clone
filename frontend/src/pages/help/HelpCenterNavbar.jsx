@@ -16,11 +16,9 @@ export default function HelpCenterNavbar() {
   
   const handleSearch = (e) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;!
-    toast.success(`Searching : "${searchQuery}"`, {
-      position: "top-center",
-      style: { borderRadius: '10px', background: '#222', color: '#fff' }
-    });
+    if (searchQuery.trim()) {
+      navigate(`/help/search?q=${encodeURIComponent(searchQuery)}`);
+    }
   };
  
   return (
@@ -95,7 +93,7 @@ export default function HelpCenterNavbar() {
               <div className="absolute right-0 top-14 w-[240px] z-50 rounded-2xl border border-gray-200 bg-white py-2.5 shadow-2xl transition-all animate-in fade-in slide-in-from-top-2 duration-150">
                 {isSignedIn ? (
                   <>
-                    <Link to="/pages/help/all-topic" onClick={() => setIsMenuOpen(false)} className="block px-4 py-2.5 text-[14px] font-normal hover:bg-[#f7f7f7] transition cursor-pointer ">
+                    <Link to="/help/all-topics" onClick={() => setIsMenuOpen(false)} className="block px-4 py-2.5 text-[14px] font-normal hover:bg-[#f7f7f7] transition cursor-pointer ">
                       All topics
                     </Link>
                     <Link to="/host" onClick={() => setIsMenuOpen(false)} className="block px-4 py-2.5 text-[14px] font-normal hover:bg-[#f7f7f7] transition">
@@ -117,7 +115,7 @@ export default function HelpCenterNavbar() {
                   </>
                  ) : (
                   <>
-                    <Link  to="/pages/help/all-topic"  onClick={() => setIsMenuOpen(false)} className="block px-4 py-2.5 text-[14px] font-normal hover:bg-[#f7f7f7] transition">
+                    <Link  to="/help/all-topics"  onClick={() => setIsMenuOpen(false)} className="block px-4 py-2.5 text-[14px] font-normal hover:bg-[#f7f7f7] transition">
                       All topics
                     </Link>
                     <Link 

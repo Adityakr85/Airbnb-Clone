@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Experience;
+use App\Models\Experience\Experience;
 use Illuminate\Database\Seeder;
 
 class ExperiencesSeeder extends Seeder

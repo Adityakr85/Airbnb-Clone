@@ -14,7 +14,11 @@ import {
   Trash2,
   Eye,
 } from "lucide-react";
-import { fetchAdminProperties } from "../../api/admin";
+import {
+  fetchAdminProperties,
+  approveProperty,
+  rejectProperty,
+} from "../../api/admin";
 
 const propertiesData = [
   {
@@ -76,13 +80,14 @@ export default function Properties() {
       if (!isLoaded) return;
 
       const clerkId = user?.id;
+      const role = user?.publicMetadata?.role;
       if (!clerkId) {
         setProperties([]);
         setError("Unable to load properties: User not authenticated");
         return;
       }
 
-      const data = await fetchAdminProperties(clerkId);
+      const data = await fetchAdminProperties(clerkId, role);
       setProperties(data);
       setError(null);
     } catch (err) {
@@ -91,6 +96,44 @@ export default function Properties() {
       setProperties([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Approve property
+  const handleApprove = async (propertyId) => {
+    try {
+      const clerkId = user?.id;
+      const role = user?.publicMetadata?.role;
+      await approveProperty(clerkId, propertyId, role);
+      // Update local state
+      setProperties((prev) =>
+        prev.map((p) =>
+          p.id === propertyId ? { ...p, status: "Approved" } : p,
+        ),
+      );
+      setSelectedProperty(null);
+    } catch (err) {
+      console.error("Failed to approve property:", err);
+      alert("Failed to approve property. Please try again.");
+    }
+  };
+
+  // Reject property
+  const handleReject = async (propertyId) => {
+    try {
+      const clerkId = user?.id;
+      const role = user?.publicMetadata?.role;
+      await rejectProperty(clerkId, propertyId, role);
+      // Update local state
+      setProperties((prev) =>
+        prev.map((p) =>
+          p.id === propertyId ? { ...p, status: "Rejected" } : p,
+        ),
+      );
+      setSelectedProperty(null);
+    } catch (err) {
+      console.error("Failed to reject property:", err);
+      alert("Failed to reject property. Please try again.");
     }
   };
 
@@ -144,10 +187,26 @@ export default function Properties() {
       </div>
 
       <div className="grid gap-5 md:grid-cols-4">
-        <StatCard title="Total Properties" value={properties.length} icon={Home} />
-        <StatCard title="Approved" value={properties.filter(p => p.status === 'Approved').length} icon={CheckCircle} />
-        <StatCard title="Pending" value={properties.filter(p => p.status === 'Pending').length} icon={Clock} />
-        <StatCard title="Rejected" value={properties.filter(p => p.status === 'Rejected').length} icon={XCircle} />
+        <StatCard
+          title="Total Properties"
+          value={properties.length}
+          icon={Home}
+        />
+        <StatCard
+          title="Approved"
+          value={properties.filter((p) => p.status === "Approved").length}
+          icon={CheckCircle}
+        />
+        <StatCard
+          title="Pending"
+          value={properties.filter((p) => p.status === "Pending").length}
+          icon={Clock}
+        />
+        <StatCard
+          title="Rejected"
+          value={properties.filter((p) => p.status === "Rejected").length}
+          icon={XCircle}
+        />
       </div>
 
       <div className="rounded-[1.7rem] border border-gray-100 bg-white p-5 shadow-sm">
@@ -244,111 +303,19 @@ export default function Properties() {
         ))}
       </div>
 
-      <div className="rounded-[1.7rem] border border-gray-100 bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row">
-          <div className="relative flex-1">
-            <Search
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              type="text"
-              placeholder="Search by title, host, or location..."
-              className="w-full rounded-2xl border border-gray-200 py-3 pl-11 pr-4 outline-none transition focus:border-rose-500"
-            />
-          </div>
-
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
-          >
-            <option>All</option>
-            <option>Approved</option>
-            <option>Pending</option>
-            <option>Rejected</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-3">
-        {properties.map((property) => (
-          <div
-            key={property.id}
-            className="overflow-hidden rounded-[1.8rem] border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
-          >
-            <div className="relative h-56">
-              <img
-                src={property.image}
-                alt={property.title}
-                className="h-full w-full object-cover"
-              />
-
-              <Badge status={property.status} />
-
-              <button
-                onClick={() => setSelectedProperty(property)}
-                className="absolute right-4 top-4 rounded-full bg-white/90 p-2 transition hover:bg-white"
-              >
-                <MoreVertical size={18} />
-              </button>
-            </div>
-
-            <div className="p-5">
-              <h2 className="truncate text-lg font-black">{property.title}</h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Hosted by {property.host}
-              </p>
-
-              <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
-                <MapPin size={16} />
-                {property.location}
-              </div>
-
-              <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
-                <span>{property.type}</span>
-                <span className="flex items-center gap-1">
-                  <Star
-                    size={16}
-                    className="text-rose-500"
-                    fill="currentColor"
-                  />
-                  {property.rating}
-                </span>
-              </div>
-
-              <div className="mt-5 flex items-center justify-between">
-                <div>
-                  <p className="text-xl font-black">{property.price}</p>
-                  <p className="text-xs text-gray-500">per night</p>
-                </div>
-
-                <button
-                  onClick={() => setSelectedProperty(property)}
-                  className="rounded-xl bg-gray-100 px-4 py-2 text-sm font-bold transition hover:bg-gray-200"
-                >
-                  Manage
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
       {selectedProperty && (
         <PropertyDrawer
           property={selectedProperty}
           onClose={() => setSelectedProperty(null)}
+          onApprove={handleApprove}
+          onReject={handleReject}
         />
       )}
     </div>
   );
 }
 
-function PropertyDrawer({ property, onClose }) {
+function PropertyDrawer({ property, onClose, onApprove, onReject }) {
   return (
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
@@ -386,7 +353,10 @@ function PropertyDrawer({ property, onClose }) {
         </div>
 
         <div className="mt-8 space-y-3">
-          <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-bold text-white hover:bg-emerald-600">
+          <button
+            onClick={() => onApprove(property.id)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-bold text-white hover:bg-emerald-600"
+          >
             <CheckCircle size={18} />
             Approve Property
           </button>
@@ -396,7 +366,10 @@ function PropertyDrawer({ property, onClose }) {
             Mark as Pending
           </button>
 
-          <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 px-5 py-3 font-bold text-red-600 hover:bg-red-100">
+          <button
+            onClick={() => onReject(property.id)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 px-5 py-3 font-bold text-red-600 hover:bg-red-100"
+          >
             <XCircle size={18} />
             Reject Property
           </button>

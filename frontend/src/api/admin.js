@@ -2,10 +2,12 @@ import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 
-export async function fetchAdminUsers(clerkId) {
+export async function fetchAdminUsers(clerkId, role = null) {
   try {
+    const params = { clerk_id: clerkId };
+    if (role) params.role = role;
     const res = await axios.get(`${API_BASE}/api/admin/users`, {
-      params: { clerk_id: clerkId }
+      params
     });
     return res.data?.data || [];
   } catch (error) {
@@ -14,10 +16,12 @@ export async function fetchAdminUsers(clerkId) {
   }
 }
 
-export async function fetchAdminProperties(clerkId) {
+export async function fetchAdminProperties(clerkId, role = null) {
   try {
+    const params = { clerk_id: clerkId };
+    if (role) params.role = role;
     const res = await axios.get(`${API_BASE}/api/admin/properties`, {
-      params: { clerk_id: clerkId }
+      params
     });
     return res.data?.data || [];
   } catch (error) {
@@ -26,10 +30,12 @@ export async function fetchAdminProperties(clerkId) {
   }
 }
 
-export async function fetchAdminReservations(clerkId) {
+export async function fetchAdminReservations(clerkId, role = null) {
   try {
+    const params = { clerk_id: clerkId };
+    if (role) params.role = role;
     const res = await axios.get(`${API_BASE}/api/admin/reservations`, {
-      params: { clerk_id: clerkId }
+      params
     });
     return res.data?.data || [];
   } catch (error) {
@@ -38,14 +44,66 @@ export async function fetchAdminReservations(clerkId) {
   }
 }
 
-export async function fetchAdminAnalytics(clerkId) {
+export async function fetchAdminAnalytics(clerkId, role = null) {
   try {
+    const params = { clerk_id: clerkId };
+    if (role) params.role = role;
     const res = await axios.get(`${API_BASE}/api/admin/analytics`, {
-      params: { clerk_id: clerkId }
+      params
     });
     return res.data?.data || {};
   } catch (error) {
     console.error("Failed to fetch admin analytics:", error);
+    throw error;
+  }
+}
+
+export async function approveProperty(clerkId, propertyId, role = null) {
+  try {
+    const params = { clerk_id: clerkId };
+    if (role) params.role = role;
+    const res = await axios.post(`${API_BASE}/api/admin/properties/${propertyId}/approve`, null, { params });
+    return res.data;
+  } catch (error) {
+    console.error("Failed to approve property:", error);
+    throw error;
+  }
+}
+
+export async function rejectProperty(clerkId, propertyId, role = null) {
+  try {
+    const params = { clerk_id: clerkId };
+    if (role) params.role = role;
+    const res = await axios.post(`${API_BASE}/api/admin/properties/${propertyId}/reject`, null, { params });
+    return res.data;
+  } catch (error) {
+    console.error("Failed to reject property:", error);
+    throw error;
+  }
+}
+
+export async function fetchAdminNotifications(clerkId, role = null) {
+  try {
+    const params = { clerk_id: clerkId };
+    if (role) params.role = role;
+    const res = await axios.get(`${API_BASE}/api/admin/notifications`, {
+      params
+    });
+    return res.data?.data?.data || res.data?.data || [];
+  } catch (error) {
+    console.error("Failed to fetch admin notifications:", error);
+    throw error;
+  }
+}
+
+export async function sendAdminNotification(clerkId, payload, role = null) {
+  try {
+    const params = { clerk_id: clerkId };
+    if (role) params.role = role;
+    const res = await axios.post(`${API_BASE}/api/admin/notifications/send`, payload, { params });
+    return res.data;
+  } catch (error) {
+    console.error("Failed to send admin notification:", error);
     throw error;
   }
 }
