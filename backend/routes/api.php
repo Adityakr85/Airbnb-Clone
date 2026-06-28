@@ -11,7 +11,10 @@ use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Api\HelpCenterController;
+use App\Http\Controllers\Api\Admin\AdminHelpCenterController;
 
+// Pages routes
 Route::apiResource('properties', PropertyController::class);
 Route::apiResource('experiences', ExperienceController::class);
 Route::apiResource('services', ServiceController::class);
@@ -55,3 +58,17 @@ Route::delete('/user/profile/photo', [UserProfileController::class, 'deletePhoto
 
 // Additional property endpoints
 Route::get('/properties/destinations', [PropertyController::class, 'destinations']);
+
+// Public Endpoints 
+Route::prefix('help-center')->group(function () {
+    Route::get('/top-articles', [HelpCenterController::class, 'getTopArticles']);
+    Route::get('/guides', [HelpCenterController::class, 'getGuides']);
+    Route::get('/explore', [HelpCenterController::class, 'getExploreMore']);
+    Route::get('/article/{id}',[HelpCenterController::class, 'show']);
+    Route::get('/all-topics', [HelpCenterController::class, 'getAllTopics']);
+    Route::get('/topic/{id}', [HelpCenterController::class, 'showTopic']);
+});
+// Admin CMS Endpoints 
+Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+    Route::apiResource('help-content', AdminHelpCenterController::class);
+});

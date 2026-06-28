@@ -19,9 +19,9 @@ export default function Navbar() {
   const { user, isSignedIn } = useUser();
   const [scrolled, setScrolled] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [openMenu, setOpenMenu] = useState("null");
-  const location = useLocation();
+  const [openMenu, setOpenMenu] = useState(null);
 
+  const location = useLocation();
   const [destinationSearch, setDestinationSearch] = useState("");
   const [checkInDate, setCheckInDate] = useState(null);
   const [checkOutDate, setCheckOutDate] = useState(null);
@@ -160,7 +160,7 @@ export default function Navbar() {
           {isSignedIn ? (
             <button
               onClick={() => navigate("/pages/User/UserProfile/Profile")}
-              className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-gray-100 transition hover:bg-gray-200"
+              className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-gray-100 transition hover:bg-gray-200 cursor-pointer"
             >
               <img
                 src={user?.imageUrl}
@@ -171,7 +171,7 @@ export default function Navbar() {
           ) : (
             <button
               onClick={() => setShowLanguageModal(true)}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200 cursor-pointer"
             >
               <Globe size={21} />
             </button>

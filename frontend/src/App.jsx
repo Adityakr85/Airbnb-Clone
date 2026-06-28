@@ -46,15 +46,19 @@ import Analytics from "./pages/Admin/Analytics";
 import ActivityLogs from "./pages/Admin/ActivityLogs";
 import Monitoring from "./pages/Admin/Monitoring";
 import SystemSettings from "./pages/Admin/SystemSettings";
-import Cancellations from './pages/help/Cancellations';
-import HelpCenterNavbar from "./pages/help/HelpCenterNavbar";
+import Landing from "./pages/Help/Landing";
+import ArticleDetails from "./pages/Help/ArticleDetails";
+import AllTopics from "./pages/Help/AllTopics";
+import Cancellations from './pages/Help/Cancellations';
+import HelpCenterNavbar from "./pages/Help/HelpCenterNavbar";
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
   const isHostRoute =
     useLocation().pathname.startsWith("/host") ||
     useLocation().pathname === "/become-a-host";
-  const isHelpRoute = useLocation().pathname.startsWith("/help");
+  const currentPath = useLocation().pathname;
+  const isHelpRoute = currentPath.startsWith("/help") || currentPath.startsWith("/pages/help");
   return (
     <>
       {!isAdminRoute && !isHostRoute && (
@@ -62,7 +66,10 @@ const App = () => {
       )}
       <Toaster />
       <Routes>
-        <Route path="/help/Cancellations" element={<Cancellations />} />
+        <Route path="/help" element={<Landing />} />
+        <Route path="/help/article/:id" element={<ArticleDetails />} />
+        <Route path="/help/all-topics" element={<AllTopics />} />
+        <Route path="/help/topic/:id" element={<Cancellations />} />
         <Route path="/" element={<Home />} />
         <Route path="/experiences" element={<Experiences />} />
         <Route path="/experience/:id" element={<ExperienceDetails />} />

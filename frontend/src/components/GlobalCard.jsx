@@ -24,7 +24,9 @@ function getSafeImageArray(item) {
 export default function GlobalCard({ 
   item, 
   routePrefix, 
-  showRating = true 
+  showRating = true,
+  showWishlist = true,
+  showBadge = true
 }) {
   const [imageIndex, setImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -100,22 +102,25 @@ export default function GlobalCard({
             Image Unavailable
           </div>
         )}
+        {showBadge && (
+          <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-[13px] font-semibold text-[#222222] shadow-sm">
+            Guest favourite
+          </span>
+        )}
 
-        <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-[13px] font-semibold text-[#222222] shadow-sm">
-          Guest favourite
-        </span>
-
-        <button 
-          onClick={toggleWishlist}
-          className="absolute right-3 top-3 z-10 drop-shadow-md transition hover:scale-110"
-        >
-          <Heart 
-            size={24} 
-            strokeWidth={1.5}
-            fill={isWishlisted ? "#FF385C" : "rgba(0,0,0,0.3)"} 
-            color={isWishlisted ? "#FF385C" : "white"} 
-          />
-        </button>
+        {showWishlist && (
+          <button 
+            onClick={toggleWishlist}
+            className="absolute right-3 top-3 z-10 drop-shadow-md transition hover:scale-110"
+          >
+            <Heart 
+              size={24} 
+              strokeWidth={1.5}
+              fill={isWishlisted ? "#FF385C" : "rgba(0,0,0,0.3)"} 
+              color={isWishlisted ? "#FF385C" : "white"} 
+            />
+          </button>
+        )}
 
         {hasMultipleImages && (
           <div className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">
@@ -151,21 +156,24 @@ export default function GlobalCard({
         <h3 className="truncate text-[15px] font-semibold text-[#222222]">
           {item.title}
         </h3>
-        
-        <div className="mt-0.5 flex items-center text-[15px] text-[#717171]">
-          <span className="text-[#222222]">{displayPrice}</span>
-          <span className="ml-1">for 1 night</span>
+        {item.type === "article" ? (
+          <span className="mt-0.5 text-[14px] text-[#717171]">Official Guide</span>
+        ) : (
+          <div className="mt-0.5 flex items-center text-[15px] text-[#717171]">
+            <span className="text-[#222222]">{displayPrice}</span>
+            <span className="ml-1">for 1 night</span>
           
-          {showRating && item.rating && (
-            <>
-              <span className="mx-1.5">·</span>
-              <span className="flex items-center gap-1 text-[#222222]">
-                <Star size={12} className="fill-current text-[#222222]" />
-                {item.rating}
-              </span>
-            </>
-          )}
-        </div>
+            {showRating && item.rating && (
+              <>
+                <span className="mx-1.5">·</span>
+                <span className="flex items-center gap-1 text-[#222222]">
+                  <Star size={12} className="fill-current text-[#222222]" />
+                  {item.rating}
+                </span>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </Link>
   );
