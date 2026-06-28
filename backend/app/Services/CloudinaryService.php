@@ -139,7 +139,7 @@ class CloudinaryService
         return Storage::disk('public')->delete($path);
     }
 
-    /**
+/**
      * Generate Cloudinary API signature
      */
     protected function generateSignature(array $params): string
@@ -147,10 +147,10 @@ class CloudinaryService
         // Sort params by key
         ksort($params);
         
-        // Build string to sign
+        // Build string to sign (exclude api_key, signature, and file per Cloudinary docs)
         $string = '';
         foreach ($params as $key => $value) {
-            if ($key !== 'signature' && $key !== 'file') {
+            if ($key !== 'signature' && $key !== 'file' && $key !== 'api_key') {
                 $string .= $key . '=' . $value . '&';
             }
         }

@@ -125,7 +125,9 @@ export function HostProvider({ children }) {
 
   const deleteProperty = async (id) => {
     try {
-      const res = await axios.delete(`${API_BASE}/api/properties/${id}`);
+      const res = await axios.delete(`${API_BASE}/api/properties/${id}`, {
+        data: { clerk_id: user.id },
+      });
       if (res.data?.success) {
         setProperties((prev) => prev.filter((p) => p.id !== id));
       }

@@ -8,17 +8,32 @@ import {
   Bath,
   Users,
   MapPin,
+  Trash2,
 } from "lucide-react";
 import { useHost } from "./HostContext";
+import { useState } from "react";
 
 export default function HostProperties() {
-  const { properties } = useHost();
+  const { properties, deleteProperty } = useHost();
+  const [deletingId, setDeletingId] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(null);
 
   const activeCount = properties.filter((p) => p.status === "active").length;
   const totalViews = properties.reduce(
     (sum, p) => sum + Number(p.views || 0),
     0,
   );
+
+  const handleDelete = async (id) => {
+    setShowConfirm(id);
+  };
+
+  const confirmDelete = async (id) => {
+    setDeletingId(id);
+    setShowConfirm(null);
+    await deleteProperty(id);
+    setDeletingId(null);
+  };
   return (
     <div className="min-h-screen bg-gray-50">
       <section className="border-b border-gray-200 bg-white px-6 py-8">
@@ -151,9 +166,35 @@ export default function HostProperties() {
                         Edit listing
                       </button>
 
-                      <button className="rounded-full border border-red-200 px-5 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-50">
-                        Delete
-                      </button>
+                      {showConfirm === p.id ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => confirmDelete(p.id)}
+                            disabled={deletingId === p.id}
+                            className="rounded-full border border-red-200 px-5 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-50"
+                          >
+                            {deletingId === p.id ? (
+                              <span className="flex items-center gap-1"><span className="animate-spin">⏳</span> Deleting...</span>
+                            ) : (
+                              "Confirm"
+                            )}
+                          </button>
+                          <button
+                            onClick={() => setShowConfirm(null)}
+                            className="rounded-full border border-gray-200 px-5 py-2 text-sm font-semibold text-gray-500 transition hover:bg-gray-50"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          className="rounded-full border border-red-200 px-5 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-50 flex items-center gap-1"
+                        >
+                          <Trash2 size={14} />
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

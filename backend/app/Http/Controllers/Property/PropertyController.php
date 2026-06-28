@@ -290,8 +290,26 @@ class PropertyController extends Controller
         ]);
     }
 
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
+        $clerkId = $request->input('clerk_id');
+
+        if (!$clerkId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'clerk_id required',
+            ], 400);
+        }
+
+        $user = User::getOrCreateFromClerkId($clerkId);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found',
+            ], 404);
+        }
+
         $property = Property::with('images')->find($id);
 
         if (!$property) {
@@ -299,6 +317,13 @@ class PropertyController extends Controller
                 'success' => false,
                 'message' => 'Not found',
             ], 404);
+        }
+
+        if ($property->host_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
         }
 
         // Delete images from Cloudinary
