@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, forwardRef} from "react";
 import axios from "axios";
 import { Search, Globe, User, Bell, X, Check } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -22,9 +22,9 @@ export default function Navbar() {
   const { user, isSignedIn, isLoaded } = useUser();
   const [scrolled, setScrolled] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [openMenu, setOpenMenu] = useState("null");
-  const location = useLocation();
+  const [openMenu, setOpenMenu] = useState(null);
 
+  const location = useLocation();
   const [destinationSearch, setDestinationSearch] = useState("");
   const [checkInDate, setCheckInDate] = useState(null);
   const [checkOutDate, setCheckOutDate] = useState(null);
@@ -37,7 +37,7 @@ export default function Navbar() {
   const [adults, setAdults] = useState(0);
   const [childrenCount, setChildrenCount] = useState(0);
   const [infants, setInfants] = useState(0);
-const [pets, setPets] = useState(0);
+  const [pets, setPets] = useState(0);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   const [serviceType, setServiceType] = useState("");
@@ -47,6 +47,29 @@ const [pets, setPets] = useState(0);
   const [dropdownNotifications, setDropdownNotifications] = useState([]);
   const [loadingDropdown, setLoadingDropdown] = useState(false);
   const notificationDropdownRef = useRef(null);
+  // Add these right below your other state variables
+  const [sliderStyle, setSliderStyle] = useState({ left: 0, width: 0 });
+  const tabsRef = useRef([]);
+
+  // Add this new useEffect to measure the active tab
+  useEffect(() => {
+    const measureTab = () => {
+      // Find which tab in the TABS array matches our current URL
+      const activeIndex = TABS.findIndex(tab => tab.path === location.pathname);
+      
+      if (activeIndex !== -1 && tabsRef.current[activeIndex]) {
+        const node = tabsRef.current[activeIndex];
+        setSliderStyle({
+          left: node.offsetLeft,
+          width: node.offsetWidth,
+        });
+      }
+    };
+
+    setTimeout(measureTab, 50); // Slight delay ensures fonts/icons load first
+    window.addEventListener("resize", measureTab);
+    return () => window.removeEventListener("resize", measureTab);
+  }, [location.pathname, isExpanded]);
 
   useEffect(() => {
     async function checkHostStatus() {
@@ -229,13 +252,23 @@ const [pets, setPets] = useState(0);
                 className="flex items-center gap-16  transition-all duration-500"
                 onMouseDown={(e) => e.stopPropagation()}
               >
-                {TABS.map((tab) => (
+                {TABS.map((tab, idx) => (
                   <TopTab
                     key={tab.label}
                     {...tab}
                     active={location.pathname === tab.path}
+                    ref={(el) => (tabsRef.current[idx] = el)}
                   />
                 ))}
+                {sliderStyle.width > 0 && (
+                  <div
+                    className="absolute -bottom-3 h-[2px] rounded-full bg-black transition-all duration-300 ease-out pointer-events-none"
+                    style={{
+                      left: `${sliderStyle.left}px`,
+                      width: `${sliderStyle.width}px`,
+                    }}
+                  />
+                )}
               </div>
             )}
           </div>
@@ -345,7 +378,7 @@ const [pets, setPets] = useState(0);
           ) : (
             <button
               onClick={() => setShowLanguageModal(true)}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200 cursor-pointer"
             >
               <Globe size={21} />
             </button>
@@ -409,10 +442,11 @@ const [pets, setPets] = useState(0);
   );
 }
 
-function TopTab({ icon, label, path, badge, active = false }) {
+const TopTab = forwardRef(({ icon, label, path, badge, active = false }, ref) => {
   return (
     <Link
       to={path}
+      ref={ref}
       className={`group relative flex items-center gap-2 transition-all duration-300 hover:scale-105 ${active ? "text-black" : "text-gray-500 hover:text-black"}`}
     >
       {badge && (
@@ -424,12 +458,9 @@ function TopTab({ icon, label, path, badge, active = false }) {
         {icon}
       </span>
       <span className="text-sm font-medium text-gray-800">{label}</span>
-      {active && (
-        <span className="absolute -bottom-3 left-0 h-[2px] w-full rounded-full bg-black" />
-      )}
     </Link>
   );
-}
+});
 
 function SmallSearchBar({
   destination,

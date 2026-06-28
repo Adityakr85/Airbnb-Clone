@@ -12,7 +12,7 @@ import PropertyDetails from "./pages/PropertyDetails";
 import Wishlist from "./pages/User/Wishlist";
 import Trips from "./pages/User/Trips";
 import BookingDetails from "./pages/User/BookingDetails";
-import Messages from "./pages/User/Messages";
+import Messages from "./pages/User/SafetyMessages";
 import Profile from "./pages/User/UserProfile/Profile";
 import EditProfile from "./pages/User/UserProfile/EditProfile";
 import Notifications from "./pages/User/Notifications";
@@ -48,15 +48,20 @@ import Analytics from "./pages/Admin/Analytics";
 import ActivityLogs from "./pages/Admin/ActivityLogs";
 import Monitoring from "./pages/Admin/Monitoring";
 import SystemSettings from "./pages/Admin/SystemSettings";
-
-import HelpCenterNavbar from "./pages/help/HelpCenterNavbar";
+import Landing from "./pages/Help/Landing";
+import ArticleDetails from "./pages/Help/ArticleDetails";
+import AllTopics from "./pages/Help/AllTopics";
+import Cancellations from './pages/Help/Cancellations';
+import HelpCenterNavbar from "./pages/Help/HelpCenterNavbar";
+import SearchResultsPage from "./pages/Help/SearchResultsPages";
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
   const isHostRoute =
     useLocation().pathname.startsWith("/host") ||
     useLocation().pathname === "/become-a-host";
-  const isHelpRoute = useLocation().pathname.startsWith("/help");
+  const currentPath = useLocation().pathname;
+  const isHelpRoute = currentPath.startsWith("/help") || currentPath.startsWith("/pages/help");
   return (
     <>
       {!isAdminRoute &&
@@ -75,7 +80,7 @@ const App = () => {
           path="/pages/User/BookingDetails/:id"
           element={<BookingDetails />}
         />
-        <Route path="/pages/User/Messages" element={<Messages />} />
+        <Route path="/pages/User/SafetyMessages" element={<Messages />} />
         <Route path="/pages/User/UserProfile/Profile" element={<Profile />} />
         <Route
           path="/pages/User/UserProfile/EditProfile"
@@ -258,6 +263,13 @@ const App = () => {
               </ProtectedAdminPage>
             }
           />
+        </Route>
+        <Route path="/help">
+          <Route index element={<Landing />} />
+          <Route path="article/:id" element={<ArticleDetails />} />
+          <Route path="all-topics" element={<AllTopics />} />
+          <Route path="topic/:id" element={<Cancellations />} />
+          <Route path="search" element={<SearchResultsPage />} />
         </Route>
       </Routes>
       {!isAdminRoute && !isHostRoute && <Footer />}

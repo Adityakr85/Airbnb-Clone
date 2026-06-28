@@ -53,7 +53,7 @@ export default function MenuDropdown() {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 cursor-pointer"
       >
         <Menu size={22} />
       </button>
@@ -114,7 +114,7 @@ export default function MenuDropdown() {
             <MenuItem
               icon={MessageSquare}
               label="Messages"
-              to="/pages/User/Messages"
+              to="/pages/User/SafetyMessages"
             />
 
             <MenuItem
