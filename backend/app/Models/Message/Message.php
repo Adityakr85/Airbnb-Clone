@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Message;
 
+use App\Models\User\User;
+use App\Models\Reservation\Reservation;
 use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model

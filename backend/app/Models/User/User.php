@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\User;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\User\UserProfile;
+use App\Models\Reservation\Reservation;
+use App\Models\Property\Property;
 
 class User extends Authenticatable
 {

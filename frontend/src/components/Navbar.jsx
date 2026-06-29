@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Search, Globe, User } from "lucide-react";
+import { Search, Globe } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useUser, SignInButton } from "@clerk/clerk-react";
 
@@ -19,11 +19,12 @@ const TABS = [
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isSignedIn, isLoaded } = useUser();
+
   const [scrolled, setScrolled] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [openMenu, setOpenMenu] = useState("null");
-  const location = useLocation();
+  const [openMenu, setOpenMenu] = useState(null);
 
   const [destinationSearch, setDestinationSearch] = useState("");
   const [checkInDate, setCheckInDate] = useState(null);
@@ -38,8 +39,8 @@ export default function Navbar() {
   const [childrenCount, setChildrenCount] = useState(0);
   const [infants, setInfants] = useState(0);
   const [pets, setPets] = useState(0);
-  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [serviceType, setServiceType] = useState("");
   const [isHost, setIsHost] = useState(false);
 
@@ -73,22 +74,30 @@ export default function Navbar() {
 
   useEffect(() => {
     let lastY = window.scrollY;
+
     const handleScroll = () => {
       setScrolled(window.scrollY > 70);
-      if (Math.abs(window.scrollY - lastY) > 150) setIsExpanded(false);
+
+      if (Math.abs(window.scrollY - lastY) > 150) {
+        setIsExpanded(false);
+      }
+
       lastY = window.scrollY;
     };
 
     window.addEventListener("scroll", handleScroll);
     handleScroll();
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const formatGuestText = () => {
     const total = adults + childrenCount;
+
     if (!total && !infants && !pets) return "Add guests";
 
     const parts = [`${total} guest${total !== 1 ? "s" : ""}`];
+
     if (infants) parts.push(`${infants} infant${infants !== 1 ? "s" : ""}`);
     if (pets) parts.push(`${pets} pet${pets !== 1 ? "s" : ""}`);
 
@@ -98,30 +107,40 @@ export default function Navbar() {
   const formatWhenText = () => {
     if (activeTab === "flexible") {
       if (!flexibleMonths.length) return `Any ${stayLength}`;
+
       const months = flexibleMonths.map((id) =>
         new Date(...id.split("-").reverse()).toLocaleDateString("en-US", {
           month: "short",
         }),
       );
+
       return `A ${stayLength} in ${months.join(", ")}`;
     }
 
     if (!checkInDate) return "Anytime";
+
     const fmt = (d) =>
-      d?.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      d?.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+
     const start = fmt(checkInDate);
+
     if (!checkOutDate) return start;
 
     const isSameDay = checkInDate.getTime() === checkOutDate.getTime();
+
     const isSameMonth =
       checkInDate.getMonth() === checkOutDate.getMonth() &&
       checkInDate.getFullYear() === checkOutDate.getFullYear();
 
-    let text = isSameDay
+    const text = isSameDay
       ? start
       : isSameMonth
         ? `${start} – ${checkOutDate.getDate()}`
         : `${start} – ${fmt(checkOutDate)}`;
+
     return exactDatesFlex === "exact"
       ? text
       : `${text} ± ${exactDatesFlex} day${exactDatesFlex === "1" ? "" : "s"}`;
@@ -135,7 +154,11 @@ export default function Navbar() {
         }`}
       >
         <Link to="/" className="z-20 flex items-center">
-          <img src={stayfinderLogo} className="h-12 w-auto object-contain" />
+          <img
+            src={stayfinderLogo}
+            alt="Stayfinder"
+            className="h-12 w-auto object-contain"
+          />
         </Link>
 
         {!hideSearchBar && (
@@ -159,7 +182,7 @@ export default function Navbar() {
               />
             ) : (
               <div
-                className="flex items-center gap-16  transition-all duration-500"
+                className="flex items-center gap-16 transition-all duration-500"
                 onMouseDown={(e) => e.stopPropagation()}
               >
                 {TABS.map((tab) => (
@@ -209,13 +232,22 @@ export default function Navbar() {
               <Globe size={21} />
             </button>
           )}
+
           <MenuDropdown />
         </div>
       </nav>
 
       {!hideSearchBar && (
         <div
-          className={`hidden justify-center transition-all duration-500 ease-in-out md:flex ${scrolled ? "absolute left-0 top-full z-40 w-full bg-white" : "w-full"} ${scrolled && !isExpanded ? "max-h-0 overflow-hidden pb-0 opacity-0" : "max-h-28 overflow-visible pb-8 opacity-100"}`}
+          className={`hidden justify-center transition-all duration-500 ease-in-out md:flex ${
+            scrolled
+              ? "absolute left-0 top-full z-40 w-full bg-white"
+              : "w-full"
+          } ${
+            scrolled && !isExpanded
+              ? "max-h-0 overflow-hidden pb-0 opacity-0"
+              : "max-h-28 overflow-visible pb-8 opacity-100"
+          }`}
         >
           <SearchBar
             setIsExpanded={setIsExpanded}
@@ -272,17 +304,22 @@ function TopTab({ icon, label, path, badge, active = false }) {
   return (
     <Link
       to={path}
-      className={`group relative flex items-center gap-2 transition-all duration-300 hover:scale-105 ${active ? "text-black" : "text-gray-500 hover:text-black"}`}
+      className={`group relative flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
+        active ? "text-black" : "text-gray-500 hover:text-black"
+      }`}
     >
       {badge && (
         <span className="absolute left-7 -top-4 z-10 rounded-full bg-[#2A3B4C] px-1.5 py-[2px] text-[9px] font-bold tracking-wider text-white shadow-sm">
           {badge}
         </span>
       )}
+
       <span className="text-[26px] leading-none transition-transform duration-300 group-hover:-translate-y-1">
         {icon}
       </span>
+
       <span className="text-sm font-medium text-gray-800">{label}</span>
+
       {active && (
         <span className="absolute -bottom-3 left-0 h-[2px] w-full rounded-full bg-black" />
       )}
@@ -301,11 +338,11 @@ function SmallSearchBar({
     e.stopPropagation();
     onMenuClick(menu);
   };
+
   const stop = (e) => e.stopPropagation();
+
   const btnClass =
     "h-full max-w-40 truncate px-5 text-sm cursor-pointer font-medium text-gray-700 transition hover:bg-gray-100";
-  const isDefaultThirdPill =
-    guests === "Add guests" || guests === "Add service";
 
   return (
     <div
@@ -320,6 +357,7 @@ function SmallSearchBar({
       >
         {destination}
       </button>
+
       <div className="h-6 w-px bg-gray-300" />
 
       <button
@@ -330,13 +368,14 @@ function SmallSearchBar({
       >
         {when}
       </button>
+
       <div className="h-6 w-px bg-gray-300" />
 
       <button
         type="button"
         onClick={(e) => click(e, thirdMenuType)}
         onMouseDown={stop}
-        className={`${btnClass} flex items-center !px-3 rounded-r-full`}
+        className={`${btnClass} flex items-center rounded-r-full !px-3`}
       >
         <span className="mr-2 max-w-30 truncate">{guests}</span>
       </button>

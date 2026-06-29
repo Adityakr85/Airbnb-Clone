@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Guest;
 
-use App\Models\Review;
-use App\Models\User;
-use App\Models\Reservation;
+use App\Http\Controllers\Controller;
+use App\Models\Review\Review;
+use App\Models\User\User;
+use App\Models\Reservation\Reservation;
+use App\Models\Property\Property;
 use Illuminate\Http\Request;
 
 class ReviewController extends Controller
@@ -85,7 +87,7 @@ class ReviewController extends Controller
 
         // Update property average rating
         $avgRating = Review::where('property_id', $propertyId)->avg('rating');
-        \App\Models\Property::where('id', $propertyId)->update(['rating' => round($avgRating, 2)]);
+        \App\Models\Property\Property::where('id', $propertyId)->update(['rating' => round($avgRating, 2)]);
 
         return response()->json(['success' => true, 'data' => $review], 201);
     }

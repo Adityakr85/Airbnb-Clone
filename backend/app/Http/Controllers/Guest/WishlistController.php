@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Guest;
 
-use App\Models\Wishlist;
-use App\Models\User;
-use App\Models\Property;
+use App\Http\Controllers\Controller;
+use App\Models\Wishlist\Wishlist;
+use App\Models\User\User;
+use App\Models\Property\Property;
 use Illuminate\Http\Request;
 
 class WishlistController extends Controller

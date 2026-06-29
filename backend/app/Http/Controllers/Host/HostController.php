@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Host;
 
-use App\Models\User;
-use App\Models\Property;
-use App\Models\Reservation;
+use App\Http\Controllers\Controller;
+use App\Models\User\User;
+use App\Models\Property\Property;
+use App\Models\Reservation\Reservation;
 use Illuminate\Http\Request;
 
 class HostController extends Controller
@@ -17,15 +18,31 @@ class HostController extends Controller
             return response()->json(['success' => false, 'message' => 'clerk_id required'], 400);
         }
 
-        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'host', $role);
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', 'host', $role);
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'User not found'], 404);
         }
 
         // Get properties
-        $properties = Property::where('host_id', $user->id)->get()->map(function ($property) {
-            $images = is_array($property->images) ? $property->images : [];
-            $firstImage = $images[0] ?? null;
+        $properties = Property::with('images')->where('host_id', $user->id)->get()->map(function ($property) {
+            // Get images from relationship
+            $images = $property->images->pluck('image_path')->toArray();
+            $coverImage = $property->images->where('is_cover', true)->first();
+            $firstImage = $coverImage ? $coverImage->image_path : ($images[0] ?? null);
+
+            $imageUrl = $firstImage ? 
+                (filter_var($firstImage, FILTER_VALIDATE_URL) ? $firstImage : asset('storage/' . ltrim($firstImage, '/'))) :
+                null;
+
+            // Determine status display
+            $status = $property->status;
+            $moderationStatus = $property->moderation_status;
+            $displayStatus = 'Pending';
+            if ($moderationStatus) {
+                $displayStatus = ucfirst($moderationStatus);
+            } elseif ($status) {
+                $displayStatus = ucfirst($status);
+            }
 
             return [
                 'id' => $property->id,
@@ -34,10 +51,13 @@ class HostController extends Controller
                 'rating' => (float) ($property->rating ?? 0),
                 'views' => (int) ($property->views ?? 0),
                 'bookings' => (int) ($property->bookings ?? 0),
-                // HostDashboard uses price.toLocaleString("en-IN")
                 'price' => (float) ($property->price ?? 0),
                 'earnings' => (float) ($property->earnings ?? 0),
-                'image' => $firstImage,
+                'image' => $imageUrl,
+                'images' => $images,
+                'status' => $status,
+                'moderation_status' => $moderationStatus,
+                'display_status' => $displayStatus,
             ];
         })->values();
 
@@ -49,12 +69,18 @@ class HostController extends Controller
 
         // Map reservations for frontend expectations
         $mappedReservations = $reservations->map(function ($r) {
+            $images = $r->property->images ?? [];
+            $firstImage = $images[0] ?? null;
+            
             return [
                 'id' => $r->id,
                 'property_id' => $r->property_id,
                 'property_title' => $r->property ? $r->property->title : '',
+                'propertyTitle' => $r->property ? $r->property->title : '',
                 'guest' => $r->guest ? [
                     'name' => $r->guest->name,
+                    'email' => $r->guest->email,
+                    'phone' => $r->guest->phone ?? null,
                     'avatar' => $r->guest->profile_image 
                         ? (filter_var($r->guest->profile_image, FILTER_VALIDATE_URL) 
                             ? $r->guest->profile_image 
@@ -62,14 +88,28 @@ class HostController extends Controller
                         : null,
                 ] : [
                     'name' => 'Guest',
+                    'email' => null,
+                    'phone' => null,
                     'avatar' => null,
                 ],
                 'check_in' => $r->check_in,
                 'check_out' => $r->check_out,
+                'checkIn' => $r->check_in,
+                'checkOut' => $r->check_out,
                 'status' => $r->status,
+                'payment_status' => $r->payment_status,
                 'total' => (float) $r->total,
                 'guests' => $r->guests,
+                'message' => $r->message,
                 'created_at' => $r->created_at,
+                'property' => $r->property ? [
+                    'id' => $r->property->id,
+                    'title' => $r->property->title,
+                    'location' => $r->property->location,
+                    'images' => $images,
+                    'image' => $firstImage,
+                    'price' => (float) $r->property->price,
+                ] : null,
             ];
         })->values();
 

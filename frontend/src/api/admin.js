@@ -81,3 +81,29 @@ export async function rejectProperty(clerkId, propertyId, role = null) {
     throw error;
   }
 }
+
+export async function fetchAdminNotifications(clerkId, role = null) {
+  try {
+    const params = { clerk_id: clerkId };
+    if (role) params.role = role;
+    const res = await axios.get(`${API_BASE}/api/admin/notifications`, {
+      params
+    });
+    return res.data?.data?.data || res.data?.data || [];
+  } catch (error) {
+    console.error("Failed to fetch admin notifications:", error);
+    throw error;
+  }
+}
+
+export async function sendAdminNotification(clerkId, payload, role = null) {
+  try {
+    const params = { clerk_id: clerkId };
+    if (role) params.role = role;
+    const res = await axios.post(`${API_BASE}/api/admin/notifications/send`, payload, { params });
+    return res.data;
+  } catch (error) {
+    console.error("Failed to send admin notification:", error);
+    throw error;
+  }
+}

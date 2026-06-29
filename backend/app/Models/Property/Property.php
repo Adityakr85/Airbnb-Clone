@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Property;
 
+use App\Models\User\User;
+use App\Models\Property\PropertyImage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 

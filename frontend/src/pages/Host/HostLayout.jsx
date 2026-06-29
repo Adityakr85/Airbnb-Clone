@@ -9,6 +9,7 @@ const navLinks = [
   { label: "Analytics", to: "/host/analytics" },
   { label: "Messages", to: "/host/messages" },
 ];
+
 const wizardRoutes = ["/become-a-host", "/host/add-property"];
 
 export default function HostLayout() {
@@ -23,7 +24,11 @@ export default function HostLayout() {
       <header className="sticky top-0 z-50 h-20 border-b border-gray-200 bg-white">
         <div className="flex h-full w-full items-center justify-between px-8">
           <Link to="/" className="flex items-center">
-            <img src={stayfinderLogo} className="h-12 w-auto object-contain" />
+            <img
+              src={stayfinderLogo}
+              alt="Stayfinder"
+              className="h-12 w-auto object-contain"
+            />
           </Link>
 
           {!isWizardPage && (

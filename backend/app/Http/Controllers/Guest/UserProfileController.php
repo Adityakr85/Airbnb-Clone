@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Guest;
 
-use App\Models\UserProfile;
+use App\Http\Controllers\Controller;
+use App\Models\User\UserProfile;
+use App\Models\User\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -23,7 +25,7 @@ class UserProfileController extends Controller
         }
 
         // Auto-create/sync User
-        \App\Models\User::getOrCreateFromClerkId($userId);
+        User::getOrCreateFromClerkId($userId);
 
         $profile = UserProfile::firstOrCreate(['clerk_id' => $userId]);
 
