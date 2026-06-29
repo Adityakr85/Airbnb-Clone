@@ -12,10 +12,13 @@ use App\Http\Controllers\Guest\ReviewController;
 use App\Http\Controllers\Guest\MessageController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Api\NotificationController;
+use  App\Http\Controllers\Api\HelpCenterController;
+use App\Http\Controllers\Api\Admin\AdminHelpCenterController;
 
 // Additional property endpoints
 Route::get('/properties/destinations', [PropertyController::class, 'destinations']);
 
+// Pages routes
 Route::apiResource('properties', PropertyController::class);
 Route::apiResource('experiences', ExperienceController::class);
 Route::apiResource('services', ServiceController::class);
@@ -64,6 +67,19 @@ Route::put('/user/profile', [UserProfileController::class, 'update']);
 Route::post('/user/profile/photo', [UserProfileController::class, 'uploadPhoto']);
 Route::delete('/user/profile/photo', [UserProfileController::class, 'deletePhoto']);
 
+// Public Endpoints 
+Route::prefix('help-center')->group(function () {
+    Route::get('/top-articles', [HelpCenterController::class, 'getTopArticles']);
+    Route::get('/guides', [HelpCenterController::class, 'getGuides']);
+    Route::get('/explore', [HelpCenterController::class, 'getExploreMore']);
+    Route::get('/article/{id}',[HelpCenterController::class, 'show']);
+    Route::get('/all-topics', [HelpCenterController::class, 'getAllTopics']);
+    Route::get('/topic/{id}', [HelpCenterController::class, 'showTopic']);
+});
+// Admin CMS Endpoints 
+Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+    Route::apiResource('help-content', AdminHelpCenterController::class);
+});
 // Notification routes
 Route::get('/notifications', [NotificationController::class, 'index']);
 Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);

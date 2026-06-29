@@ -26,7 +26,6 @@ import HostDashboard from "./pages/Host/HostDashboard";
 import HostReservations from "./pages/Host/HostReservations";
 import HostProperties from "./pages/Host/HostProperties";
 import PropertyAnalytics from "./pages/Host/PropertyAnalytics";
-import HostMessages from "./pages/Host/HostMessages";
 
 import ProtectedAdminPage from "./pages/Admin/ProtectedAdminPage";
 import AdminLayout from "./pages/Admin/AdminLayout";
@@ -48,15 +47,21 @@ import Analytics from "./pages/Admin/Analytics";
 import ActivityLogs from "./pages/Admin/ActivityLogs";
 import Monitoring from "./pages/Admin/Monitoring";
 import SystemSettings from "./pages/Admin/SystemSettings";
-
-import HelpCenterNavbar from "./pages/help/HelpCenterNavbar";
+import Landing from "./pages/Help/Landing";
+import ArticleDetails from "./pages/Help/ArticleDetails";
+import AllTopics from "./pages/Help/AllTopics";
+import Cancellations from "./pages/Help/Cancellations";
+import HelpCenterNavbar from "./pages/Help/HelpCenterNavbar";
+import SearchResultsPage from "./pages/Help/SearchResultsPages";
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
   const isHostRoute =
     useLocation().pathname.startsWith("/host") ||
     useLocation().pathname === "/become-a-host";
-  const isHelpRoute = useLocation().pathname.startsWith("/help");
+  const currentPath = useLocation().pathname;
+  const isHelpRoute =
+    currentPath.startsWith("/help") || currentPath.startsWith("/pages/help");
   return (
     <>
       {!isAdminRoute &&
@@ -101,7 +106,6 @@ const App = () => {
           <Route path="/host/reservations" element={<HostReservations />} />
           <Route path="/host/properties" element={<HostProperties />} />
           <Route path="/host/analytics" element={<PropertyAnalytics />} />
-          <Route path="/host/messages" element={<HostMessages />} />
         </Route>
         TODO: Protected routes for ADMIN pages based on roles and permissions
         <Route
@@ -258,6 +262,13 @@ const App = () => {
               </ProtectedAdminPage>
             }
           />
+        </Route>
+        <Route path="/help">
+          <Route index element={<Landing />} />
+          <Route path="article/:id" element={<ArticleDetails />} />
+          <Route path="all-topics" element={<AllTopics />} />
+          <Route path="topic/:id" element={<Cancellations />} />
+          <Route path="search" element={<SearchResultsPage />} />
         </Route>
       </Routes>
       {!isAdminRoute && !isHostRoute && <Footer />}

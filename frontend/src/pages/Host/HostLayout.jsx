@@ -7,7 +7,6 @@ const navLinks = [
   { label: "Reservations", to: "/host/reservations" },
   { label: "Listings", to: "/host/properties" },
   { label: "Analytics", to: "/host/analytics" },
-  { label: "Messages", to: "/host/messages" },
 ];
 
 const wizardRoutes = ["/become-a-host", "/host/add-property"];

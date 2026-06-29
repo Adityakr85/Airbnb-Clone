@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, forwardRef } from "react";
 import axios from "axios";
 import { Search, Globe } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -12,7 +12,7 @@ import LanguageCurrencyModal from "./LanguageCurrencyModal";
 const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 
 const TABS = [
-  { icon: "🏠", label: "Homes", path: "/", active: true },
+  { icon: "🏠", label: "Homes", path: "/" },
   { icon: "🎈", label: "Experiences", path: "/experiences", badge: "NEW" },
   { icon: "🛎️", label: "Services", path: "/services", badge: "NEW" },
 ];
@@ -22,6 +22,10 @@ export default function Navbar() {
   const location = useLocation();
   const { user, isSignedIn, isLoaded } = useUser();
 
+  const tabsRef = useRef([]);
+  const tabsWrapperRef = useRef(null);
+
+  const [sliderStyle, setSliderStyle] = useState({ left: 0, width: 0 });
   const [scrolled, setScrolled] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
@@ -44,6 +48,11 @@ export default function Navbar() {
   const [serviceType, setServiceType] = useState("");
   const [isHost, setIsHost] = useState(false);
 
+  const hideSearchBar =
+    /^\/pages\/User\/(Messages|Notifications|AccountSettings|UserProfile|Trips|BookingDetails|Wishlist)/.test(
+      location.pathname,
+    );
+
   useEffect(() => {
     async function checkHostStatus() {
       if (!isLoaded || !isSignedIn || !user?.id) {
@@ -57,7 +66,7 @@ export default function Navbar() {
         });
 
         const properties = res.data?.data?.properties || [];
-        setIsHost(res.data?.success && properties.length > 0);
+        setIsHost(Boolean(res.data?.success && properties.length > 0));
       } catch (err) {
         console.error("Failed to check host status:", err);
         setIsHost(false);
@@ -66,11 +75,6 @@ export default function Navbar() {
 
     checkHostStatus();
   }, [isLoaded, isSignedIn, user?.id]);
-
-  const hideSearchBar =
-    /^\/pages\/User\/(Messages|Notifications|AccountSettings|UserProfile|Trips|BookingDetails|Wishlist)/.test(
-      location.pathname,
-    );
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -90,6 +94,27 @@ export default function Navbar() {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (hideSearchBar || scrolled || isExpanded) return;
+
+    const activeIndex = TABS.findIndex((tab) => tab.path === location.pathname);
+    const activeEl = tabsRef.current[activeIndex];
+    const wrapperEl = tabsWrapperRef.current;
+
+    if (!activeEl || !wrapperEl) {
+      setSliderStyle({ left: 0, width: 0 });
+      return;
+    }
+
+    const activeRect = activeEl.getBoundingClientRect();
+    const wrapperRect = wrapperEl.getBoundingClientRect();
+
+    setSliderStyle({
+      left: activeRect.left - wrapperRect.left,
+      width: activeRect.width,
+    });
+  }, [location.pathname, hideSearchBar, scrolled, isExpanded]);
 
   const formatGuestText = () => {
     const total = adults + childrenCount;
@@ -150,7 +175,11 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white">
       <nav
         className={`relative flex items-center justify-between px-8 transition-all duration-500 ease-in-out ${
-          hideSearchBar ? "h-20" : scrolled && !isExpanded ? "h-20" : "h-25"
+          hideSearchBar
+            ? "h-20"
+            : scrolled && !isExpanded
+              ? "h-20"
+              : "h-[100px]"
         }`}
       >
         <Link to="/" className="z-20 flex items-center">
@@ -182,16 +211,30 @@ export default function Navbar() {
               />
             ) : (
               <div
-                className="flex items-center gap-16 transition-all duration-500"
+                ref={tabsWrapperRef}
+                className="relative flex items-center gap-16 transition-all duration-500"
                 onMouseDown={(e) => e.stopPropagation()}
               >
-                {TABS.map((tab) => (
+                {TABS.map((tab, index) => (
                   <TopTab
                     key={tab.label}
                     {...tab}
                     active={location.pathname === tab.path}
+                    ref={(el) => {
+                      tabsRef.current[index] = el;
+                    }}
                   />
                 ))}
+
+                {sliderStyle.width > 0 && (
+                  <div
+                    className="pointer-events-none absolute -bottom-3 h-[2px] rounded-full bg-black transition-all duration-300 ease-out"
+                    style={{
+                      left: `${sliderStyle.left}px`,
+                      width: `${sliderStyle.width}px`,
+                    }}
+                  />
+                )}
               </div>
             )}
           </div>
@@ -227,7 +270,7 @@ export default function Navbar() {
           ) : (
             <button
               onClick={() => setShowLanguageModal(true)}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200"
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200"
             >
               <Globe size={21} />
             </button>
@@ -300,32 +343,39 @@ export default function Navbar() {
   );
 }
 
-function TopTab({ icon, label, path, badge, active = false }) {
-  return (
-    <Link
-      to={path}
-      className={`group relative flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
-        active ? "text-black" : "text-gray-500 hover:text-black"
-      }`}
-    >
-      {badge && (
-        <span className="absolute left-7 -top-4 z-10 rounded-full bg-[#2A3B4C] px-1.5 py-[2px] text-[9px] font-bold tracking-wider text-white shadow-sm">
-          {badge}
+const TopTab = forwardRef(
+  ({ icon, label, path, badge, active = false }, ref) => {
+    return (
+      <Link
+        to={path}
+        ref={ref}
+        className={`group relative flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
+          active ? "text-black" : "text-gray-500 hover:text-black"
+        }`}
+      >
+        {badge && (
+          <span className="absolute left-7 -top-4 z-10 rounded-full bg-[#2A3B4C] px-1.5 py-[2px] text-[9px] font-bold tracking-wider text-white shadow-sm">
+            {badge}
+          </span>
+        )}
+
+        <span className="text-[26px] leading-none transition-transform duration-300 group-hover:-translate-y-1">
+          {icon}
         </span>
-      )}
 
-      <span className="text-[26px] leading-none transition-transform duration-300 group-hover:-translate-y-1">
-        {icon}
-      </span>
+        <span
+          className={`text-sm font-medium ${
+            active ? "text-gray-950" : "text-gray-800"
+          }`}
+        >
+          {label}
+        </span>
+      </Link>
+    );
+  },
+);
 
-      <span className="text-sm font-medium text-gray-800">{label}</span>
-
-      {active && (
-        <span className="absolute -bottom-3 left-0 h-[2px] w-full rounded-full bg-black" />
-      )}
-    </Link>
-  );
-}
+TopTab.displayName = "TopTab";
 
 function SmallSearchBar({
   destination,
@@ -380,7 +430,10 @@ function SmallSearchBar({
         <span className="mr-2 max-w-30 truncate">{guests}</span>
       </button>
 
-      <button className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#E31C5F] text-white transition hover:bg-[#FF385C]">
+      <button
+        type="button"
+        className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#E31C5F] text-white transition hover:bg-[#FF385C]"
+      >
         <Search size={16} />
       </button>
     </div>
