@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
-import airbnbLogo from "../../assets/Airbnb-logo.png";
+import stayfinderLogo from "../../assets/Stayfinder-Logo.png";
 
 const navLinks = [
   { label: "Dashboard", to: "/host" },
@@ -23,11 +23,7 @@ export default function HostLayout() {
       <header className="sticky top-0 z-50 h-20 border-b border-gray-200 bg-white">
         <div className="flex h-full w-full items-center justify-between px-8">
           <Link to="/" className="flex items-center">
-            <img
-              src={airbnbLogo}
-              alt="Airbnb"
-              className="h-10 w-auto object-contain"
-            />
+            <img src={stayfinderLogo} className="h-12 w-auto object-contain" />
           </Link>
 
           {!isWizardPage && (

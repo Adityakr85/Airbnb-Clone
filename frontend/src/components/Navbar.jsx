@@ -6,7 +6,7 @@ import { useUser, SignInButton } from "@clerk/clerk-react";
 
 import MenuDropdown from "./MenuDropdown";
 import SearchBar from "./Search/SearchBar";
-import airbnbLogo from "../assets/Airbnb-logo.png";
+import stayfinderLogo from "../assets/Stayfinder-Logo.png";
 import LanguageCurrencyModal from "./LanguageCurrencyModal";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
@@ -135,11 +135,7 @@ export default function Navbar() {
         }`}
       >
         <Link to="/" className="z-20 flex items-center">
-          <img
-            src={airbnbLogo}
-            alt="Airbnb"
-            className="h-10 w-auto object-contain"
-          />
+          <img src={stayfinderLogo} className="h-12 w-auto object-contain" />
         </Link>
 
         {!hideSearchBar && (
