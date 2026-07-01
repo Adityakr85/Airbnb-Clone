@@ -98,9 +98,6 @@ export default function HelpTopic() {
       )}
 
       {loading || !cmsData ? (
-        /* =========================================
-           THE SKELETON LOADER (Matches exact layout)
-           ========================================= */
         <div className="animate-pulse w-full">
           {/* Fake Breadcrumbs */}
           <div className="mb-8 flex gap-2">
@@ -153,16 +150,27 @@ export default function HelpTopic() {
           
           {/* Breadcrumbs */}
           <nav className="mb-8 flex flex-wrap items-center gap-2 text-[13px] text-gray-800">
-            {cmsData.breadcrumbs?.map((crumb, index) => (
-              <React.Fragment key={crumb.id || index}>
-                <Link to={crumb.url} className="hover:underline">
-                  {crumb.label}
-                </Link>
-                {index < cmsData.breadcrumbs.length - 1 && (
-                  <ChevronRight size={14} className="text-gray-500" />
-                )}
-              </React.Fragment>
-            ))}
+            {cmsData.breadcrumbs?.map((crumb, index) => {
+              const isLast = index === cmsData.breadcrumbs.length - 1;
+
+              return (
+                <React.Fragment key={crumb.id || index}>
+                  {isLast ? (
+                    <span className="text-[#717171] font-medium max-w-[200px] md:max-w-[400px] truncate select-none">
+                      {crumb.label || crumb}
+                    </span>
+                  ) : (
+                    <Link to={crumb.url || "#"} className="hover:underline">
+                      {crumb.label || crumb}
+                    </Link>
+                  )}
+
+                  {!isLast && (
+                    <ChevronRight size={14} className="text-gray-500 shrink-0" />
+                  )}
+                </React.Fragment>
+              );
+            })}
           </nav>
 
           {/* Main Layout Grid */}

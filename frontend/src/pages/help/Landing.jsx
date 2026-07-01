@@ -227,7 +227,7 @@ export default function HelpCenterLanding() {
             to={`/help/all-topics`} 
             className="text-[15px] font-medium text-gray-[800] hover: flex items-center gap-1"
           >
-            Browse all topics <span className="text-lg leading-none">›</span>
+            Browse all topics <span className="text-[26px] items-center leading-none">›</span>
           </Link>
         </div>
       
