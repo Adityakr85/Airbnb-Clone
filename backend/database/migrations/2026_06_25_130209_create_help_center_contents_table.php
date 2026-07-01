@@ -14,26 +14,34 @@ return new class extends Migration
        Schema::create('help_center_contents', function (Blueprint $table) {
             $table->id();
             
-            // NEW: Links articles to their master topic
+            // Hierarchy Links
             $table->foreignId('parent_id')->nullable()->constrained('help_center_contents')->cascadeOnDelete();
             
             // 1. Structural Identity
             $table->string('content_type'); 
-            $table->string('category')->default('Global');
+            $table->string('tab_category')->default('Guest');
+            $table->string('tag')->nullable();
+            $table->string('section_heading')->nullable();
             $table->json('breadcrumbs')->nullable();
-            $table->string('section')->nullable();
             
             // 2. Universal Display Data
             $table->string('title');
             $table->text('summary')->nullable();
+            $table->text('intro')->nullable();
             $table->string('image')->nullable();
             $table->string('url')->nullable();
             
-            // 3. Deep Content (For actual article pages)
+            // 3. Deep Content 
+            $table->json('content_sections')->nullable();
             $table->longText('body_content')->nullable();
+
+            // 4. Relationships
+            $table->json('related_articles')->nullable(); 
+            $table->json('related_topics')->nullable();
             
-            // 4. Admin Toggles
+            // 5. Admin Toggles & Protection
             $table->boolean('is_published')->default(true);
+            $table->softDeletes();
             
             $table->timestamps();
         });

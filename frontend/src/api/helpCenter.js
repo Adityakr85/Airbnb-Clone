@@ -20,6 +20,13 @@ function normalizeHelpItem(item) {
     images: [fullImageUrl],
     type: "article",    
     url: `/help/article/${item.id}`,
+    breadcrumbs: item.breadcrumbs || [],
+    intro: item.intro || "",
+    
+    sections: item.content_sections || item.sections || [],
+    relatedArticles: item.related_articles || item.relatedArticles || [],
+    
+    category: item.tag || item.tab_category || "General Help",
   };
 }
 
@@ -59,13 +66,16 @@ export async function fetchExploreMore() {
 }
 export async function fetchArticleById(id) {
   try {
-    const res = await axios.get(`${API_BASE}/api/help-center/article/${id}`);
-    const data = res.data?.data || res.data;
+    const response = await axios.get(`${API_BASE}/api/help-center/article/${id}`);
+    const data = response.data?.data || response.data;
     return data ? normalizeHelpItem(data) : null;
 
   } catch (error) {
     console.error(`Failed to fetch article ${id}:`, error);
-    throw new Error(error.response?.data?.message || "article not found.");
+    throw {
+      status: error.response?.status || 503,
+      message: error.message
+    };
   }
 }
 export async function fetchAllTopics(tab) {
@@ -86,5 +96,19 @@ export async function fetchTopicCategory(id) {
   } catch (error) {
     console.error(`Error fetching topic ${id}:`, error);
     throw new Error(error.response?.data?.message || "Failed to load topic details.");
+  }
+}
+
+export async function fetchSearchResults(query) {
+  try {
+    const response = await axios.get(`${API_BASE}/api/help-center/search`, {
+      params: { q: query }
+    });
+    const rawData = response.data?.data || response.data || [];
+    return rawData.map(normalizeHelpItem);
+
+  } catch (error) {
+    console.error("Error fetching search results:", error);
+    return [];
   }
 }

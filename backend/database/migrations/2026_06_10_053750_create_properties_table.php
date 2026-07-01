@@ -14,10 +14,14 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('location');
+            $table->string('address')->nullable();
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
             $table->string('type');
             $table->decimal('price', 10, 2);
             $table->integer('guests')->default(1);
             $table->integer('bedrooms');
+            $table->integer('beds')->default(0);
             $table->integer('bathrooms');
             $table->string('category')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
