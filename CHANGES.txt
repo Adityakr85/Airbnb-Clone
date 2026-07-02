@@ -1,61 +1,52 @@
-Summary of Changes for Backend Integration Task List
+# Added complete Edit Listing workflow for hosts
+# Reused Add Property page for editing existing listings
+# Added backend API to fetch a single property for editing
+# Added backend property update functionality
+# Standardized property image handling across frontend and backend
+# Fixed image rendering in:
+  *  Global Cards
+  *  Wishlist
+  *  Property Details
+  *  Image Gallery
+  *  Trips
+  *  Past Trips
+  *  Booking Details
+  *  Host Properties
+  *  Admin Properties
+# Fixed backend image path inconsistencies
+# Updated booking/trip status to rely on backend status
+# Separated active trips from completed trips
+# Improved Property Details image gallery
+# Added guests, bedrooms, and bathrooms to host property data
+# Improved Host Properties UI with clickable cards and better image display
+# Fixed Admin Properties image rendering and property data display
 
-Completed Tasks (Already Implemented):
-- Setup & Clerk User Authentication Sync
-- Verify/Setup database connection and run migrations
-- Create Clerk Auth middleware/helper in Laravel to identify user via clerk_id
-- Implement/verify sync user/profile endpoints (/api/user/profile and /api/user/profile/photo)
-- Host Dashboard & Properties/Experiences Sync
-- Implement /api/host/dashboard endpoint for host stats, properties, and reservations
-- Update property and experience listing endpoints to link listings to authenticated host
+Implemented backend-driven Category Management system.
 
-Tasks Completed in this Session:
-- Trips, Bookings, and Host Reservation Actions
-  * Implemented Guest Reservation creation endpoint (POST /api/reservations) - exists in ReservationController@store
-  * Implemented Guest Trips listing endpoint (GET /api/trips) - exists in ReservationController@guestTrips
-  * Implemented Host reservation approval/rejection endpoint (PATCH /api/reservations/{id}/status) - exists in ReservationController@updateStatus
-- Wishlists & Reviews Database Sync
-  * Implemented Wishlist toggle & list endpoints (GET /api/wishlist, POST /api/wishlist/toggle) - exists in WishlistController
-  * (Note: Frontend Wishlist.jsx component connection to database endpoints is frontend work)
-  * Implemented Review submission & retrieval endpoints (GET /api/properties/{id}/reviews, POST /api/properties/{id}/reviews) - exists in ReviewController
-- Messaging System
-  * Created migrations for conversations & messages (messages table exists, added conversations table migration)
-  * Implemented endpoints for conversation list, message history, and sending messages - exists in MessageController (inbox, thread, send, unreadCount)
-- Admin Panel APIs Enhancement
-  * Enhanced Admin users endpoint (/api/admin/users) - updated AdminController@users to return detailed user info (status, verification, join date, last login, booking count, total spent, profile image)
-  * Enhanced Admin properties endpoint (/api/admin/properties) - updated AdminController@properties to return formatted property data (host name, formatted price, status mapping, rating formatting, image handling)
-  * Enhanced Admin reservations endpoint (/api/admin/reservations) - updated AdminController@reservations to return formatted reservation data (RSV-xxxx IDs, guest/host details, formatted dates, nights calculation, payment status, reservation status)
-  * Added database schema enhancements for admin functionality:
-    - Users table: added last_login_at timestamp and status field
-    - Reservations table: added payment_status enum field
-    - Properties table: added moderation_status enum field
-- Image Loading Fixes
-  * Fixed image loading in Wishlist.jsx - changed from property.image to property.images?.[0] || "/placeholder.jpg"
-  * Fixed image loading in PropertyDetails.jsx - changed from property.image to property.images?.[0] || '/placeholder.jpg' for ImageGallery component
-  * Verified that Trips.jsx and BookingDetails.jsx already had correct image loading implementation
+- Added category admin fields (icon, type, is_active, sort_order)
+- Updated Category model with fillable fields and boolean casting
+- Created CategoryController with CRUD operations
+- Added enable/disable support for categories
+- Added category reordering API
+- Added public and admin category endpoints
+- Integrated backend category API for Host Add Property page
+- Categories are now dynamically managed from the admin panel
 
-Files Modified/Added:
-1. backend/app/Http/Controllers/AdminController.php (MODIFIED)
-    - Enhanced admin endpoints for users, properties, and reservations to return detailed, formatted data matching frontend expectations
-    - Added backward compatibility fallbacks for new database fields
-2. backend/database/migrations/2026_06_22_000002_enhance_admin_tables.php (NEW)
-    - Adds database schema enhancements for admin functionality:
-      * Users table: last_login_at timestamp and status field (active/blocked/suspended)
-      * Reservations table: payment_status enum field (pending/paid/refunded/failed)
-      * Properties table: moderation_status enum field (approved/pending/rejected)
-3. backend/app/Models/User.php (MODIFIED)
-    - Added last_login_at and status fields to $fillable array
-4. backend/app/Models/Property.php (MODIFIED)
-    - Added moderation_status field to $fillable array
-5. backend/app/Models/Reservation.php (MODIFIED)
-    - Added payment_status field to $fillable array
+refactor(host): modularize Add Property flow and add amenities support
 
-Real Implementation to Look Forward To:
-- All API endpoints are now in place for the listed tasks.
-- Frontend components (Wishlist.jsx, Trip/Booking pages, Review forms, Message inbox, Admin panels) can now be connected to these endpoints.
-- The conversations table will allow the frontend to display a list of conversation partners (with last message, unread count, etc.) via the MessageController@inbox endpoint.
-- Admin endpoints now return comprehensive, formatted data suitable for building rich admin dashboards in the frontend (users, properties, reservations with all expected fields).
-- Image loading issues in Wishlist and PropertyDetails components have been fixed to properly handle image arrays.
-- After running migrations, the admin panel will display real system data rather than mock data, and the Trips/User pages will show correct property images.
+- Refactored Add Property into a dedicated folder with step-based components
+- Split the multi-step form into separate files (01–09 + SuccessStep)
+- Kept AddProperty.jsx as the parent controller for state, navigation, and submission
+- Improved location step with integrated Leaflet map, search, draggable marker, and reverse geocoding
+- Separated city (location) from full address handling
+- Added backend amenities system with amenities and property_amenity tables
+- Implemented many-to-many relationship between properties and amenities
+- Added Amenity model and API endpoint for fetching active amenities
+- Updated Property model with amenities relationship
+- Enhanced PropertyController to validate, save, sync, and return amenities
+- Updated property APIs to include amenities, description, address, guests, bedrooms, bathrooms, coordinates, category, images, and host details
+- Prepared backend for dynamic amenities management and property details page
 
-Note: Ensure migrations are run (php artisan migrate) to create the conversations table and apply the admin table enhancements.
+
+
+

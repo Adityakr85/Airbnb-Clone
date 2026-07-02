@@ -142,7 +142,7 @@ class ReservationController extends Controller
             ], 404);
         }
 
-        $reservation = Reservation::with(['guest', 'property.host', 'property.images'])->find($id);
+       $reservation = Reservation::with(['guest','property.host','property.images','property.category',])->find($id);
 
         if (!$reservation) {
             return response()->json([
@@ -159,8 +159,11 @@ class ReservationController extends Controller
             ], 403);
         }
 
-        $images = $reservation->property->images ?? [];
-        $firstImage = $images[0] ?? null;
+        $images = $reservation->property
+    ? $reservation->property->images->pluck('image_path')->toArray()
+    : [];
+
+$firstImage = $images[0] ?? null;
 
         $data = [
             'id' => $reservation->id,
@@ -185,7 +188,9 @@ class ReservationController extends Controller
                 'title' => $reservation->property->title,
                 'location' => $reservation->property->location,
                 'address' => $reservation->property->address,
-                'type' => $reservation->property->type,
+                'category_id' => $reservation->property->category_id,
+                'category' => $reservation->property->category,
+                'category_name' => $reservation->property->category? $reservation->property->category->name: 'Property',
                 'price' => (float) $reservation->property->price,
                 'guests' => $reservation->property->guests,
                 'bedrooms' => $reservation->property->bedrooms,
@@ -228,13 +233,16 @@ class ReservationController extends Controller
             ], 404);
         }
 
-        $trips = Reservation::with(['property.host', 'property.images'])
+        $trips = Reservation::with(['property.host','property.images','property.category',])
             ->where('guest_id', $user->id)
             ->orderBy('check_in', 'desc')
             ->get()
             ->map(function ($r) {
-                $images = $r->property->images ?? [];
-                $firstImage = $images[0] ?? null;
+                $images = $r->property
+    ? $r->property->images->pluck('image_path')->toArray()
+    : [];
+
+$firstImage = $images[0] ?? null;
                 
                 return [
                     'id' => $r->id,
@@ -252,7 +260,9 @@ class ReservationController extends Controller
                         'title' => $r->property->title,
                         'location' => $r->property->location,
                         'address' => $r->property->address,
-                        'type' => $r->property->type,
+                        'category_id' => $r->property->category_id,
+                        'category' => $r->property->category,
+                        'category_name' => $r->property->category? $r->property->category->name: 'Property',
                         'price' => (float) $r->property->price,
                         'guests' => $r->property->guests,
                         'bedrooms' => $r->property->bedrooms,
