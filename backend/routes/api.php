@@ -14,7 +14,7 @@ use App\Http\Controllers\Guest\ReviewController;
 use App\Http\Controllers\Guest\MessageController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Api\NotificationController;
-use  App\Http\Controllers\Api\HelpCenterController;
+use App\Http\Controllers\Api\HelpCenterController;
 use App\Http\Controllers\Api\Admin\AdminHelpCenterController;
 
 // Additional property endpoints
@@ -83,6 +83,7 @@ Route::delete('/user/profile/photo', [UserProfileController::class, 'deletePhoto
 
 // Public Endpoints 
 Route::prefix('help-center')->group(function () {
+    Route::get('/search', [HelpCenterController::class, 'search']);
     Route::get('/top-articles', [HelpCenterController::class, 'getTopArticles']);
     Route::get('/guides', [HelpCenterController::class, 'getGuides']);
     Route::get('/explore', [HelpCenterController::class, 'getExploreMore']);
