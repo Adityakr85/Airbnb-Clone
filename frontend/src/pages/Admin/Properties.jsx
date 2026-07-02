@@ -12,7 +12,7 @@ import {
   MoreVertical,
   X,
   Trash2,
-  Eye,
+  Loader2,
 } from "lucide-react";
 import {
   fetchAdminProperties,
@@ -20,53 +20,41 @@ import {
   rejectProperty,
 } from "../../api/admin";
 
-const propertiesData = [
-  {
-    id: 1,
-    title: "Luxury Villa in Goa",
-    host: "Rahul Sharma",
-    location: "Goa, India",
-    price: "₹12,500",
-    status: "Approved",
-    rating: 4.9,
-    bookings: 28,
-    type: "Villa",
-    created: "Jun 10, 2026",
-    image:
-      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=900",
-  },
-  {
-    id: 2,
-    title: "Modern Apartment in Mumbai",
-    host: "Sneha Verma",
-    location: "Mumbai, India",
-    price: "₹8,200",
-    status: "Pending",
-    rating: 4.6,
-    bookings: 12,
-    type: "Apartment",
-    created: "Jun 14, 2026",
-    image:
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=900",
-  },
-  {
-    id: 3,
-    title: "Mountain Stay in Manali",
-    host: "Amit Kumar",
-    location: "Manali, India",
-    price: "₹10,000",
-    status: "Rejected",
-    rating: 4.4,
-    bookings: 8,
-    type: "Cabin",
-    created: "Jun 16, 2026",
-    image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=900",
-  },
-];
+const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
+
+function getImageUrl(value) {
+  if (!value) return "/placeholder.jpg";
+
+  if (typeof value === "object") {
+    value = value.url || value.image_path || "";
+  }
+
+  if (typeof value !== "string" || !value.trim()) return "/placeholder.jpg";
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  if (value.startsWith("/storage/")) {
+    return `${API_BASE}${value}`;
+  }
+
+  if (value.startsWith("storage/")) {
+    return `${API_BASE}/${value}`;
+  }
+
+  return `${API_BASE}/storage/${value}`;
+}
+
+function getPropertyImage(property) {
+  return getImageUrl(
+    property?.image || property?.image_urls?.[0] || property?.images?.[0],
+  );
+}
 
 export default function Properties() {
   const { user, isLoaded } = useUser();
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -74,13 +62,13 @@ export default function Properties() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch properties from API
   const fetchProperties = async () => {
     try {
       if (!isLoaded) return;
 
       const clerkId = user?.id;
       const role = user?.publicMetadata?.role;
+
       if (!clerkId) {
         setProperties([]);
         setError("Unable to load properties: User not authenticated");
@@ -88,7 +76,7 @@ export default function Properties() {
       }
 
       const data = await fetchAdminProperties(clerkId, role);
-      setProperties(data);
+      setProperties(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       console.error("Failed to load properties:", err);
@@ -99,18 +87,21 @@ export default function Properties() {
     }
   };
 
-  // Approve property
   const handleApprove = async (propertyId) => {
     try {
       const clerkId = user?.id;
       const role = user?.publicMetadata?.role;
+
       await approveProperty(clerkId, propertyId, role);
-      // Update local state
+
       setProperties((prev) =>
         prev.map((p) =>
-          p.id === propertyId ? { ...p, status: "Approved" } : p,
+          p.id === propertyId
+            ? { ...p, status: "Approved", moderation_status: "approved" }
+            : p,
         ),
       );
+
       setSelectedProperty(null);
     } catch (err) {
       console.error("Failed to approve property:", err);
@@ -118,18 +109,21 @@ export default function Properties() {
     }
   };
 
-  // Reject property
   const handleReject = async (propertyId) => {
     try {
       const clerkId = user?.id;
       const role = user?.publicMetadata?.role;
+
       await rejectProperty(clerkId, propertyId, role);
-      // Update local state
+
       setProperties((prev) =>
         prev.map((p) =>
-          p.id === propertyId ? { ...p, status: "Rejected" } : p,
+          p.id === propertyId
+            ? { ...p, status: "Rejected", moderation_status: "rejected" }
+            : p,
         ),
       );
+
       setSelectedProperty(null);
     } catch (err) {
       console.error("Failed to reject property:", err);
@@ -137,32 +131,34 @@ export default function Properties() {
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchProperties();
 
-    // Set up polling for real-time updates (every 5 seconds)
     const intervalId = setInterval(fetchProperties, 5000);
 
-    // Clean up interval on unmount
     return () => clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, user?.id]);
 
-  const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-  };
-
-  const handleStatusChange = (e) => {
-    setStatus(e.target.value);
-  };
+  const stats = useMemo(() => {
+    return {
+      total: properties.length,
+      approved: properties.filter((p) => p.status === "Approved").length,
+      pending: properties.filter((p) => p.status === "Pending").length,
+      rejected: properties.filter((p) => p.status === "Rejected").length,
+    };
+  }, [properties]);
 
   const filteredProperties = useMemo(() => {
     return properties.filter((property) => {
+      const categoryName =
+        property.category?.name || property.category_name || "";
+
       const matchesSearch =
-        property.title.toLowerCase().includes(search.toLowerCase()) ||
-        property.host.toLowerCase().includes(search.toLowerCase()) ||
-        property.location.toLowerCase().includes(search.toLowerCase());
+        property.title?.toLowerCase().includes(search.toLowerCase()) ||
+        property.host?.toLowerCase().includes(search.toLowerCase()) ||
+        property.location?.toLowerCase().includes(search.toLowerCase()) ||
+        categoryName.toLowerCase().includes(search.toLowerCase());
 
       const matchesStatus = status === "All" || property.status === status;
 
@@ -189,23 +185,31 @@ export default function Properties() {
       <div className="grid gap-5 md:grid-cols-4">
         <StatCard
           title="Total Properties"
-          value={properties.length}
+          value={stats.total}
           icon={Home}
+          active={status === "All"}
+          onClick={() => setStatus("All")}
         />
         <StatCard
           title="Approved"
-          value={properties.filter((p) => p.status === "Approved").length}
+          value={stats.approved}
           icon={CheckCircle}
+          active={status === "Approved"}
+          onClick={() => setStatus("Approved")}
         />
         <StatCard
           title="Pending"
-          value={properties.filter((p) => p.status === "Pending").length}
+          value={stats.pending}
           icon={Clock}
+          active={status === "Pending"}
+          onClick={() => setStatus("Pending")}
         />
         <StatCard
           title="Rejected"
-          value={properties.filter((p) => p.status === "Rejected").length}
+          value={stats.rejected}
           icon={XCircle}
+          active={status === "Rejected"}
+          onClick={() => setStatus("Rejected")}
         />
       </div>
 
@@ -219,16 +223,16 @@ export default function Properties() {
 
             <input
               value={search}
-              onChange={handleSearchChange}
+              onChange={(e) => setSearch(e.target.value)}
               type="text"
-              placeholder="Search by title, host, or location..."
+              placeholder="Search by title, host, location, or category..."
               className="w-full rounded-2xl border border-gray-200 py-3 pl-11 pr-4 outline-none transition focus:border-rose-500"
             />
           </div>
 
           <select
             value={status}
-            onChange={handleStatusChange}
+            onChange={(e) => setStatus(e.target.value)}
             className="rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
           >
             <option>All</option>
@@ -239,69 +243,32 @@ export default function Properties() {
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        {filteredProperties.map((property) => (
-          <div
-            key={property.id}
-            className="overflow-hidden rounded-[1.8rem] border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
-          >
-            <div className="relative h-56">
-              <img
-                src={property.image}
-                alt={property.title}
-                className="h-full w-full object-cover"
-              />
-
-              <Badge status={property.status} />
-
-              <button
-                onClick={() => setSelectedProperty(property)}
-                className="absolute right-4 top-4 rounded-full bg-white/90 p-2 transition hover:bg-white"
-              >
-                <MoreVertical size={18} />
-              </button>
-            </div>
-
-            <div className="p-5">
-              <h2 className="truncate text-lg font-black">{property.title}</h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Hosted by {property.host}
-              </p>
-
-              <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
-                <MapPin size={16} />
-                {property.location}
-              </div>
-
-              <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
-                <span>{property.type}</span>
-                <span className="flex items-center gap-1">
-                  <Star
-                    size={16}
-                    className="text-rose-500"
-                    fill="currentColor"
-                  />
-                  {property.rating}
-                </span>
-              </div>
-
-              <div className="mt-5 flex items-center justify-between">
-                <div>
-                  <p className="text-xl font-black">{property.price}</p>
-                  <p className="text-xs text-gray-500">per night</p>
-                </div>
-
-                <button
-                  onClick={() => setSelectedProperty(property)}
-                  className="rounded-xl bg-gray-100 px-4 py-2 text-sm font-bold transition hover:bg-gray-200"
-                >
-                  Manage
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex items-center justify-center py-24 text-gray-500">
+          <Loader2 className="animate-spin" size={30} />
+        </div>
+      ) : error ? (
+        <div className="rounded-[1.7rem] border border-red-100 bg-red-50 p-8 text-center">
+          <p className="font-bold text-red-600">{error}</p>
+        </div>
+      ) : filteredProperties.length === 0 ? (
+        <div className="rounded-[1.7rem] border border-gray-100 bg-white p-10 text-center shadow-sm">
+          <p className="font-bold text-gray-900">No properties found</p>
+          <p className="mt-1 text-sm text-gray-500">
+            Try changing your search or status filter.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-6 xl:grid-cols-3">
+          {filteredProperties.map((property) => (
+            <PropertyCard
+              key={property.id}
+              property={property}
+              onManage={() => setSelectedProperty(property)}
+            />
+          ))}
+        </div>
+      )}
 
       {selectedProperty && (
         <PropertyDrawer
@@ -315,7 +282,75 @@ export default function Properties() {
   );
 }
 
+function PropertyCard({ property, onManage }) {
+  const categoryName =
+    property.category?.name || property.category_name || "Property";
+
+  return (
+    <div className="overflow-hidden rounded-[1.8rem] border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+      <div className="relative h-56">
+        <img
+          src={getPropertyImage(property)}
+          alt={property.title}
+          className="h-full w-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = "/placeholder.jpg";
+          }}
+        />
+
+        <Badge status={property.status} />
+
+        <button
+          onClick={onManage}
+          className="absolute right-4 top-4 rounded-full bg-white/90 p-2 transition hover:bg-white"
+        >
+          <MoreVertical size={18} />
+        </button>
+      </div>
+
+      <div className="p-5">
+        <h2 className="truncate text-lg font-black">{property.title}</h2>
+
+        <p className="mt-1 text-sm text-gray-500">
+          Hosted by {property.host || "Unknown"}
+        </p>
+
+        <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
+          <MapPin size={16} />
+          {property.location}
+        </div>
+
+        <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
+          <span>{categoryName}</span>
+
+          <span className="flex items-center gap-1">
+            <Star size={16} className="text-rose-500" fill="currentColor" />
+            {property.rating || 0}
+          </span>
+        </div>
+
+        <div className="mt-5 flex items-center justify-between">
+          <div>
+            <p className="text-xl font-black">{property.price}</p>
+            <p className="text-xs text-gray-500">per night</p>
+          </div>
+
+          <button
+            onClick={onManage}
+            className="rounded-xl bg-gray-100 px-4 py-2 text-sm font-bold transition hover:bg-gray-200"
+          >
+            Manage
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PropertyDrawer({ property, onClose, onApprove, onReject }) {
+  const categoryName =
+    property.category?.name || property.category_name || "Property";
+
   return (
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
@@ -323,6 +358,7 @@ function PropertyDrawer({ property, onClose, onApprove, onReject }) {
       <aside className="absolute right-0 top-0 h-full w-full max-w-lg overflow-y-auto bg-white p-6 shadow-2xl">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-black">Property Details</h2>
+
           <button
             onClick={onClose}
             className="rounded-full p-2 hover:bg-gray-100"
@@ -332,47 +368,55 @@ function PropertyDrawer({ property, onClose, onApprove, onReject }) {
         </div>
 
         <img
-          src={property.image}
+          src={getPropertyImage(property)}
           alt={property.title}
           className="mt-6 h-64 w-full rounded-[1.5rem] object-cover"
+          onError={(e) => {
+            e.currentTarget.src = "/placeholder.jpg";
+          }}
         />
 
         <div className="mt-6">
-          <Badge status={property.status} />
+          <div className="inline-flex">
+            <Badge status={property.status} inline />
+          </div>
+
           <h3 className="mt-4 text-2xl font-black">{property.title}</h3>
-          <p className="mt-1 text-gray-500">Hosted by {property.host}</p>
+
+          <p className="mt-1 text-gray-500">
+            Hosted by {property.host || "Unknown"}
+          </p>
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-4">
           <Info title="Location" value={property.location} />
-          <Info title="Type" value={property.type} />
+          <Info title="Category" value={categoryName} />
           <Info title="Price" value={property.price} />
-          <Info title="Rating" value={property.rating} />
-          <Info title="Bookings" value={property.bookings} />
-          <Info title="Created" value={property.created} />
+          <Info title="Rating" value={property.rating || 0} />
+          <Info title="Bookings" value={property.bookings || 0} />
+          <Info title="Created" value={property.created || "Unknown"} />
         </div>
 
         <div className="mt-8 space-y-3">
-          <button
-            onClick={() => onApprove(property.id)}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-bold text-white hover:bg-emerald-600"
-          >
-            <CheckCircle size={18} />
-            Approve Property
-          </button>
+          {property.status !== "Approved" && (
+            <button
+              onClick={() => onApprove(property.id)}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-bold text-white hover:bg-emerald-600"
+            >
+              <CheckCircle size={18} />
+              Approve Property
+            </button>
+          )}
 
-          <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-yellow-50 px-5 py-3 font-bold text-yellow-700 hover:bg-yellow-100">
-            <Eye size={18} />
-            Mark as Pending
-          </button>
-
-          <button
-            onClick={() => onReject(property.id)}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 px-5 py-3 font-bold text-red-600 hover:bg-red-100"
-          >
-            <XCircle size={18} />
-            Reject Property
-          </button>
+          {property.status !== "Rejected" && (
+            <button
+              onClick={() => onReject(property.id)}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 px-5 py-3 font-bold text-red-600 hover:bg-red-100"
+            >
+              <XCircle size={18} />
+              Reject Property
+            </button>
+          )}
 
           <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 font-bold text-white hover:bg-red-700">
             <Trash2 size={18} />
@@ -393,7 +437,7 @@ function Info({ title, value }) {
   );
 }
 
-function Badge({ status }) {
+function Badge({ status, inline = false }) {
   const style =
     status === "Approved"
       ? "bg-emerald-50 text-emerald-600"
@@ -403,26 +447,37 @@ function Badge({ status }) {
 
   return (
     <span
-      className={`absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-black ${style}`}
+      className={`rounded-full px-3 py-1 text-xs font-black ${style} ${
+        inline ? "" : "absolute left-4 top-4"
+      }`}
     >
       {status}
     </span>
   );
 }
 
-function StatCard({ title, value, icon: Icon }) {
+function StatCard({ title, value, icon: Icon, active = false, onClick }) {
   return (
-    <div className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+    <button
+      onClick={onClick}
+      className={`w-full rounded-[1.7rem] border p-6 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${
+        active ? "border-rose-500 bg-rose-50" : "border-gray-100 bg-white"
+      }`}
+    >
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold text-gray-500">{title}</p>
           <h2 className="mt-2 text-3xl font-black">{value}</h2>
         </div>
 
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
+        <div
+          className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
+            active ? "bg-rose-500 text-white" : "bg-rose-50 text-rose-500"
+          }`}
+        >
           <Icon size={24} />
         </div>
       </div>
-    </div>
+    </button>
   );
 }
