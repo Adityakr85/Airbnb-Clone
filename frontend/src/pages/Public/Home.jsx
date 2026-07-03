@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import GlobalCarousel from "../components/GlobalCarousel";
-import { fetchProperties } from "../api/properties";
+import GlobalCarousel from "../../components/GlobalCarousel";
+import { fetchProperties } from "../../api/properties";
 
 export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -75,7 +75,7 @@ export default function Home() {
       <div className="text-red-600">{error}</div>
     </main>
   ) : (
-    <main className="mx-auto min-h-screen max-w-[2520px] bg-white px-6 pt-28 pb-8 sm:px-10 md:px-16 xl:px-20">
+    <main className="min-h-screen bg-white px-4 py-8 md:px-10 xl:px-20">
       {groupedEntries.length > 0 ? (
         groupedEntries.map(([location, props]) => (
           <GlobalCarousel

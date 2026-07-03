@@ -68,7 +68,8 @@ export default function WhereDropdown({
             <button
               key={region.id}
               type="button"
-              onClick={(e) => {e.stopPropagation();
+              onClick={(e) => {
+                e.stopPropagation();
                 handleSelect(region.searchTerm);
               }}
               className="cursor-pointer flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition hover:bg-gray-100"

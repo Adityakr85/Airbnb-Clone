@@ -3,11 +3,11 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Home from "./pages/Home";
-import Experiences from "./pages/Experiences";
+import Home from "./pages/Public/Home";
+import Experiences from "./pages/Public/Experiences";
 import ExperienceDetails from "./components/ExperienceDetails";
-import Services from "./pages/Services";
-import PropertyDetails from "./pages/PropertyDetails";
+import Services from "./pages/Public/Services";
+import PropertyDetails from "./pages/Public/PropertyDetails/PropertyDetails";
 
 import Wishlist from "./pages/User/Wishlist";
 import Trips from "./pages/User/Trips";
@@ -21,7 +21,7 @@ import AccountSettings from "./pages/User/AccountSettings";
 import HostLayout from "./pages/Host/HostLayout";
 import { HostProvider } from "./pages/Host/HostContext";
 import BecomeAHost from "./pages/Host/BecomeAHost";
-import AddProperty from "./pages/Host/AddProperty";
+import AddProperty from "./pages/Host/AddProperty/AddProperty";
 import HostDashboard from "./pages/Host/HostDashboard";
 import HostReservations from "./pages/Host/HostReservations";
 import HostProperties from "./pages/Host/HostProperties";
@@ -106,6 +106,7 @@ const App = () => {
           <Route path="/host/reservations" element={<HostReservations />} />
           <Route path="/host/properties" element={<HostProperties />} />
           <Route path="/host/analytics" element={<PropertyAnalytics />} />
+          <Route path="/host/edit-property/:id" element={<AddProperty />} />
         </Route>
         TODO: Protected routes for ADMIN pages based on roles and permissions
         <Route

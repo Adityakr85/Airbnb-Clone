@@ -10,6 +10,8 @@ use App\Models\Review\Review;
 use App\Models\Wishlist\Wishlist;
 use App\Models\Message\Message;
 use App\Services\Notification\NotificationService;
+use App\Models\Category\Category;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -139,17 +141,17 @@ class AdminController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        $properties = Property::with(['host', 'images'])
+        $properties = Property::with(['host', 'images', 'category'])
             ->get()
             ->map(function ($property) {
                 // Get images from relationship
                 $images = $property->images->pluck('image_path')->toArray();
                 $coverImage = $property->images->where('is_cover', true)->first();
-                $firstImage = $coverImage ? $coverImage->image_path : ($images[0] ?? null);
-
-                $imageUrl = $firstImage ? 
-                    (filter_var($firstImage, FILTER_VALIDATE_URL) ? $firstImage : asset('storage/' . ltrim($firstImage, '/'))) :
-                    'https://picsum.photos/400/300';
+                $firstImage = $coverImage
+                ? $coverImage->image_path
+                : ($images[0] ?? null);
+                
+                $imageUrl = $firstImage ?: '/placeholder.jpg';
                 
                 // Use moderation status if available, otherwise infer from status
                 if (!is_null($property->moderation_status)) {
@@ -181,11 +183,14 @@ class AdminController extends Controller
                     'status' => (string) $status,
                     'rating' => (float) $rating,
                     'bookings' => (int) ($property->bookings ?? 0),
-                    'type' => (string) ($property->type ?? ''),
+                    'category_id' => $property->category_id,
+                    'category' => $property->category,
+                    'category_name' => $property->category ? $property->category->name : 'Property',
                     'created' => (string) $created,
-                    'image' => (string) $imageUrl,
-                    'images' => $images,
-                    'moderation_status' => $property->moderation_status,
+                   'image' => (string) $imageUrl,
+                   'images' => $images,
+                   'image_urls' => $images,
+                   'moderation_status' => $property->moderation_status,
                 ];
             });
 
@@ -250,7 +255,175 @@ class AdminController extends Controller
 
 return response()->json(['success' => true, 'message' => 'Property rejected successfully']);
     }
+public function categories(Request $request)
+{
+    $clerkId = $request->query('clerk_id');
+    $role = $request->query('role');
+    $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin', $role);
 
+    if (!$this->isAdmin($user)) {
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+    }
+
+    $query = Category::query();
+
+    if ($request->filled('category_for')) {
+        $query->where('category_for', $request->category_for);
+    }
+
+    if ($request->filled('search')) {
+        $search = trim($request->search);
+        $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhere('slug', 'like', "%{$search}%");
+        });
+    }
+
+    return response()->json([
+        'success' => true,
+        'data' => $query
+            ->orderBy('category_for')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get(),
+    ]);
+}
+
+public function storeCategory(Request $request)
+{
+    $clerkId = $request->query('clerk_id');
+    $role = $request->query('role');
+    $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin', $role);
+
+    if (!$this->isAdmin($user)) {
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+    }
+
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'category_for' => 'required|in:property,experience',
+        'icon' => 'required|string|max:255',
+        'image' => 'nullable|string|max:255',
+        'is_active' => 'nullable|boolean',
+        'sort_order' => 'nullable|integer|min:0',
+    ]);
+
+    $category = Category::create([
+        'name' => $validated['name'],
+        'slug' => Str::slug($validated['name']),
+        'category_for' => $validated['category_for'],
+        'icon' => $validated['icon'],
+        'image' => $validated['image'] ?? null,
+        'is_active' => $request->boolean('is_active', true),
+        'sort_order' => $validated['sort_order'] ?? 0,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Category created successfully',
+        'data' => $category,
+    ], 201);
+}
+
+public function updateCategory(Request $request, $id)
+{
+    $clerkId = $request->query('clerk_id');
+    $role = $request->query('role');
+    $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin', $role);
+
+    if (!$this->isAdmin($user)) {
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+    }
+
+    $category = Category::find($id);
+
+    if (!$category) {
+        return response()->json(['success' => false, 'message' => 'Category not found'], 404);
+    }
+
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'category_for' => 'required|in:property,experience',
+        'icon' => 'required|string|max:255',
+        'image' => 'nullable|string|max:255',
+        'is_active' => 'nullable|boolean',
+        'sort_order' => 'nullable|integer|min:0',
+    ]);
+
+    $category->update([
+        'name' => $validated['name'],
+        'slug' => Str::slug($validated['name']),
+        'category_for' => $validated['category_for'],
+        'icon' => $validated['icon'],
+        'image' => $validated['image'] ?? null,
+        'is_active' => $request->boolean('is_active', true),
+        'sort_order' => $validated['sort_order'] ?? 0,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Category updated successfully',
+        'data' => $category,
+    ]);
+}
+
+public function deleteCategory(Request $request, $id)
+{
+    $clerkId = $request->query('clerk_id');
+    $role = $request->query('role');
+    $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin', $role);
+
+    if (!$this->isAdmin($user)) {
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+    }
+
+    $category = Category::find($id);
+
+    if (!$category) {
+        return response()->json(['success' => false, 'message' => 'Category not found'], 404);
+    }
+
+    if ($category->properties()->exists()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Cannot delete category because properties are using it',
+        ], 400);
+    }
+
+    $category->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Category deleted successfully',
+    ]);
+}
+
+public function toggleCategory(Request $request, $id)
+{
+    $clerkId = $request->query('clerk_id');
+    $role = $request->query('role');
+    $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'admin', $role);
+
+    if (!$this->isAdmin($user)) {
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+    }
+
+    $category = Category::find($id);
+
+    if (!$category) {
+        return response()->json(['success' => false, 'message' => 'Category not found'], 404);
+    }
+
+    $category->update([
+        'is_active' => !$category->is_active,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Category status updated',
+        'data' => $category,
+    ]);
+}
     /**
      * Get analytics data
      */

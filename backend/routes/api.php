@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Guest\UserProfileController;
 use App\Http\Controllers\Property\PropertyController;
 use App\Http\Controllers\Api\ExperienceController;
+use App\Http\Controllers\Category\CategoryController;
+use App\Http\Controllers\Amenity\AmenityController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Host\HostController;
 use App\Http\Controllers\Reservation\ReservationController;
@@ -24,8 +26,15 @@ Route::apiResource('experiences', ExperienceController::class);
 Route::apiResource('services', ServiceController::class);
 Route::post('/properties', [PropertyController::class, 'store']);
 
+// category and amenity routes
+Route::get('/categories/property', [CategoryController::class, 'property']);
+Route::get('/categories/experience', [CategoryController::class, 'experience']);
+Route::get('/amenities', [AmenityController::class, 'index']);
+
 // Host routes
 Route::get('/host/dashboard', [HostController::class, 'dashboard']);
+Route::get('/host/properties/{id}', [PropertyController::class, 'showForEdit']);
+Route::get('/host/properties/{id}', [PropertyController::class, 'show']);
 
 // Reservation & Trip routes
 Route::post('/reservations', [ReservationController::class, 'store']);
@@ -56,6 +65,11 @@ Route::get('/admin/users', [AdminController::class, 'users']);
 Route::get('/admin/properties', [AdminController::class, 'properties']);
 Route::post('/admin/properties/{id}/approve', [AdminController::class, 'approveProperty']);
 Route::post('/admin/properties/{id}/reject', [AdminController::class, 'rejectProperty']);
+Route::get('/admin/categories', [AdminController::class, 'categories']);
+Route::post('/admin/categories', [AdminController::class, 'storeCategory']);
+Route::put('/admin/categories/{id}', [AdminController::class, 'updateCategory']);
+Route::delete('/admin/categories/{id}', [AdminController::class, 'deleteCategory']);
+Route::patch('/admin/categories/{id}/toggle', [AdminController::class, 'toggleCategory']);
 Route::get('/admin/reservations', [AdminController::class, 'reservations']);
 Route::get('/admin/analytics', [AdminController::class, 'analytics']);
 Route::get('/admin/notifications', [AdminController::class, 'notifications']);

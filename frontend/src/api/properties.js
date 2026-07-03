@@ -9,20 +9,27 @@ function parseImageUrls(value) {
 
   try {
     const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [value.trim()];
   } catch {
     return [value.trim()];
   }
 }
 
 function normalizeProperty(property) {
-  const parsedImages = parseImageUrls(property.images || property.image_urls);
-  const fallbackImage = property.image || parsedImages[0] || "/placeholder.jpg";
-  const finalImages = parsedImages.length > 0 ? parsedImages : [fallbackImage];
+  const parsedImages = [
+    ...parseImageUrls(property.image),
+    ...parseImageUrls(property.image_urls),
+    ...parseImageUrls(property.images),
+  ];
+
+  const uniqueImages = [...new Set(parsedImages)];
+
+  const finalImages =
+    uniqueImages.length > 0 ? uniqueImages : ["/placeholder.jpg"];
 
   return {
     ...property,
-    image: fallbackImage,
+    image: finalImages[0],
     images: finalImages,
     image_urls: finalImages,
     price:

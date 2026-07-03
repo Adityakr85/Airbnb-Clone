@@ -10,115 +10,166 @@ use Illuminate\Http\Request;
 
 class HostController extends Controller
 {
+    private function imageUrl($image)
+    {
+        if (!$image) {
+            return null;
+        }
+
+        if (is_object($image)) {
+            $image = $image->image_path ?? $image->url ?? null;
+        }
+
+        if (!$image) {
+            return null;
+        }
+
+        if (filter_var($image, FILTER_VALIDATE_URL)) {
+            return $image;
+        }
+
+        if (str_starts_with($image, '/storage/')) {
+            return url($image);
+        }
+
+        if (str_starts_with($image, 'storage/')) {
+            return url('/' . $image);
+        }
+
+        return asset('storage/' . ltrim($image, '/'));
+    }
+
+    private function propertyImages($property)
+    {
+        if (!$property || !$property->images) {
+            return collect();
+        }
+
+        return $property->images
+            ->map(fn ($image) => $this->imageUrl($image))
+            ->filter()
+            ->values();
+    }
+
+    private function formatProperty($property)
+    {
+        $images = $this->propertyImages($property);
+
+        $cover = $property->images
+            ? $property->images->where('is_cover', true)->first()
+            : null;
+
+        $coverImage = $cover ? $this->imageUrl($cover) : null;
+        $firstImage = $coverImage ?: $images->first();
+
+        return [
+            'id' => $property->id,
+            'title' => (string) ($property->title ?? ''),
+            'description' => (string) ($property->description ?? ''),
+            'location' => (string) ($property->location ?? ''),
+            'address' => (string) ($property->address ?? ''),
+            'latitude' => $property->latitude,
+            'longitude' => $property->longitude,
+
+            'price' => (float) ($property->price ?? 0),
+            'guests' => (int) ($property->guests ?? 0),
+            'bedrooms' => (int) ($property->bedrooms ?? 0),
+            'bathrooms' => (int) ($property->bathrooms ?? 0),
+
+            'category_id' => $property->category_id,
+            'category' => $property->category,
+            'category_name' => $property->category ? $property->category->name : 'Property',
+
+            'rating' => (float) ($property->rating ?? 0),
+            'views' => (int) ($property->views ?? 0),
+            'bookings' => (int) ($property->bookings ?? 0),
+            'earnings' => (float) ($property->earnings ?? 0),
+
+            'image' => $firstImage,
+            'images' => $images,
+            'image_urls' => $images,
+
+            'status' => $property->status,
+            'moderation_status' => $property->moderation_status,
+            'display_status' => $property->moderation_status
+                ? ucfirst($property->moderation_status)
+                : ucfirst($property->status ?? 'pending'),
+        ];
+    }
+
     public function dashboard(Request $request)
     {
         $clerkId = $request->query('clerk_id');
         $role = $request->query('role');
+
         if (!$clerkId) {
-            return response()->json(['success' => false, 'message' => 'clerk_id required'], 400);
+            return response()->json([
+                'success' => false,
+                'message' => 'clerk_id required',
+            ], 400);
         }
 
-        $user = User::getOrCreateFromClerkId($clerkId, 'User', 'host', $role);
+        $user = User::getOrCreateFromClerkId($clerkId, 'User', null, 'host', $role ?: 'host');
+
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found',
+            ], 404);
         }
 
-        // Get properties
-        $properties = Property::with('images')->where('host_id', $user->id)->get()->map(function ($property) {
-            // Get images from relationship
-            $images = $property->images->pluck('image_path')->toArray();
-            $coverImage = $property->images->where('is_cover', true)->first();
-            $firstImage = $coverImage ? $coverImage->image_path : ($images[0] ?? null);
+        $properties = Property::with(['images', 'category'])
+            ->where('host_id', $user->id)
+            ->get()
+            ->map(fn ($property) => $this->formatProperty($property))
+            ->values();
 
-            $imageUrl = $firstImage ? 
-                (filter_var($firstImage, FILTER_VALIDATE_URL) ? $firstImage : asset('storage/' . ltrim($firstImage, '/'))) :
-                null;
-
-            // Determine status display
-            $status = $property->status;
-            $moderationStatus = $property->moderation_status;
-            $displayStatus = 'Pending';
-            if ($moderationStatus) {
-                $displayStatus = ucfirst($moderationStatus);
-            } elseif ($status) {
-                $displayStatus = ucfirst($status);
-            }
-
-            return [
-                'id' => $property->id,
-                'title' => (string) ($property->title ?? ''),
-                'location' => (string) ($property->location ?? ''),
-                'rating' => (float) ($property->rating ?? 0),
-                'views' => (int) ($property->views ?? 0),
-                'bookings' => (int) ($property->bookings ?? 0),
-                'price' => (float) ($property->price ?? 0),
-                'earnings' => (float) ($property->earnings ?? 0),
-                'image' => $imageUrl,
-                'images' => $images,
-                'status' => $status,
-                'moderation_status' => $moderationStatus,
-                'display_status' => $displayStatus,
-            ];
-        })->values();
-
-        // Get reservations for these properties
         $propertyIds = $properties->pluck('id');
-        $reservations = Reservation::with(['guest', 'property'])
+
+        $reservations = Reservation::with([
+                'guest',
+                'property.images',
+                'property.category',
+            ])
             ->whereIn('property_id', $propertyIds)
             ->get();
 
-        // Map reservations for frontend expectations
-        $mappedReservations = $reservations->map(function ($r) {
-            $images = $r->property->images ?? [];
-            $firstImage = $images[0] ?? null;
-            
+        $mappedReservations = $reservations->map(function ($reservation) {
+            $property = $reservation->property;
+
             return [
-                'id' => $r->id,
-                'property_id' => $r->property_id,
-                'property_title' => $r->property ? $r->property->title : '',
-                'propertyTitle' => $r->property ? $r->property->title : '',
-                'guest' => $r->guest ? [
-                    'name' => $r->guest->name,
-                    'email' => $r->guest->email,
-                    'phone' => $r->guest->phone ?? null,
-                    'avatar' => $r->guest->profile_image 
-                        ? (filter_var($r->guest->profile_image, FILTER_VALIDATE_URL) 
-                            ? $r->guest->profile_image 
-                            : asset('storage/' . ltrim($r->guest->profile_image, '/'))) 
-                        : null,
+                'id' => $reservation->id,
+                'property_id' => $reservation->property_id,
+                'property_title' => $property ? $property->title : '',
+                'propertyTitle' => $property ? $property->title : '',
+
+                'guest' => $reservation->guest ? [
+                    'name' => $reservation->guest->name,
+                    'email' => $reservation->guest->email,
+                    'phone' => $reservation->guest->phone ?? null,
+                    'avatar' => $this->imageUrl($reservation->guest->profile_image),
                 ] : [
                     'name' => 'Guest',
                     'email' => null,
                     'phone' => null,
                     'avatar' => null,
                 ],
-                'check_in' => $r->check_in,
-                'check_out' => $r->check_out,
-                'checkIn' => $r->check_in,
-                'checkOut' => $r->check_out,
-                'status' => $r->status,
-                'payment_status' => $r->payment_status,
-                'total' => (float) $r->total,
-                'guests' => $r->guests,
-                'message' => $r->message,
-                'created_at' => $r->created_at,
-                'property' => $r->property ? [
-                    'id' => $r->property->id,
-                    'title' => $r->property->title,
-                    'location' => $r->property->location,
-                    'images' => $images,
-                    'image' => $firstImage,
-                    'price' => (float) $r->property->price,
-                ] : null,
+
+                'check_in' => $reservation->check_in,
+                'check_out' => $reservation->check_out,
+                'checkIn' => $reservation->check_in,
+                'checkOut' => $reservation->check_out,
+
+                'status' => $reservation->status,
+                'payment_status' => $reservation->payment_status,
+                'total' => (float) ($reservation->total ?? 0),
+                'guests' => (int) ($reservation->guests ?? 0),
+                'message' => $reservation->message,
+                'created_at' => $reservation->created_at,
+
+                'property' => $property ? $this->formatProperty($property) : null,
             ];
         })->values();
-
-        // Calculate stats
-        $totalProperties = $properties->count();
-        $totalReservations = $reservations->count();
-        $totalEarnings = $properties->sum('earnings');
-        $pendingReservations = $reservations->where('status', 'pending')->count();
-        $confirmedReservations = $reservations->where('status', 'confirmed')->count();
 
         return response()->json([
             'success' => true,
@@ -126,13 +177,13 @@ class HostController extends Controller
                 'properties' => $properties,
                 'reservations' => $mappedReservations,
                 'stats' => [
-                    'totalProperties' => $totalProperties,
-                    'totalReservations' => $totalReservations,
-                    'totalEarnings' => $totalEarnings,
-                    'pendingReservations' => $pendingReservations,
-                    'confirmedReservations' => $confirmedReservations,
-                ]
-            ]
+                    'totalProperties' => $properties->count(),
+                    'totalReservations' => $reservations->count(),
+                    'totalEarnings' => $properties->sum('earnings'),
+                    'pendingReservations' => $reservations->where('status', 'pending')->count(),
+                    'confirmedReservations' => $reservations->where('status', 'confirmed')->count(),
+                ],
+            ],
         ]);
     }
 }

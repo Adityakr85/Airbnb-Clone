@@ -3,6 +3,40 @@ import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { fetchGuestTrips } from "../../../api/trips";
 
+const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
+
+function getImageUrl(value) {
+  if (!value) return "/placeholder.jpg";
+
+  if (typeof value === "object") {
+    value = value.url || value.image_path || "";
+  }
+
+  if (typeof value !== "string" || !value.trim()) return "/placeholder.jpg";
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  if (value.startsWith("/storage/")) {
+    return `${API_BASE}${value}`;
+  }
+
+  if (value.startsWith("storage/")) {
+    return `${API_BASE}/${value}`;
+  }
+
+  return `${API_BASE}/storage/${value}`;
+}
+
+function getPropertyImage(property) {
+  if (!property) return "/placeholder.jpg";
+
+  return getImageUrl(
+    property.image || property.image_urls?.[0] || property.images?.[0],
+  );
+}
+
 export default function PastTripsTab() {
   const navigate = useNavigate();
   const { user, isLoaded } = useUser();
@@ -21,12 +55,11 @@ export default function PastTripsTab() {
 
       try {
         const data = await fetchGuestTrips(user.id);
-
-        const completedTrips = data.filter(
-          (trip) => (trip.realtime_status || trip.status) === "completed",
+        setPastTrips(
+          data.filter(
+            (trip) => (trip.realtime_status || trip.status) === "completed",
+          ),
         );
-
-        setPastTrips(completedTrips);
       } catch (err) {
         console.error("Failed to load past trips:", err);
       } finally {
@@ -55,11 +88,9 @@ export default function PastTripsTab() {
       {pastTrips.length === 0 ? (
         <div className="mt-20 flex flex-col items-center justify-center">
           <div className="text-9xl">🧳</div>
-
           <p className="mt-6 max-w-sm text-center text-gray-900">
             No past trips yet.
           </p>
-
           <Link
             to="/"
             className="mt-8 rounded-xl bg-[#e31c5f] px-7 py-4 font-semibold text-white hover:bg-[#ff385c]"
@@ -80,14 +111,13 @@ export default function PastTripsTab() {
                 className="overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:shadow-lg"
               >
                 <img
-                  src={
-                    property?.images?.[0] ||
-                    property?.image ||
-                    "/placeholder.jpg"
-                  }
+                  src={getPropertyImage(property)}
                   alt={property?.title || "Property"}
                   onClick={() => navigate(`/property/${property?.id}`)}
                   className="h-52 w-full cursor-pointer object-cover transition hover:opacity-90"
+                  onError={(e) => {
+                    e.currentTarget.src = "/placeholder.jpg";
+                  }}
                 />
 
                 <div className="p-5">
@@ -105,7 +135,6 @@ export default function PastTripsTab() {
                   <p className="mt-2 text-gray-700">
                     Check-in: {trip.check_in}
                   </p>
-
                   <p className="text-gray-700">Check-out: {trip.check_out}</p>
 
                   <p className="mt-2 text-gray-700">

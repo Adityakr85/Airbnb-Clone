@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Home,
   Star,
@@ -11,10 +12,47 @@ import {
   Trash2,
 } from "lucide-react";
 import { useHost } from "./HostContext";
-import { useState } from "react";
+
+const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
+
+function getImageUrl(value) {
+  if (!value) return "/placeholder.jpg";
+
+  if (typeof value === "object") {
+    value = value.url || value.image_path || "";
+  }
+
+  if (typeof value !== "string" || !value.trim()) return "/placeholder.jpg";
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  if (value.startsWith("/storage/")) {
+    return `${API_BASE}${value}`;
+  }
+
+  if (value.startsWith("storage/")) {
+    return `${API_BASE}/${value}`;
+  }
+
+  return `${API_BASE}/storage/${value}`;
+}
+
+function getPropertyImage(property) {
+  return getImageUrl(
+    property?.image || property?.image_urls?.[0] || property?.images?.[0],
+  );
+}
+
+function getPropertyCategory(property) {
+  return property?.category?.name || property?.category_name || "Property";
+}
 
 export default function HostProperties() {
   const { properties, deleteProperty } = useHost();
+  const navigate = useNavigate();
+
   const [deletingId, setDeletingId] = useState(null);
   const [showConfirm, setShowConfirm] = useState(null);
 
@@ -34,6 +72,7 @@ export default function HostProperties() {
     await deleteProperty(id);
     setDeletingId(null);
   };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <section className="border-b border-gray-200 bg-white px-6 py-8">
@@ -79,14 +118,20 @@ export default function HostProperties() {
             {properties.map((p) => (
               <article
                 key={p.id}
-                className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition hover:shadow-md"
+                onClick={() => navigate(`/property/${p.id}`)}
+                className="cursor-pointer overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition hover:shadow-md"
               >
-                <div className="grid gap-0 md:grid-cols-[260px_1fr]">
-                  <img
-                    src={p.image ? `${p.image}?w=420&q=80` : ""}
-                    alt={p.title}
-                    className="h-64 w-full bg-gray-100 object-cover md:h-full"
-                  />
+                <div className="grid md:grid-cols-[300px_1fr]">
+                  <div className="h-64 w-full overflow-hidden bg-gray-100 md:h-full">
+                    <img
+                      src={getPropertyImage(p)}
+                      alt={p.title || "Property"}
+                      className="h-full w-full object-cover object-center transition duration-300 hover:scale-105"
+                      onError={(e) => {
+                        e.currentTarget.src = "/placeholder.jpg";
+                      }}
+                    />
+                  </div>
 
                   <div className="flex flex-col justify-between p-6">
                     <div>
@@ -100,11 +145,11 @@ export default function HostProperties() {
                                   : "bg-gray-100 text-gray-500"
                               }`}
                             >
-                              {p.status || "active"}
+                              {p.display_status || p.status || "active"}
                             </span>
 
                             <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600">
-                              {p.type || "Property"}
+                              {getPropertyCategory(p)}
                             </span>
                           </div>
 
@@ -161,9 +206,15 @@ export default function HostProperties() {
                       </div>
                     </div>
 
-                    <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-gray-100 pt-4">
-                      <button className="rounded-full border border-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
-                        Edit listing
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="mt-6 flex flex-wrap justify-end gap-3 border-t border-gray-100 pt-4"
+                    >
+                      <button
+                        onClick={() => navigate(`/host/edit-property/${p.id}`)}
+                        className="rounded-full border border-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                      >
+                        Edit Listing
                       </button>
 
                       {showConfirm === p.id ? (
@@ -173,12 +224,9 @@ export default function HostProperties() {
                             disabled={deletingId === p.id}
                             className="rounded-full border border-red-200 px-5 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-50"
                           >
-                            {deletingId === p.id ? (
-                              <span className="flex items-center gap-1"><span className="animate-spin">⏳</span> Deleting...</span>
-                            ) : (
-                              "Confirm"
-                            )}
+                            {deletingId === p.id ? "Deleting..." : "Confirm"}
                           </button>
+
                           <button
                             onClick={() => setShowConfirm(null)}
                             className="rounded-full border border-gray-200 px-5 py-2 text-sm font-semibold text-gray-500 transition hover:bg-gray-50"
@@ -189,7 +237,7 @@ export default function HostProperties() {
                       ) : (
                         <button
                           onClick={() => handleDelete(p.id)}
-                          className="rounded-full border border-red-200 px-5 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-50 flex items-center gap-1"
+                          className="flex items-center gap-1 rounded-full border border-red-200 px-5 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-50"
                         >
                           <Trash2 size={14} />
                           Delete

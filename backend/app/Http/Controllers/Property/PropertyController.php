@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Property\Property;
 use App\Models\Property\PropertyImage;
 use App\Models\User\User;
-use App\Services\Notification\NotificationService;
 use App\Services\CloudinaryService;
+use App\Services\Notification\NotificationService;
 use Illuminate\Http\Request;
 
 class PropertyController extends Controller
@@ -15,16 +15,66 @@ class PropertyController extends Controller
     protected $notificationService;
     protected $cloudinaryService;
 
-    public function __construct(NotificationService $notificationService, CloudinaryService $cloudinaryService)
-    {
+    public function __construct(
+        NotificationService $notificationService,
+        CloudinaryService $cloudinaryService
+    ) {
         $this->notificationService = $notificationService;
         $this->cloudinaryService = $cloudinaryService;
     }
 
+    private function formatProperty($property)
+    {
+        $images = $property->images->pluck('image_path')->toArray();
+        $coverImage = $property->images->where('is_cover', true)->first();
+        $firstImage = $coverImage ? $coverImage->image_path : ($images[0] ?? null);
+
+        return [
+            'id' => $property->id,
+            'host_id' => $property->host_id,
+
+            'title' => $property->title,
+            'description' => $property->description,
+
+            'location' => $property->location,
+            'address' => $property->address,
+            'latitude' => $property->latitude,
+            'longitude' => $property->longitude,
+
+            'price' => (float) $property->price,
+            'guests' => (int) $property->guests,
+            'bedrooms' => (int) $property->bedrooms,
+            'bathrooms' => (int) $property->bathrooms,
+
+            'category_id' => $property->category_id,
+            'category' => $property->category,
+
+            'amenities' => $property->amenities,
+
+            'status' => $property->status,
+            'moderation_status' => $property->moderation_status,
+            'rating' => $property->rating ? (float) $property->rating : null,
+            'views' => (int) $property->views,
+            'bookings' => (int) $property->bookings,
+            'earnings' => (float) $property->earnings,
+
+            'images' => $images,
+            'image' => $firstImage ?: '/placeholder.jpg',
+            'image_urls' => $images,
+
+            'host' => $property->host,
+        ];
+    }
+
     public function index(Request $request)
     {
-        $query = Property::query()->with(['host', 'images']);
-        
+        $query = Property::query()->with([
+            'host',
+            'images',
+            'category',
+            'amenities',
+        ]);
+
         $query->where('moderation_status', 'approved');
 
         $search = $request->input('search');
@@ -39,41 +89,7 @@ class PropertyController extends Controller
         }
 
         $properties = $query->get()->map(function ($property) {
-            $images = $property->images->pluck('image_path')->toArray();
-            $coverImage = $property->images->where('is_cover', true)->first();
-            $firstImage = $coverImage ? $coverImage->image_path : ($images[0] ?? null);
-            
-            $imageUrl = $firstImage ? 
-                (filter_var($firstImage, FILTER_VALIDATE_URL) ? $firstImage : asset('storage/' . ltrim($firstImage, '/'))) :
-                '/placeholder.jpg';
-
-            return [
-                'id' => $property->id,
-                'host_id' => $property->host_id,
-                'title' => $property->title,
-                'description' => $property->description,
-                'location' => $property->location,
-                'address' => $property->address,
-                'latitude' => $property->latitude,
-                'longitude' => $property->longitude,
-                'price' => (float) $property->price,
-                'type' => $property->type,
-                'guests' => (int) $property->guests,
-                'bedrooms' => (int) $property->bedrooms,
-                'beds' => (int) $property->beds,
-                'bathrooms' => (int) $property->bathrooms,
-                'category' => $property->category,
-                'status' => $property->status,
-                'moderation_status' => $property->moderation_status,
-                'rating' => $property->rating ? (float) $property->rating : null,
-                'views' => (int) $property->views,
-                'bookings' => (int) $property->bookings,
-                'earnings' => (float) $property->earnings,
-                'images' => $images,
-                'image' => $imageUrl,
-                'image_urls' => $images,
-                'host' => $property->host,
-            ];
+            return $this->formatProperty($property);
         });
 
         return response()->json([
@@ -93,12 +109,14 @@ class PropertyController extends Controller
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'price' => 'required|numeric',
-            'type' => 'required|string|max:255',
             'guests' => 'required|integer|min:1',
             'bedrooms' => 'required|integer|min:0',
-            'beds' => 'nullable|integer|min:0',
             'bathrooms' => 'required|integer|min:0',
-            'category' => 'nullable|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+
+            'amenities' => 'nullable|array',
+            'amenities.*' => 'exists:amenities,id',
+
             'images' => 'required|array|min:1',
             'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
@@ -121,12 +139,10 @@ class PropertyController extends Controller
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'price' => $request->price,
-            'type' => $request->type,
             'guests' => $request->guests,
             'bedrooms' => $request->bedrooms,
-            'beds' => $request->beds ?? 0,
             'bathrooms' => $request->bathrooms,
-            'category' => $request->category,
+            'category_id' => $request->category_id,
             'status' => 'active',
             'moderation_status' => 'pending',
             'views' => 0,
@@ -134,31 +150,40 @@ class PropertyController extends Controller
             'earnings' => 0,
         ]);
 
+        if ($request->has('amenities')) {
+            $property->amenities()->sync($request->amenities);
+        }
+
         foreach ($request->file('images') as $index => $image) {
             $uploadResult = $this->cloudinaryService->upload($image, 'properties');
-            
+
             PropertyImage::create([
                 'property_id' => $property->id,
-                'image_path' => $uploadResult['url'],
+                'image_path' => $uploadResult['url'] ?? $uploadResult['secure_url'] ?? $uploadResult,
                 'is_cover' => $index === 0,
             ]);
         }
 
-        // Send notifications
-        $property->load('host');
+        $property->load(['host', 'images', 'category', 'amenities']);
+
         $this->notificationService->notifyHostNewProperty($property);
         $this->notificationService->notifyAdminNewProperty($property);
 
         return response()->json([
             'success' => true,
             'message' => 'Property created successfully',
-            'data' => $property->load(['host', 'images']),
+            'data' => $this->formatProperty($property),
         ], 201);
     }
 
     public function show(string $id)
     {
-        $property = Property::with(['host', 'images'])->find($id);
+        $property = Property::with([
+            'host',
+            'images',
+            'category',
+            'amenities',
+        ])->find($id);
 
         if (!$property) {
             return response()->json([
@@ -167,42 +192,9 @@ class PropertyController extends Controller
             ], 404);
         }
 
-        $images = $property->images->pluck('image_path')->toArray();
-        $coverImage = $property->images->where('is_cover', true)->first();
-        $firstImage = $coverImage ? $coverImage->image_path : ($images[0] ?? null);
-
         return response()->json([
             'success' => true,
-            'data' => [
-                'id' => $property->id,
-                'title' => $property->title,
-                'description' => $property->description,
-                'location' => $property->location,
-                'address' => $property->address,
-                'latitude' => $property->latitude,
-                'longitude' => $property->longitude,
-                'price' => (float) $property->price,
-                'type' => $property->type,
-                'guests' => $property->guests,
-                'bedrooms' => $property->bedrooms,
-                'beds' => $property->beds,
-                'bathrooms' => $property->bathrooms,
-                'category' => $property->category,
-                'status' => $property->status,
-                'moderation_status' => $property->moderation_status,
-                'rating' => $property->rating ? (float) $property->rating : null,
-                'views' => $property->views,
-                'bookings' => $property->bookings,
-                'earnings' => (float) $property->earnings,
-                'images' => $images,
-                'image' => $firstImage,
-                'image_urls' => $images,
-                'host' => $property->host ? [
-                    'id' => $property->host->id,
-                    'name' => $property->host->name,
-                    'email' => $property->host->email,
-                ] : null,
-            ],
+            'data' => $this->formatProperty($property),
         ]);
     }
 
@@ -217,12 +209,14 @@ class PropertyController extends Controller
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'price' => 'sometimes|numeric',
-            'type' => 'sometimes|string|max:255',
             'guests' => 'sometimes|integer|min:1',
             'bedrooms' => 'sometimes|integer|min:0',
-            'beds' => 'nullable|integer|min:0',
             'bathrooms' => 'sometimes|integer|min:0',
-            'category' => 'nullable|string|max:255',
+            'category_id' => 'sometimes|exists:categories,id',
+
+            'amenities' => 'nullable|array',
+            'amenities.*' => 'exists:amenities,id',
+
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
@@ -260,14 +254,16 @@ class PropertyController extends Controller
             'latitude',
             'longitude',
             'price',
-            'type',
             'guests',
             'bedrooms',
-            'beds',
             'bathrooms',
-            'category',
+            'category_id',
             'status',
         ]));
+
+        if ($request->has('amenities')) {
+            $property->amenities()->sync($request->amenities);
+        }
 
         if ($request->hasFile('images')) {
             $hasCover = $property->images()->where('is_cover', true)->exists();
@@ -277,16 +273,18 @@ class PropertyController extends Controller
 
                 PropertyImage::create([
                     'property_id' => $property->id,
-                    'image_path' => $uploadResult['url'],
+                    'image_path' => $uploadResult['url'] ?? $uploadResult['secure_url'] ?? $uploadResult,
                     'is_cover' => !$hasCover && $index === 0,
                 ]);
             }
         }
 
+        $property->load(['host', 'images', 'category', 'amenities']);
+
         return response()->json([
             'success' => true,
             'message' => 'Property updated successfully',
-            'data' => $property->load(['host', 'images']),
+            'data' => $this->formatProperty($property),
         ]);
     }
 
@@ -326,9 +324,7 @@ class PropertyController extends Controller
             ], 403);
         }
 
-        // Delete images from Cloudinary
         foreach ($property->images as $image) {
-            // Extract public_id from Cloudinary URL
             if (preg_match('/\/upload\/(?:v\d+\/)?(.+)\.(jpg|jpeg|png|webp)/i', $image->image_path, $matches)) {
                 $this->cloudinaryService->delete($matches[1]);
             }
