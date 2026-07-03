@@ -49,7 +49,7 @@ export default function Navbar() {
   const [isHost, setIsHost] = useState(false);
 
   const hideSearchBar =
-    /^\/pages\/User\/(Messages|Notifications|AccountSettings|UserProfile|Trips|BookingDetails|Wishlist)/.test(
+    /^\/pages\/User\/(Messages|Notifications|AccountSettings|UserProfile|Trips|BookingDetails|Wishlist)/i.test(
       location.pathname,
     );
 

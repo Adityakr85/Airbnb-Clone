@@ -1,8 +1,15 @@
 import { Globe } from "lucide-react";
 import { FaFacebook, FaInstagram, FaXTwitter } from "react-icons/fa6";
-import { Link } from 'react-router-dom';
+import { Link , useLocation} from 'react-router-dom';
 
 export default function Footer() {
+  const location = useLocation();
+  const isMessagePage = location.pathname.toLowerCase().includes("message");
+
+  if (isMessagePage) {
+    return null;
+  }
+
   return (
     <footer className="bg-[#f7f7f7] border-t border-gray-200 px-8 py-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-8">

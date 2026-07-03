@@ -7,6 +7,8 @@ use App\Models\Message\Message;
 use App\Models\User\User;
 use App\Models\Reservation\Reservation;
 use Illuminate\Http\Request;
+use App\Events\MessageSent;
+use App\Services\AiAssistantService;
 
 class MessageController extends Controller
 {
@@ -64,6 +66,23 @@ class MessageController extends Controller
             return response()->json(['success' => false, 'message' => 'clerk_id required'], 400);
         }
 
+        if (!is_numeric($partnerId)) {
+            if ($partnerId === 'support-123' || str_starts_with($partnerId, 'support')) {
+                $aiBot = User::firstOrCreate(
+                    ['email' => 'support@stayfinder.com'],
+                    [
+                        'name' => 'stay finder Support',
+                        'clerk_id' => 'support-123',
+                        'password' => bcrypt('secret-ai-key-never-used'),
+                    ]
+                );
+                $partnerId = $aiBot->id;
+            } else {
+                // For other fallback mock IDs (like 'host-456'), return empty array
+                return response()->json(['success' => true, 'data' => []]);
+            }
+        }
+
         $user = User::getOrCreateFromClerkId($clerkId);
         $partner = User::find($partnerId);
 
@@ -102,7 +121,7 @@ class MessageController extends Controller
     /**
      * Send a message
      */
-    public function send(Request $request)
+    public function send(Request $request, AiAssistantService $aiService)
     {
         $clerkId = $request->input('clerk_id');
         $user = User::getOrCreateFromClerkId($clerkId);
@@ -111,6 +130,37 @@ class MessageController extends Controller
             return response()->json(['success' => false, 'message' => 'Valid Clerk ID required'], 400);
         }
 
+        $receiverId = $request->input('receiver_id');
+
+        // --- NEW: Intercept Mock/AI Support messages so they don't fail 422 Validation ---
+        if (!is_numeric($receiverId)) {
+            if ($receiverId === 'support-123' || str_starts_with($receiverId, 'support')) {
+                $aiBot = User::firstOrCreate(
+                    ['email' => 'support@stayfinder.com'],
+                    [
+                        'name' => 'stay finder Support',
+                        'clerk_id' => 'support-123',
+                        'password' => bcrypt('secret-ai-key-never-used'),
+                    ]
+                );
+                // Override the string receiver_id with the database integer ID!
+                $request->merge(['receiver_id' => $aiBot->id]);
+                $receiverId = $aiBot->id;
+            } else {
+                // If it's a mock host ID, return a mock response
+                $message = [
+                    'id' => time(),
+                    'sender_id' => $user->id,
+                    'receiver_id' => $receiverId,
+                    'body' => $request->input('body'),
+                    'type' => $request->input('type', 'general'),
+                    'is_read' => false,
+                    'created_at' => now()->toIso8601String(),
+                ];
+                return response()->json(['success' => true, 'data' => $message], 201);
+            }
+        }
+        
         $validated = $request->validate([
             'receiver_id' => 'required|exists:users,id',
             'body' => 'required|string|max:2000',
@@ -127,6 +177,25 @@ class MessageController extends Controller
             'is_read' => false,
         ]);
 
+        broadcast(new MessageSent($message))->toOthers();
+
+        $receiver = User::find($validated['receiver_id']);
+
+        if ($receiver && ($receiver->clerk_id === 'support-123' || $receiver->email === 'support@stayfinder.com')) {
+            
+            // Call Gemini to generate a response text
+            $aiReplyText = $aiService->generateResponse($user, $receiver);
+
+            // 3. Save Gemini's reply to the Database!
+            $aiMessage = Message::create([
+                'sender_id' => $receiver->id,
+                'receiver_id' => $user->id,
+                'body' => $aiReplyText,
+                'type' => 'support',
+                'is_read' => false,
+            ]);
+        broadcast(new MessageSent($aiMessage));
+        }
         return response()->json(['success' => true, 'data' => $message], 201);
     }
 

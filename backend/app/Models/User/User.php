@@ -50,6 +50,7 @@ class User extends Authenticatable
     public static function getOrCreateFromClerkId($clerkId, $name = 'User', $email = null, $defaultRole = 'guest', $role = null)
     {
         if (!$clerkId) return null;
+        $role = $role ?: 'guest';
 
         $user = self::firstOrCreate(
             ['clerk_id' => $clerkId],
