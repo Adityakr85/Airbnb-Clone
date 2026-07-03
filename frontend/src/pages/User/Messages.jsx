@@ -112,7 +112,7 @@ export default function Messages() {
     return matchesFilter && matchesSearch;
   });
 
-  //Fetch Inbox on Load & Handle Default Open
+  //Fetch Inbox on Load
   useEffect(() => {
     if (!clerk_id) return;
     let isMounted = true;
@@ -121,7 +121,10 @@ export default function Messages() {
       try {
         const data = await fetchInbox(clerk_id);
         if (!isMounted) return;
-        setInboxThreads(data);
+
+        const threadsToUse = data.length > 0 ? data : fallbackInbox;
+        setInboxThreads(threadsToUse);
+
       } catch (error) {
         if (!isMounted) return;
         console.warn("Using fallback inbox data due to:", error.message);
@@ -169,29 +172,24 @@ export default function Messages() {
     return () => { echo.leave(channelName); };
   }, [clerk_id, echo]);
 
-// 1. SIMPLE CLICK HANDLER: Clicking a sidebar thread ONLY updates the URL!
   const loadChatHistory = (partnerId) => {
     const targetThread = inboxThreads.find((t) => String(t.partner_id) === String(partnerId));
     const targetName = targetThread ? targetThread.partner_name : "User";
     
-    // Push the new chat to the URL. The Master Loader effect below will catch it and load the messages!
     setSearchParams({ partner_id: partnerId, name: targetName });
   };
 
-  // 2. INITIAL AUTO-OPEN: Runs exactly ONCE when the inbox finishes loading
+  // INITIAL AUTO-OPEN
   const hasInitializedRef = useRef(false);
 
   useEffect(() => {
     if (isLoadingInbox || inboxThreads.length === 0) return;
     
-    // If we already did our initial check on page load, STOP here so we never override user clicks!
     if (hasInitializedRef.current) return;
     hasInitializedRef.current = true;
-
-    // Read the URL on initial load
+    
     const currentId = searchParams.get("partner_id") || searchParams.get("host_id") || searchParams.get("id");
     
-    // If the URL is completely empty (/Messages), cleanly auto-open Support using { replace: true }
     if (!currentId) {
       const supportThread = inboxThreads.find(
         (t) => t.type === "support" || 
@@ -210,12 +208,10 @@ export default function Messages() {
     const targetPartnerId = searchParams.get("partner_id") || searchParams.get("host_id") || searchParams.get("id");
     if (!targetPartnerId || !clerk_id) return;
 
-    // Mark thread as read in sidebar preview
     setInboxThreads(prev => prev.map(thread => 
       String(thread.partner_id) === String(targetPartnerId) ? { ...thread, unread: false } : thread
     ));
 
-    // Fetch messages from Laravel backend
     let isMounted = true;
     fetchThreadHistory(targetPartnerId, clerk_id)
       .then(data => {
