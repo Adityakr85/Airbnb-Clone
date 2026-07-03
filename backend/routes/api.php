@@ -45,10 +45,10 @@ Route::get('/properties/{propertyId}/reviews', [ReviewController::class, 'index'
 Route::post('/properties/{propertyId}/reviews', [ReviewController::class, 'store']);
 
 // Message routes
-Route::get('/messages', [MessageController::class, 'inbox']);
+Route::get('/messages/inbox', [MessageController::class, 'inbox']);
 Route::get('/messages/unread', [MessageController::class, 'unreadCount']);
-Route::get('/messages/{partnerId}', [MessageController::class, 'thread']);
-Route::post('/messages', [MessageController::class, 'send']);
+Route::get('/messages/thread/{partnerId}', [MessageController::class, 'thread']);
+Route::post('/messages/send', [MessageController::class, 'send']);
 
 // Admin routes
 Route::get('/admin/dashboard', [AdminController::class, 'dashboard']);

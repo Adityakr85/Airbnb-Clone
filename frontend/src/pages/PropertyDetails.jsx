@@ -1,5 +1,6 @@
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
+import { MessageSquare } from "lucide-react";
 
 import ImageGallery from "../components/ImageGallery";
 import Amenities from "../components/Amenities";
@@ -13,6 +14,8 @@ import hosts from "../data/hosts";
 function PropertyDetails() {
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
   const checkInParam = searchParams.get("checkIn");
   const checkOutParam = searchParams.get("checkOut");
 
@@ -64,7 +67,15 @@ function PropertyDetails() {
   }
 
   const host = property.host || hosts.find((h) => h.id === property.host_id);
-
+  
+  const handleContactHost = () => {
+    if (!host) return;
+    const hostId = host.id || property.host_id || "host-456";
+    const hostName = encodeURIComponent(host.name || "Property Host");
+    
+    navigate(`/pages/User/Messages?partner_id=${hostId}&name=${hostName}`);
+  };
+  
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
       {/* Property Title */}
@@ -84,7 +95,21 @@ function PropertyDetails() {
         {/* Left Section */}
         <div className="lg:col-span-2">
           {/* Host */}
-          {host && <HostInfo host={host} />}
+          {host && (
+            <div className="flex items-center justify-between border-b border-gray-200 pb-6">
+              <div className="flex-1">
+                <HostInfo host={host} />
+              </div>
+              
+              <button
+                onClick={handleContactHost}
+                className="ml-4 flex shrink-0 items-center gap-2 rounded-xl border border-black bg-white px-6 py-3 font-semibold text-gray-900 shadow-sm transition duration-200 hover:bg-gray-100 active:scale-95"
+              >
+                <MessageSquare size={18} />
+                Contact Host
+              </button>
+            </div>
+          )}
 
           {/* About */}
           <div className="border-t border-b py-6 mt-6">

@@ -5,6 +5,7 @@ namespace App\Models\Message;
 use App\Models\User\User;
 use App\Models\Reservation\Reservation;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Message extends Model
 {
@@ -15,6 +16,7 @@ class Message extends Model
         'body',
         'type',
         'is_read',
+        'is_closed',
     ];
 
     protected $casts = [

@@ -326,9 +326,12 @@ export default function HelpCenterLanding() {
               We’ll start with some questions and get you to the right place.
             </p>
             <div className="mt-4">
-              <button className="w-full py-3.5 px-6 bg-gray-100 hover:bg-gray-200 active:scale-[0.98] text-[#222222] text-[15px] font-semibold rounded-xl transition cursor-pointer text-center block">
-                Contact us
-              </button>
+              <Link 
+                  to="/pages/User/Messages" 
+                  className="w-full py-3.5 px-6 bg-gray-100 hover:bg-gray-200 active:scale-[0.98] text-[#222222] text-[15px] font-semibold rounded-xl transition cursor-pointer text-center block"
+                >
+                  Contact us
+                </Link>
               <p className="text-[20px] text-[#222222] mt-4">
                 You can also <span className="underline font-medium cursor-pointer">give us feedback</span>.
               </p>
