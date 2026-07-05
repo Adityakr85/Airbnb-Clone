@@ -16,51 +16,6 @@ import {
 } from "lucide-react";
 import { fetchAdminReservations } from "../../api/admin";
 
-const reservationsData = [
-  {
-    id: "RSV-1001",
-    guest: "Rahul Sharma",
-    guestEmail: "rahul@gmail.com",
-    host: "Amit Kumar",
-    property: "Luxury Villa in Goa",
-    checkIn: "Jun 20, 2026",
-    checkOut: "Jun 24, 2026",
-    nights: 4,
-    amount: "₹45,000",
-    payment: "Paid",
-    status: "Confirmed",
-    created: "Jun 15, 2026",
-  },
-  {
-    id: "RSV-1002",
-    guest: "Sneha Verma",
-    guestEmail: "sneha@gmail.com",
-    host: "Priya Singh",
-    property: "Modern Apartment in Mumbai",
-    checkIn: "Jun 25, 2026",
-    checkOut: "Jun 28, 2026",
-    nights: 3,
-    amount: "₹24,600",
-    payment: "Pending",
-    status: "Pending",
-    created: "Jun 16, 2026",
-  },
-  {
-    id: "RSV-1003",
-    guest: "Amit Kumar",
-    guestEmail: "amit@gmail.com",
-    host: "Rahul Sharma",
-    property: "Mountain Stay in Manali",
-    checkIn: "Jul 02, 2026",
-    checkOut: "Jul 06, 2026",
-    nights: 4,
-    amount: "₹38,000",
-    payment: "Refunded",
-    status: "Cancelled",
-    created: "Jun 18, 2026",
-  },
-];
-
 export default function Reservations() {
   const { user, isLoaded } = useUser();
   const [search, setSearch] = useState("");
@@ -70,30 +25,29 @@ export default function Reservations() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-   // Fetch reservations from API
-   const fetchReservations = async () => {
-     try {
-       if (!isLoaded) return;
+  // Fetch reservations from API
+  const fetchReservations = async () => {
+    try {
+      if (!isLoaded) return;
 
-       const clerkId = user?.id;
-       const role = user?.publicMetadata?.role;
-       if (!clerkId) {
-         setReservations([]);
-         setError("Unable to load reservations: User not authenticated");
-         return;
-       }
+      const clerkId = user?.id;
+      if (!clerkId) {
+        setReservations([]);
+        setError("Unable to load reservations: User not authenticated");
+        return;
+      }
 
-       const data = await fetchAdminReservations(clerkId, role);
-       setReservations(data);
-       setError(null);
-     } catch (err) {
-       console.error("Failed to load reservations:", err);
-       setError("Failed to load reservations. Please try again later.");
-       setReservations([]);
-     } finally {
-       setLoading(false);
-     }
-   };
+      const data = await fetchAdminReservations(clerkId);
+      setReservations(data);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to load reservations:", err);
+      setError("Failed to load reservations. Please try again later.");
+      setReservations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Fetch data on component mount
   useEffect(() => {
@@ -106,14 +60,6 @@ export default function Reservations() {
     return () => clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, user?.id]);
-
-  const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-  };
-
-  const handleStatusChange = (e) => {
-    setStatus(e.target.value);
-  };
 
   const filteredReservations = useMemo(() => {
     return reservations.filter((item) => {
@@ -128,6 +74,28 @@ export default function Reservations() {
       return matchesSearch && matchesStatus;
     });
   }, [reservations, search, status]);
+
+  const stats = useMemo(() => {
+    return {
+      total: reservations.length,
+      confirmed: reservations.filter((r) => r.status === "Confirmed").length,
+      pending: reservations.filter((r) => r.status === "Pending").length,
+      cancelled: reservations.filter((r) => r.status === "Cancelled").length,
+    };
+  }, [reservations]);
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        Loading reservations...
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="rounded-2xl bg-red-50 p-6 text-red-600">{error}</div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -147,10 +115,37 @@ export default function Reservations() {
       </div>
 
       <div className="grid gap-5 md:grid-cols-4">
-        <StatCard title="Total Bookings" value="876" icon={CalendarCheck} />
-        <StatCard title="Confirmed" value="642" icon={CheckCircle} />
-        <StatCard title="Pending" value="128" icon={Clock} />
-        <StatCard title="Cancelled" value="106" icon={XCircle} />
+        <StatCard
+          title="Total Bookings"
+          value={stats.total}
+          icon={CalendarCheck}
+          active={status === "All"}
+          onClick={() => setStatus("All")}
+        />
+
+        <StatCard
+          title="Confirmed"
+          value={stats.confirmed}
+          icon={CheckCircle}
+          active={status === "Confirmed"}
+          onClick={() => setStatus("Confirmed")}
+        />
+
+        <StatCard
+          title="Pending"
+          value={stats.pending}
+          icon={Clock}
+          active={status === "Pending"}
+          onClick={() => setStatus("Pending")}
+        />
+
+        <StatCard
+          title="Cancelled"
+          value={stats.cancelled}
+          icon={XCircle}
+          active={status === "Cancelled"}
+          onClick={() => setStatus("Cancelled")}
+        />
       </div>
 
       <div className="rounded-[1.7rem] border border-gray-100 bg-white p-5 shadow-sm">
@@ -201,8 +196,12 @@ export default function Reservations() {
             </thead>
 
             <tbody className="divide-y divide-gray-100">
-              {reservations.map((item) => (
-                <tr key={item.id} className="transition hover:bg-gray-50">
+              {filteredReservations.map((item) => (
+                <tr
+                  key={item.id}
+                  onClick={() => setSelectedReservation(item)}
+                  className="cursor-pointer transition hover:bg-gray-50"
+                >
                   <td className="px-6 py-5 font-black text-gray-950">
                     {item.id}
                   </td>
@@ -242,7 +241,10 @@ export default function Reservations() {
 
                   <td className="px-6 py-5">
                     <button
-                      onClick={() => setSelectedReservation(item)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedReservation(item);
+                      }}
                       className="rounded-full p-2 transition hover:bg-gray-100"
                     >
                       <MoreVertical size={18} />
@@ -343,9 +345,9 @@ function StatusBadge({ status }) {
   const style =
     status === "Confirmed"
       ? "bg-emerald-50 text-emerald-600"
-    : status === "Pending"
-      ? "bg-yellow-50 text-yellow-600"
-      : "bg-red-50 text-red-600";
+      : status === "Pending"
+        ? "bg-yellow-50 text-yellow-600"
+        : "bg-red-50 text-red-600";
 
   return (
     <span className={`rounded-full px-3 py-1 text-xs font-black ${style}`}>
@@ -358,13 +360,13 @@ function PaymentBadge({ status }) {
   const style =
     status === "Paid"
       ? "bg-emerald-50 text-emerald-600"
-    : status === "Pending"
-      ? "bg-yellow-50 text-yellow-600"
-    : status === "Refunded"
-      ? "bg-blue-50 text-blue-600"
-    : status === "Failed"
-      ? "bg-red-50 text-red-600"
-      : "bg-gray-50 text-gray-600";
+      : status === "Pending"
+        ? "bg-yellow-50 text-yellow-600"
+        : status === "Refunded"
+          ? "bg-blue-50 text-blue-600"
+          : status === "Failed"
+            ? "bg-red-50 text-red-600"
+            : "bg-gray-50 text-gray-600";
 
   return (
     <span className={`rounded-full px-3 py-1 text-xs font-black ${style}`}>
@@ -373,19 +375,29 @@ function PaymentBadge({ status }) {
   );
 }
 
-function StatCard({ title, value, icon: Icon }) {
+function StatCard({ title, value, icon: Icon, active = false, onClick }) {
   return (
-    <div className="rounded-[1.7rem] border border-gray-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+    <button
+      onClick={onClick}
+      className={`w-full rounded-[1.7rem] border p-6 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${
+        active ? "border-rose-500 bg-rose-50" : "border-gray-100 bg-white"
+      }`}
+    >
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold text-gray-500">{title}</p>
+
           <h2 className="mt-2 text-3xl font-black">{value}</h2>
         </div>
 
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
+        <div
+          className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
+            active ? "bg-rose-500 text-white" : "bg-rose-50 text-rose-500"
+          }`}
+        >
           <Icon size={24} />
         </div>
       </div>
-    </div>
+    </button>
   );
 }

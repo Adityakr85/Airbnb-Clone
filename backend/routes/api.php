@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\ClerkUserController;
 use App\Http\Controllers\Guest\UserProfileController;
 use App\Http\Controllers\Property\PropertyController;
 use App\Http\Controllers\Api\ExperienceController;
@@ -16,6 +17,10 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\HelpCenterController;
 use App\Http\Controllers\Api\Admin\AdminHelpCenterController;
+
+Route::post('/clerk/sync-user', [ClerkUserController::class, 'sync']);
+
+
 
 // Additional property endpoints
 Route::get('/properties/destinations', [PropertyController::class, 'destinations']);
@@ -33,7 +38,7 @@ Route::get('/amenities', [AmenityController::class, 'index']);
 
 // Host routes
 Route::get('/host/dashboard', [HostController::class, 'dashboard']);
-Route::get('/host/properties/{id}', [PropertyController::class, 'showForEdit']);
+Route::get('/host/properties/{id}/edit', [PropertyController::class, 'showForEdit']);
 Route::get('/host/properties/{id}', [PropertyController::class, 'show']);
 
 // Reservation & Trip routes
@@ -61,7 +66,11 @@ Route::post('/messages', [MessageController::class, 'send']);
 
 // Admin routes
 Route::get('/admin/dashboard', [AdminController::class, 'dashboard']);
+Route::get('/admin/current-user', [AdminController::class, 'currentUser']);
 Route::get('/admin/users', [AdminController::class, 'users']);
+Route::patch('/admin/users/{id}/role', [AdminController::class, 'updateUserRole']);
+Route::patch('/admin/users/{id}/status', [AdminController::class, 'updateUserStatus']);
+Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser']);
 Route::get('/admin/properties', [AdminController::class, 'properties']);
 Route::post('/admin/properties/{id}/approve', [AdminController::class, 'approveProperty']);
 Route::post('/admin/properties/{id}/reject', [AdminController::class, 'rejectProperty']);

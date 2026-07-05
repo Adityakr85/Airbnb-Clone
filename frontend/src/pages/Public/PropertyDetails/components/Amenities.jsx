@@ -1,4 +1,3 @@
-// src/pages/Public/PropertyDetails/components/Amenities.jsx
 export default function Amenities({ amenities = [] }) {
   return (
     <section className="border-b border-gray-200 py-8">

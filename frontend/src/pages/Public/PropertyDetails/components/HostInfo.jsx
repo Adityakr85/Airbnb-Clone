@@ -1,4 +1,3 @@
-// src/pages/Public/PropertyDetails/components/HostInfo.jsx
 import { Bath, BedDouble, Users } from "lucide-react";
 
 export default function HostInfo({ property }) {

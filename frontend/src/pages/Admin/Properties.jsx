@@ -61,13 +61,11 @@ export default function Properties() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const fetchProperties = async () => {
     try {
       if (!isLoaded) return;
 
       const clerkId = user?.id;
-      const role = user?.publicMetadata?.role;
 
       if (!clerkId) {
         setProperties([]);
@@ -75,7 +73,7 @@ export default function Properties() {
         return;
       }
 
-      const data = await fetchAdminProperties(clerkId, role);
+      const data = await fetchAdminProperties(clerkId);
       setProperties(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
@@ -90,9 +88,8 @@ export default function Properties() {
   const handleApprove = async (propertyId) => {
     try {
       const clerkId = user?.id;
-      const role = user?.publicMetadata?.role;
 
-      await approveProperty(clerkId, propertyId, role);
+      await approveProperty(clerkId, propertyId);
 
       setProperties((prev) =>
         prev.map((p) =>
@@ -102,7 +99,15 @@ export default function Properties() {
         ),
       );
 
-      setSelectedProperty(null);
+      setSelectedProperty((prev) =>
+        prev && prev.id === propertyId
+          ? {
+              ...prev,
+              status: "Approved",
+              moderation_status: "approved",
+            }
+          : prev,
+      );
     } catch (err) {
       console.error("Failed to approve property:", err);
       alert("Failed to approve property. Please try again.");
@@ -112,9 +117,8 @@ export default function Properties() {
   const handleReject = async (propertyId) => {
     try {
       const clerkId = user?.id;
-      const role = user?.publicMetadata?.role;
 
-      await rejectProperty(clerkId, propertyId, role);
+      await rejectProperty(clerkId, propertyId);
 
       setProperties((prev) =>
         prev.map((p) =>
@@ -124,7 +128,15 @@ export default function Properties() {
         ),
       );
 
-      setSelectedProperty(null);
+      setSelectedProperty((prev) =>
+        prev && prev.id === propertyId
+          ? {
+              ...prev,
+              status: "Rejected",
+              moderation_status: "rejected",
+            }
+          : prev,
+      );
     } catch (err) {
       console.error("Failed to reject property:", err);
       alert("Failed to reject property. Please try again.");
@@ -160,7 +172,9 @@ export default function Properties() {
         property.location?.toLowerCase().includes(search.toLowerCase()) ||
         categoryName.toLowerCase().includes(search.toLowerCase());
 
-      const matchesStatus = status === "All" || property.status === status;
+      const matchesStatus =
+        status === "All" ||
+        property.status?.toLowerCase() === status.toLowerCase();
 
       return matchesSearch && matchesStatus;
     });
@@ -244,8 +258,8 @@ export default function Properties() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-24 text-gray-500">
-          <Loader2 className="animate-spin" size={30} />
+        <div className="flex h-96 items-center justify-center">
+          <Loader2 className="animate-spin text-rose-500" size={34} />
         </div>
       ) : error ? (
         <div className="rounded-[1.7rem] border border-red-100 bg-red-50 p-8 text-center">
@@ -287,7 +301,10 @@ function PropertyCard({ property, onManage }) {
     property.category?.name || property.category_name || "Property";
 
   return (
-    <div className="overflow-hidden rounded-[1.8rem] border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+    <div
+      onClick={onManage}
+      className="cursor-pointer overflow-hidden rounded-[1.8rem] border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+    >
       <div className="relative h-56">
         <img
           src={getPropertyImage(property)}
@@ -299,17 +316,16 @@ function PropertyCard({ property, onManage }) {
         />
 
         <Badge status={property.status} />
-
-        <button
-          onClick={onManage}
-          className="absolute right-4 top-4 rounded-full bg-white/90 p-2 transition hover:bg-white"
-        >
-          <MoreVertical size={18} />
-        </button>
       </div>
 
       <div className="p-5">
-        <h2 className="truncate text-lg font-black">{property.title}</h2>
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="line-clamp-2 text-lg font-black">{property.title}</h2>
+
+          <span className="whitespace-nowrap rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-600">
+            {categoryName}
+          </span>
+        </div>
 
         <p className="mt-1 text-sm text-gray-500">
           Hosted by {property.host || "Unknown"}
@@ -318,12 +334,7 @@ function PropertyCard({ property, onManage }) {
         <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
           <MapPin size={16} />
           {property.location}
-        </div>
-
-        <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
-          <span>{categoryName}</span>
-
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1 text-sm text-gray-500">
             <Star size={16} className="text-rose-500" fill="currentColor" />
             {property.rating || 0}
           </span>
@@ -334,13 +345,6 @@ function PropertyCard({ property, onManage }) {
             <p className="text-xl font-black">{property.price}</p>
             <p className="text-xs text-gray-500">per night</p>
           </div>
-
-          <button
-            onClick={onManage}
-            className="rounded-xl bg-gray-100 px-4 py-2 text-sm font-bold transition hover:bg-gray-200"
-          >
-            Manage
-          </button>
         </div>
       </div>
     </div>

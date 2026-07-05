@@ -1,7 +1,7 @@
 export const AdminAccess = {
-  Admin: ["*"],
+  admin: ["*"],
 
-  Manager: [
+  manager: [
     "dashboard",
     "users",
     "properties",
@@ -11,11 +11,11 @@ export const AdminAccess = {
     "reviews",
   ],
 
-  Finance: ["dashboard", "payments", "reservations"],
+  finance: ["dashboard", "payments", "reservations"],
 
-  Support: ["dashboard", "reports", "support", "notifications"],
+  support: ["dashboard", "reports", "support", "notifications"],
 
-  Moderator: [
+  moderator: [
     "dashboard",
     "reviews",
     "marketing",

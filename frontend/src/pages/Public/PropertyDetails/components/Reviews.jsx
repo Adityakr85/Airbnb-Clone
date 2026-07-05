@@ -1,4 +1,3 @@
-// src/pages/Public/PropertyDetails/components/Reviews.jsx
 import reviews from "../../../../data/reviews";
 
 export default function Reviews() {

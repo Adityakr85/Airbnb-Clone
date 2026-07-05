@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { fetchCurrentAdminUser } from "../../api/admin";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { canAccess } from "../../config/AdminAccess";
@@ -168,9 +169,26 @@ const groups = [
 
 export default function AdminLayout() {
   const location = useLocation();
-  const { user } = useUser();
   const { signOut } = useClerk();
-  const role = user?.publicMetadata?.role || "Guest";
+  const { user, isLoaded } = useUser();
+  const [dbUser, setDbUser] = useState(null);
+
+  useEffect(() => {
+    async function loadDbUser() {
+      if (!isLoaded || !user?.id) return;
+
+      try {
+        const data = await fetchCurrentAdminUser(user.id);
+        setDbUser(data);
+      } catch (err) {
+        console.error("Failed to load admin user:", err);
+      }
+    }
+
+    loadDbUser();
+  }, [isLoaded, user?.id]);
+
+  const role = dbUser?.role || "guest";
 
   const [openGroups, setOpenGroups] = useState({
     Overview: true,
@@ -309,7 +327,7 @@ export default function AdminLayout() {
 
           {visibleGroups.length === 0 && (
             <div className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-600">
-              No admin permissions found. Check Clerk role metadata.
+              No admin permissions found. Check database role.
             </div>
           )}
         </nav>
@@ -332,7 +350,12 @@ export default function AdminLayout() {
 
             <div>
               <h2 className="text-xl font-bold">Admin Panel</h2>
-              <p className="text-sm text-gray-500">Access level: {role}</p>
+              <p className="text-sm text-gray-500">
+                Access level:{" "}
+                <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700">
+                  {role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()}
+                </span>
+              </p>
             </div>
           </div>
 

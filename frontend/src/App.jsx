@@ -1,8 +1,11 @@
 import React from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+
+import SyncClerkUser from "./config/SyncClerkUser";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+
 import Home from "./pages/Public/Home";
 import Experiences from "./pages/Public/Experiences";
 import ExperienceDetails from "./components/ExperienceDetails";
@@ -47,6 +50,7 @@ import Analytics from "./pages/Admin/Analytics";
 import ActivityLogs from "./pages/Admin/ActivityLogs";
 import Monitoring from "./pages/Admin/Monitoring";
 import SystemSettings from "./pages/Admin/SystemSettings";
+
 import Landing from "./pages/Help/Landing";
 import ArticleDetails from "./pages/Help/ArticleDetails";
 import AllTopics from "./pages/Help/AllTopics";
@@ -55,25 +59,33 @@ import HelpCenterNavbar from "./pages/Help/HelpCenterNavbar";
 import SearchResultsPage from "./pages/Help/SearchResultsPages";
 
 const App = () => {
-  const isAdminRoute = useLocation().pathname.startsWith("/admin");
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  const isAdminRoute = currentPath.startsWith("/admin");
   const isHostRoute =
-    useLocation().pathname.startsWith("/host") ||
-    useLocation().pathname === "/become-a-host";
-  const currentPath = useLocation().pathname;
+    currentPath.startsWith("/host") || currentPath === "/become-a-host";
+
   const isHelpRoute =
     currentPath.startsWith("/help") || currentPath.startsWith("/pages/help");
+
   return (
     <>
+      <SyncClerkUser />
+
       {!isAdminRoute &&
         !isHostRoute &&
         (isHelpRoute ? <HelpCenterNavbar /> : <Navbar />)}
-      <Toaster />
+
+      <Toaster position="top-center" />
+
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/experiences" element={<Experiences />} />
         <Route path="/experience/:id" element={<ExperienceDetails />} />
         <Route path="/services" element={<Services />} />
         <Route path="/property/:id" element={<PropertyDetails />} />
+
         <Route path="/pages/User/Wishlist" element={<Wishlist />} />
         <Route path="/pages/User/Trips" element={<Trips />} />
         <Route
@@ -91,7 +103,7 @@ const App = () => {
           path="/pages/User/AccountSettings"
           element={<AccountSettings />}
         />
-        TODO: Host Routes
+
         <Route
           element={
             <HostProvider>
@@ -100,15 +112,14 @@ const App = () => {
           }
         >
           <Route path="/become-a-host" element={<BecomeAHost />} />
-          <Route path="/host/add-property" element={<AddProperty />} />
-
           <Route path="/host" element={<HostDashboard />} />
+          <Route path="/host/add-property" element={<AddProperty />} />
+          <Route path="/host/edit-property/:id" element={<AddProperty />} />
           <Route path="/host/reservations" element={<HostReservations />} />
           <Route path="/host/properties" element={<HostProperties />} />
           <Route path="/host/analytics" element={<PropertyAnalytics />} />
-          <Route path="/host/edit-property/:id" element={<AddProperty />} />
         </Route>
-        TODO: Protected routes for ADMIN pages based on roles and permissions
+
         <Route
           path="/admin"
           element={
@@ -117,153 +128,26 @@ const App = () => {
             </ProtectedAdminPage>
           }
         >
-          <Route
-            index
-            element={
-              <ProtectedAdminPage page="dashboard">
-                <AdminDashboard />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="users"
-            element={
-              <ProtectedAdminPage page="users">
-                <Users />
-              </ProtectedAdminPage>
-            }
-          />
-
-          <Route
-            path="properties"
-            element={
-              <ProtectedAdminPage page="properties">
-                <Properties />
-              </ProtectedAdminPage>
-            }
-          />
-
-          <Route
-            path="experiences"
-            element={
-              <ProtectedAdminPage page="experiences">
-                <AdminExperiences />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="categories"
-            element={
-              <ProtectedAdminPage page="categories">
-                <Categories />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="reservations"
-            element={
-              <ProtectedAdminPage page="reservations">
-                <Reservations />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="payments"
-            element={
-              <ProtectedAdminPage page="payments">
-                <Payments />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="reviews"
-            element={
-              <ProtectedAdminPage page="reviews">
-                <Reviews />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="reports"
-            element={
-              <ProtectedAdminPage page="reports">
-                <Reports />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="support"
-            element={
-              <ProtectedAdminPage page="support">
-                <Support />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="notifications"
-            element={
-              <ProtectedAdminPage page="notifications">
-                <AdminNotifications />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="marketing"
-            element={
-              <ProtectedAdminPage page="marketing">
-                <Marketing />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="featured-listings"
-            element={
-              <ProtectedAdminPage page="featured-listings">
-                <FeaturedListings />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="cms"
-            element={
-              <ProtectedAdminPage page="cms">
-                <CMS />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="analytics"
-            element={
-              <ProtectedAdminPage page="analytics">
-                <Analytics />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="activity-logs"
-            element={
-              <ProtectedAdminPage page="activity-logs">
-                <ActivityLogs />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="monitoring"
-            element={
-              <ProtectedAdminPage page="monitoring">
-                <Monitoring />
-              </ProtectedAdminPage>
-            }
-          />
-          <Route
-            path="settings"
-            element={
-              <ProtectedAdminPage page="settings">
-                <SystemSettings />
-              </ProtectedAdminPage>
-            }
-          />
+          <Route index element={<AdminDashboard />} />
+          <Route path="users" element={<Users />} />
+          <Route path="properties" element={<Properties />} />
+          <Route path="experiences" element={<AdminExperiences />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="reservations" element={<Reservations />} />
+          <Route path="payments" element={<Payments />} />
+          <Route path="reviews" element={<Reviews />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="support" element={<Support />} />
+          <Route path="notifications" element={<AdminNotifications />} />
+          <Route path="marketing" element={<Marketing />} />
+          <Route path="featured-listings" element={<FeaturedListings />} />
+          <Route path="cms" element={<CMS />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="activity-logs" element={<ActivityLogs />} />
+          <Route path="monitoring" element={<Monitoring />} />
+          <Route path="settings" element={<SystemSettings />} />
         </Route>
+
         <Route path="/help">
           <Route index element={<Landing />} />
           <Route path="article/:id" element={<ArticleDetails />} />
@@ -272,6 +156,7 @@ const App = () => {
           <Route path="search" element={<SearchResultsPage />} />
         </Route>
       </Routes>
+
       {!isAdminRoute && !isHostRoute && <Footer />}
     </>
   );

@@ -229,12 +229,6 @@ export default function GlobalCard({
           {item?.title || "Untitled"}
         </h3>
 
-        {categoryName && (
-          <span className="mt-0.5 truncate text-[14px] text-[#717171]">
-            {categoryName}
-          </span>
-        )}
-
         <div className="mt-0.5 flex items-center text-[15px] text-[#717171]">
           <span className="text-[#222222]">{displayPrice}</span>
           <span className="ml-1">for 1 night</span>

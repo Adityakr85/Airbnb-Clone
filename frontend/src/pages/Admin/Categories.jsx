@@ -38,6 +38,7 @@ export default function Categories() {
   const [search, setSearch] = useState("");
   const [type, setType] = useState("all");
   const [status, setStatus] = useState("all");
+  const [activeCard, setActiveCard] = useState("total");
   const [loading, setLoading] = useState(true);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -56,10 +57,7 @@ export default function Categories() {
     try {
       setLoading(true);
 
-      const data = await fetchAdminCategories(clerkId, role, {
-        category_for: type,
-        search,
-      });
+      const data = await fetchAdminCategories(clerkId);
 
       setCategories(data);
     } catch (error) {
@@ -68,10 +66,9 @@ export default function Categories() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadCategories();
-  }, [clerkId, type, status]);
+  }, [clerkId]);
 
   const filteredCategories = useMemo(() => {
     return categories.filter((category) => {
@@ -79,14 +76,16 @@ export default function Categories() {
         category.name?.toLowerCase().includes(search.toLowerCase()) ||
         category.slug?.toLowerCase().includes(search.toLowerCase());
 
+      const matchesType = type === "all" || category.category_for === type;
+
       const matchesStatus =
         status === "all" ||
         (status === "active" && Number(category.is_active) === 1) ||
         (status === "hidden" && Number(category.is_active) === 0);
 
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesType && matchesStatus;
     });
-  }, [categories, search, status]);
+  }, [categories, search, type, status]);
 
   const stats = useMemo(() => {
     return {
@@ -140,10 +139,10 @@ export default function Categories() {
       };
 
       if (editingCategory) {
-        await updateAdminCategory(clerkId, editingCategory.id, payload, role);
+        await updateAdminCategory(clerkId, editingCategory.id, payload);
         toast.success("Category updated");
       } else {
-        await createAdminCategory(clerkId, payload, role);
+        await createAdminCategory(clerkId, payload);
         toast.success("Category created");
       }
 
@@ -162,7 +161,7 @@ export default function Categories() {
     if (!deleteTarget) return;
 
     try {
-      await deleteAdminCategory(clerkId, deleteTarget.id, role);
+      await deleteAdminCategory(clerkId, deleteTarget.id);
       toast.success("Category deleted");
       setDeleteTarget(null);
       await loadCategories();
@@ -176,7 +175,7 @@ export default function Categories() {
 
   const handleToggle = async (category) => {
     try {
-      await toggleAdminCategory(clerkId, category.id, role);
+      await toggleAdminCategory(clerkId, category.id);
       toast.success(
         Number(category.is_active) === 1
           ? "Category hidden"
@@ -212,8 +211,9 @@ export default function Categories() {
           title="Total Categories"
           value={stats.total}
           icon={Grid3X3}
-          active={type === "all" && status === "all"}
+          active={activeCard === "total"}
           onClick={() => {
+            setActiveCard("total");
             setType("all");
             setStatus("all");
           }}
@@ -223,8 +223,9 @@ export default function Categories() {
           title="Property Types"
           value={stats.property}
           icon={Home}
-          active={type === "property"}
+          active={activeCard === "property"}
           onClick={() => {
+            setActiveCard("property");
             setType("property");
             setStatus("all");
           }}
@@ -234,8 +235,9 @@ export default function Categories() {
           title="Experience Types"
           value={stats.experience}
           icon={Compass}
-          active={type === "experience"}
+          active={activeCard === "experience"}
           onClick={() => {
+            setActiveCard("experience");
             setType("experience");
             setStatus("all");
           }}
@@ -245,8 +247,9 @@ export default function Categories() {
           title="Hidden"
           value={stats.hidden}
           icon={EyeOff}
-          active={status === "hidden"}
+          active={activeCard === "hidden"}
           onClick={() => {
+            setActiveCard("hidden");
             setType("all");
             setStatus("hidden");
           }}
@@ -275,7 +278,21 @@ export default function Categories() {
 
           <select
             value={type}
-            onChange={(e) => setType(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+
+              setType(value);
+
+              if (value === "property") {
+                setActiveCard("property");
+              } else if (value === "experience") {
+                setActiveCard("experience");
+              } else if (status === "hidden") {
+                setActiveCard("hidden");
+              } else {
+                setActiveCard("total");
+              }
+            }}
             className="rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
           >
             <option value="all">All Types</option>
@@ -285,7 +302,21 @@ export default function Categories() {
 
           <select
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+
+              setStatus(value);
+
+              if (value === "hidden") {
+                setActiveCard("hidden");
+              } else if (type === "property") {
+                setActiveCard("property");
+              } else if (type === "experience") {
+                setActiveCard("experience");
+              } else {
+                setActiveCard("total");
+              }
+            }}
             className="rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-rose-500"
           >
             <option value="all">All Status</option>

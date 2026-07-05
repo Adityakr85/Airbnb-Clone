@@ -28,7 +28,8 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $this->call(PropertiesSeeder::class);
+        $this->call(CategorySeeder::class);
+        $this->call(AmenitySeeder::class);
         $this->call(ExperiencesSeeder::class);
         $this->call(ServiceSeeder::class);
         $this->call(HelpCenterSeeder::class);
