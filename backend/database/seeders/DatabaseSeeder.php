@@ -20,13 +20,7 @@ class DatabaseSeeder extends Seeder
         // Create a demo user without relying on factory/migration defaults.
         // This avoids seeding failures when the existing DB users table schema
         // does not match the current Laravel migration (e.g., missing email_verified_at).
-        User::query()->firstOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'password' => bcrypt('password'),
-            ]
-        );
+    
 
         $this->call(CategorySeeder::class);
         $this->call(AmenitySeeder::class);
