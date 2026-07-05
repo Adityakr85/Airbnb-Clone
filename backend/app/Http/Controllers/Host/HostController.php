@@ -109,8 +109,6 @@ class HostController extends Controller
             ], 400);
         }
 
-        $user = User::getOrCreateFromClerkId($clerkId, 'User', 'host', $role);
-
         if (!$user) {
             return response()->json([
                 'success' => false,

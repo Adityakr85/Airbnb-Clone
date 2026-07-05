@@ -1,8 +1,10 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams ,useNavigate } from "react-router-dom";
+import { MessageSquare } from "lucide-react";
 import experienceData from "../data/experienceData";
 
 export default function ExperienceDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const experience = experienceData.find((item) => item.id === Number(id));
 
@@ -14,9 +16,12 @@ export default function ExperienceDetails() {
     .filter((item) => item.id !== experience.id)
     .slice(0, 4);
 
-  if (!experience) {
-    return <div className="p-10 text-center">Experience not found</div>;
-  }
+  const handleContactHost = () => {
+    const hostId = experience.host_id || `host-${experience.id}` || "host-456";
+    const hostName = encodeURIComponent(experience.host || "Experience Host");
+    
+    navigate(`/pages/User/Messages?partner_id=${hostId}&name=${hostName}`);
+  };
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8">
@@ -33,21 +38,32 @@ export default function ExperienceDetails() {
       </p>
 
       <div className="mt-6 border-t pt-6">
-        <div className="flex items-center gap-4">
-          <img
-            src={experience.hostImage}
-            alt={experience.host}
-            className="h-16 w-16 rounded-full object-cover"
-          />
+        <div className="flex items-centerjustify-between gap-4">
+          <div className="flex items-center gap-4">
+            <img
+              src={experience.hostImage}
+              alt={experience.host}
+              className="h-16 w-16 rounded-full object-cover"
+            />
 
-          <div>
-            <h2 className="text-2xl font-semibold">
-              Hosted by {experience.host}
-            </h2>
+            <div>
+              <h2 className="text-2xl font-semibold">
+                Hosted by {experience.host}
+              </h2>
 
-            <p className="text-gray-500">Experienced local guide</p>
+              <p className="text-gray-500">Experienced local guide</p>
+            </div>
           </div>
+
+          <button
+            onClick={handleContactHost}
+            className="flex shrink-0 items-center gap-2 rounded-xl border border-black bg-white px-6 py-3 font-semibold text-gray-900 shadow-sm transition duration-200 hover:bg-gray-100 active:scale-95"
+          >
+            <MessageSquare size={18} />
+            Contact Host
+          </button>
         </div>
+
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="rounded-2xl border p-4">
             <h3 className="font-semibold">Duration</h3>
