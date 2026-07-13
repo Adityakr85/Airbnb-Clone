@@ -6,31 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('property_amenity', function (Blueprint $table) {
-    $table->id();
+            $table->id();
 
-    $table->foreignId('property_id')
-        ->constrained('properties')
-        ->cascadeOnDelete();
+            $table->foreignId('property_id')
+                ->constrained('properties')
+                ->cascadeOnDelete();
 
-    $table->foreignId('amenity_id')
-        ->constrained('amenities')
-        ->cascadeOnDelete();
+            $table->foreignId('amenity_id')
+                ->constrained('amenities')
+                ->cascadeOnDelete();
 
-    $table->timestamps();
+            $table->timestamps();
 
-    $table->unique(['property_id', 'amenity_id']);
-});
+            $table->unique(['property_id', 'amenity_id']);
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('property_amenity');

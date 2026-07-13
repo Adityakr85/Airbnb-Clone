@@ -6,25 +6,26 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
-{
-    Schema::create('property_images', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('property_id')->constrained()->cascadeOnDelete();
-        $table->string('image_path');
-        $table->boolean('is_cover')->default(false);
-        $table->timestamps();
-    });
-}
+    {
+        Schema::create('property_images', function (Blueprint $table) {
+            $table->id();
 
-    /**
-     * Reverse the migrations.
-     */
+            $table->foreignId('property_id')
+                ->constrained('properties')
+                ->cascadeOnDelete();
+
+            $table->string('image_path');
+            $table->boolean('is_cover')->default(false);
+
+            $table->timestamps();
+
+            $table->index('property_id');
+        });
+    }
+
     public function down(): void
-{
-    Schema::dropIfExists('property_images');
-}
+    {
+        Schema::dropIfExists('property_images');
+    }
 };

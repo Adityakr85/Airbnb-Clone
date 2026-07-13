@@ -10,27 +10,42 @@ return new class extends Migration
     {
         Schema::create('properties', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('host_id')->constrained('users')->onDelete('cascade');
+
+            $table->foreignId('host_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
+
             $table->string('title');
             $table->text('description')->nullable();
+
             $table->string('location');
             $table->string('address')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
-            $table->string('type');
+
             $table->decimal('price', 10, 2);
-            $table->integer('guests')->default(1);
+
+            $table->integer('guests')->nullable();
             $table->integer('bedrooms');
-            $table->integer('beds')->default(0);
             $table->integer('bathrooms');
-            $table->string('category')->nullable();
+
+            $table->foreignId('category_id')
+                ->nullable()
+                ->constrained('categories')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
+
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->enum('moderation_status', ['approved', 'pending', 'rejected'])->default('pending');
+
             $table->decimal('rating', 3, 2)->nullable();
             $table->integer('views')->default(0);
             $table->integer('bookings')->default(0);
             $table->decimal('earnings', 12, 2)->default(0);
+
             $table->timestamps();
+
+            $table->index('category_id', 'idx_properties_category_id');
         });
     }
 

@@ -60,8 +60,11 @@ export default function BookingCard({
       alert("Reservation request submitted successfully!");
       navigate("/pages/User/Trips");
     } catch (error) {
-      console.error(error);
-      alert("Failed to submit reservation request.");
+      console.error(error.response?.data);
+
+      alert(
+        error.response?.data?.message || JSON.stringify(error.response?.data),
+      );
     } finally {
       setLoading(false);
     }
